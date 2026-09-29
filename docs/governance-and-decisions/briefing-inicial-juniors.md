@@ -71,26 +71,26 @@ herramienta en la Fase 2, en vez de tener que traducir el vocabulario después.
 
 ## 4. Estructura de `docs/` en este repositorio
 
+Los nombres de carpeta van en **inglés** (son rutas/slugs, igual que el código); el contenido
+dentro de cada archivo sigue en español según la sección 1.
+
 | Carpeta | Contenido | Quién escribe ahí |
 |---|---|---|
-| `docs/gobierno-y-decisiones/` | Este documento + ADR de nube, región y herramientas cuando se definan | Senior |
-| `docs/arquitectura/` (+ `diagramas/`) | Los 8 puntos del reto: gobierno, seguridad, red, cargas, migración, observabilidad, Fabric | Fase 1 |
+| `docs/governance-and-decisions/` | Este documento + ADR de nube, región y herramientas cuando se definan | Senior |
+| `docs/architecture/` (+ `diagrams/`) | Los 8 puntos del reto: gobierno, seguridad, red, cargas, migración, observabilidad, Fabric | Fase 1 |
 | `docs/iac/` | Evidencia y verificación del código (el código en sí vive en el repo `iac`) | Fase 2 |
-| `docs/costos/` | Estimaciones de migración, mes estable, campaña, Fabric | Fase 3 |
-| `docs/cambio/` | Plantillas y ejemplos de release notes | Fase 4 |
-| `docs/diseno/` | Sistema de diseño de marca | Fase 5 |
-| `docs/sustentacion/` | Informe, presentación, banco de preguntas, ensayo | Fase 6 |
-| `docs/transversal/` | Registro de supuestos, preguntas de la sesión de aclaraciones, revisión final, checklist de entrega | Fase 7 (y continuo) |
-
-Las issues #21 y #24 (Fase 2) y #39 y #40 (Fase 7) apuntan hoy a la raíz de `docs/`; se
-actualizarán para apuntar a `docs/iac/` y `docs/transversal/` respectivamente.
+| `docs/costs/` | Estimaciones de migración, mes estable, campaña, Fabric | Fase 3 |
+| `docs/change/` | Plantillas y ejemplos de release notes | Fase 4 |
+| `docs/design/` | Sistema de diseño de marca | Fase 5 |
+| `docs/presentation/` | Informe, presentación, banco de preguntas, ensayo | Fase 6 |
+| `docs/cross-cutting/` | Registro de supuestos, preguntas de la sesión de aclaraciones, revisión final, checklist de entrega | Fase 7 (y continuo) |
 
 ---
 
 ## 5. Registro de supuestos
 
 Cualquier decisión que un Junior tome sin que esté escrita en el enunciado ni en este documento
-debe quedar anotada en `docs/transversal/assumptions-log.md` con esta estructura:
+debe quedar anotada en `docs/cross-cutting/assumptions-log.md` con esta estructura:
 
 | Supuesto | Justificación | Issue que lo originó | Estado |
 |---|---|---|---|
@@ -100,6 +100,6 @@ debe quedar anotada en `docs/transversal/assumptions-log.md` con esta estructura
 
 ## 6. Sesión de aclaraciones (30 minutos, el docente representa al cliente)
 
-Antes de esa sesión, revisar `docs/transversal/sesion-aclaraciones-preguntas.md` y priorizar
+Antes de esa sesión, revisar `docs/cross-cutting/sesion-aclaraciones-preguntas.md` y priorizar
 las preguntas sobre los puntos que sigan en `[ PENDIENTE ]` en este documento y que no se hayan
 podido resolver solo con criterio del equipo.
