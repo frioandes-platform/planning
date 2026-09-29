@@ -1,7 +1,7 @@
 # planning
-Plan de trabajo trazable del caso FríoAndes (Universidad Icesi) — issues por fase
+Plan de trabajo trazable del caso FríoAndes (Universidad Icesi), organizado por issues y fases.
 
-Antes de empezar, lee [`docs/governance-and-decisions/briefing-inicial-juniors.md`](docs/governance-and-decisions/briefing-inicial-juniors.md) — ahí están el idioma de entrega, la nube principal, la estructura de `docs/` y el registro de supuestos.
+Antes de empezar, lee [`docs/governance-and-decisions/briefing-inicial-juniors.md`](docs/governance-and-decisions/briefing-inicial-juniors.md). Ahí están el idioma de entrega, la nube principal, la estructura de `docs/` y el registro de supuestos.
 
 ## Estructura de `docs/`
 
