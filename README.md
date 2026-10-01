@@ -10,6 +10,7 @@ Los nombres de carpeta van en inglés (rutas/slugs); el contenido de cada docume
 | Carpeta | Contenido |
 |---|---|
 | `docs/governance-and-decisions/` | Decisiones base de los Senior (idioma, nube, región, herramientas) |
+| `docs/case-study/` | Enunciado del caso en Markdown y guía de lectura que lo desmenuza y lo cruza con el tablero |
 | `docs/architecture/` | Documento y diagramas de arquitectura (Tarea 1) |
 | `docs/iac/` | Evidencia y verificación del código de infraestructura (el código vive en `frioandes-platform/iac`) |
 | `docs/costs/` | Estimación de costos (Tarea 3) |
