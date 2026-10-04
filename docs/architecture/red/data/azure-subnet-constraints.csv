@@ -1,0 +1,17 @@
+service,required_name,min_size,max_size,severity,status,source
+vpn-gateway,GatewaySubnet,/27,,error,confirmado,https://learn.microsoft.com/en-us/azure/vpn-gateway/vpn-gateway-about-vpn-gateway-settings (2026-10-02)
+firewall,AzureFirewallSubnet,/26,,error,confirmado,https://learn.microsoft.com/en-us/azure/firewall/firewall-faq (2026-10-02)
+firewall-management,AzureFirewallManagementSubnet,/26,,error,confirmado,https://learn.microsoft.com/en-us/azure/firewall/management-nic (2026-10-02)
+bastion,AzureBastionSubnet,/26,,error,confirmado,https://learn.microsoft.com/en-us/azure/bastion/configuration-settings (2026-10-02)
+app-gateway-v2,,/24,,aviso,confirmado,https://learn.microsoft.com/en-us/azure/application-gateway/configuration-infrastructure (2026-10-02)
+dns-resolver-inbound,,/28,/24,error,confirmado,https://learn.microsoft.com/en-us/azure/dns/dns-private-resolver-overview (2026-10-02)
+dns-resolver-outbound,,/28,/24,error,confirmado,https://learn.microsoft.com/en-us/azure/dns/dns-private-resolver-overview (2026-10-02)
+container-apps-workload-profiles,,/27,,error,confirmado,https://learn.microsoft.com/en-us/azure/container-apps/custom-virtual-networks (2026-10-02)
+container-apps-consumption-only,,/23,,error,confirmado,https://learn.microsoft.com/en-us/azure/container-apps/custom-virtual-networks (2026-10-02)
+mysql-flexible,,/29,,error,confirmado,https://learn.microsoft.com/en-us/azure/mysql/flexible-server/concepts-networking-vnet (2026-10-02)
+fabric-vnet-gateway,,/28,,error,confirmado (derivado: 5 IP reservadas por Azure + 5 de funcionamiento + 1 por miembro del gateway + 2 de margen; /28 alcanza para hasta 4 miembros y /27 para 5 a 9; corregido tras verification/inv-2.verification.md),https://learn.microsoft.com/en-us/data-integration/vnet/create-data-gateways y https://learn.microsoft.com/en-us/data-integration/vnet/data-gateway-faqs (2026-10-02)
+vwan-hub,,/24,,error,confirmado,https://learn.microsoft.com/en-us/azure/virtual-wan/hub-settings (2026-10-02)
+vwan-hub-with-firewall,,/22,,error,confirmado,https://learn.microsoft.com/en-us/azure/virtual-wan/hub-settings (2026-10-02)
+migration-tools,,,,aviso,sin requisito publicado (confirmado en verification/inv-2.verification.md: Microsoft no publica tamaño ni delegación para DMS ni para el runtime de integración),
+aks-apiserver,,/28,,error,"confirmado: mínimo /28, delegada a Microsoft.ContainerService/managedClusters, exclusiva, compartible entre clústeres de la misma red virtual; cada clúster reserva al menos 9 IP",https://learn.microsoft.com/en-us/azure/aks/api-server-vnet-integration (2026-10-03)
+aks-nodes,,/26,,aviso,derivado: Microsoft no publica un mínimo; nodos + margen de actualización + balanceadores internos + IP reservadas por Azure (techo del plan: 39 IP),https://learn.microsoft.com/en-us/azure/aks/concepts-network-azure-cni-overlay (2026-10-03)

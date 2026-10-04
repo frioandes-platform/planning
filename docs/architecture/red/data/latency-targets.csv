@@ -1,0 +1,8 @@
+region,host
+eastus2,s3eastus2.blob.core.windows.net
+centralus,s3centralus.blob.core.windows.net
+southcentralus,s3southcentralus.blob.core.windows.net
+eastus,s3eastus.blob.core.windows.net
+brazilsouth,s3brazilsouth.blob.core.windows.net
+mexicocentral,s3mexicocentral.blob.core.windows.net
+chilecentral,s3chilecentral.blob.core.windows.net
