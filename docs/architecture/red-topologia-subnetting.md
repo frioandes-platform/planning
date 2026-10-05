@@ -258,13 +258,13 @@ Los equipos de red de los centros tienen que soportar IKEv2, dos túneles simult
 
 ### 2.4 Qué pasa con cada función del firewall de Cali
 
-Durante la convivencia el firewall de Cali sigue en pie. Esta tabla dice qué pasa con cada una de sus funciones de red y cuándo. Las reglas de seguridad que se conservan o se trasladan al firewall de nube se detallan en el diseño del firewall de nube.
+Durante la convivencia el firewall de Cali sigue en pie. Esta tabla dice qué pasa con cada una de sus funciones de red y cuándo. Las reglas de seguridad que se conservan o se trasladan al firewall de nube se detallan en el diseño del firewall de nube (`red-firewall-y-publicacion.md`, sección 5).
 
 | Función actual del firewall de Cali | Durante la convivencia | En estado estable |
 |---|---|---|
 | VPN sitio a sitio con los ocho centros | Se mantiene como respaldo y se retira centro por centro (fases A, B y C) | Apagada a más tardar el día 90. Los centros llegan directo a Azure |
-| NAT del portal de rastreo hacia Nginx | Sigue publicando el portal actual | Se apaga en el corte del portal, cuando el portal nuevo queda publicado en Azure |
-| Firewall de aplicaciones delante de Nginx | Sigue protegiendo el portal actual | Se apaga junto con el NAT. Su función la toma el firewall de aplicaciones de Azure (sección 5) |
+| NAT del portal de rastreo hacia Nginx | Sigue publicando el portal actual | Desde el corte no recibe tráfico, pero queda configurado como camino de vuelta atrás. Se apaga al cerrar ese plazo, como máximo el día 90 |
+| Firewall de aplicaciones delante de Nginx | Sigue protegiendo el portal actual | Desde el corte su función la toma el firewall de aplicaciones de Azure (sección 5). Queda configurado y se apaga junto con el NAT |
 | Enrutamiento entre las subredes de Cali | Se mantiene | Se mantiene para lo que queda en la sede: usuarios y torre de control |
 | Políticas entre subredes de servidores de Cali | Se mantienen mientras los servidores sigan encendidos | Se retiran cuando se apaga cada servidor migrado |
 | Salida de Cali hacia la nube | Pasa a dos proveedores con cuatro túneles hacia Azure | Se mantiene |
@@ -632,7 +632,7 @@ Cliente en internet
 - **Pruebas y desarrollo** tienen la misma estructura, pero su entrada se limita a orígenes autorizados (las IP de FríoAndes y del equipo de desarrollo).
 - **Durante la convivencia** el portal actual sigue publicado desde Cali por NAT y Nginx. Se apaga en el corte, cuando el portal nuevo queda publicado en Azure (sección 2.4).
 
-La tabla de reglas del WAF y del Azure Firewall se detalla en el diseño del firewall de nube.
+La tabla de reglas del WAF y del Azure Firewall se detalla en el diseño del firewall de nube (`red-firewall-y-publicacion.md`).
 
 ### 5.4 Todas las entradas públicas
 
@@ -648,7 +648,7 @@ Esta tabla reúne todo lo que tiene una dirección pública en el diseño, para 
 | IP de gestión del Azure Firewall | `AzureFirewallManagementSubnet` | Solo la plataforma de Azure | No recibe tráfico de aplicación | Permanente |
 | Salida a internet del firewall | `AzureFirewallSubnet` | Los ambientes, para salir | Solo salida, sin entrada | Permanente |
 | Cuenta de almacenamiento con token de acceso | Servicio de migración de la base (DMS) | Solo DMS, durante la migración | Token SAS con vencimiento | Temporal |
-| Portal actual por NAT y Nginx | Cali, `10.20.5.0/24` | Clientes, hasta el corte | NAT y WAF actuales | Temporal |
+| Portal actual por NAT y Nginx | Cali, `10.20.5.0/24` | Clientes, hasta el corte. Después queda sin tráfico, como camino de vuelta atrás | NAT y WAF actuales | Temporal |
 | VPN de usuario | Hub, si se elige esa forma de acceso | Personas remotas | Entra ID y MFA | Solo reservada |
 
 ### 5.5 Acceso administrativo para equipos distribuidos
@@ -693,7 +693,7 @@ El reto pide dejar listo un punto de interconexión, DNS e identidad para sumar 
 
 ### 5.8 Todo pasa por el firewall
 
-El principio del diseño es que todo el tráfico entre las sedes y la nube, y toda la salida a internet de los ambientes, pasa por el Azure Firewall. Eso incluye los sensores de los cuartos fríos y la migración de la base de datos. La única excepción es la copia del archivo histórico durante la migración (sección 6).
+El principio del diseño es que todo el tráfico entre las sedes y la nube, y toda la salida a internet de los ambientes, pasa por el Azure Firewall. Eso incluye los sensores de los cuartos fríos y la migración de la base de datos. Algunos flujos se controlan en otro punto, cada uno con su motivo: la copia del archivo histórico durante la migración (sección 6), el acceso de Azure Bastion a las máquinas de administración y el DNS entre Cali y el resolver del hub, que se controlan con NSG; la entrada del portal, que filtra el WAF; y los camiones, que llegan a IoT Hub por internet. La tabla de políticas completa, con el punto de control de cada flujo, está en el diseño del firewall de nube (`red-firewall-y-publicacion.md`, sección 4).
 
 Lista inicial de flujos para el diseño del firewall de nube:
 
@@ -706,10 +706,10 @@ Lista inicial de flujos para el diseño del firewall de nube:
 | `snet-app-torre` y `snet-app-portal` | Base de datos (`snet-data`) | 3306 | Permanente |
 | `snet-app-torre` y `snet-app-portal` | Caché y Key Vault (`snet-data-pe`) | Puertos del servicio | Permanente |
 | Gateway de Fabric (`snet-fabric-egress`) | Base de datos (`snet-data`) y archivo (`snet-archive`) | 3306 y 443 | Permanente |
-| Azure Bastion | Máquinas de administración (`snet-admin`) | 22 y 3389 | Permanente |
-| DNS de Cali | DNS Private Resolver | 53 | Permanente |
+| Azure Bastion | Máquinas de administración (`snet-admin`) | 22 y 3389 | Permanente, controlado por NSG |
+| DNS de Cali | DNS Private Resolver | 53 | Permanente, controlado por NSG |
 | Ambientes | Internet, por el Azure Firewall | Según reglas | Permanente |
-| Base de datos de Cali (`10.20.2.0/24`) | Migración (`snet-cali-integration`) | 3306 | Temporal |
+| Migración (`snet-cali-integration`), que abre la conexión hacia la base de Cali | Base de datos de Cali (`10.20.2.0/24`) | 3306 | Temporal |
 | Archivo de Cali (`10.20.3.0/24`) | Archivo en Azure (`snet-archive`) | 111, 2048 y 443 | Temporal, fuera del firewall (sección 6) |
 
 ---
@@ -781,11 +781,11 @@ Archivo de Cali (10.20.3.0/24) → túnel IPsec → VPN Gateway → endpoint pri
 **Cómo se controla sin el firewall:**
 
 - Un grupo de seguridad de red (NSG) en `snet-archive` solo deja entrar tráfico desde el servidor de archivo de Cali (`10.20.3.0/24`), y solo por los puertos de NFS (111 y 2048) y HTTPS (443). Todo lo demás se rechaza.
-- Los registros de flujo del NSG guardan cada conexión, así que la copia queda auditada.
+- Los registros de flujo de la red virtual del hub guardan cada conexión que atraviesa el VPN Gateway, así que la copia queda auditada. Microsoft ya no permite crear registros de flujo de NSG, que se retiran en septiembre de 2027.
 - El almacenamiento del archivo usa NFS 3.0, que no tiene usuario ni contraseña: lo único que lo protege es la red. Por eso el NSG tiene que ser estricto.
 - La excepción dura lo que dure la copia y se retira al final de la convivencia.
 
-**Condición técnica:** las rutas tienen que ser simétricas. Ni la tabla de rutas de la `GatewaySubnet` ni la de `snet-archive` pueden mandar ese tráfico al firewall. Si una lo manda y la otra no, la ida y la vuelta toman caminos distintos y el firewall corta la conexión.
+**Condición técnica:** las rutas tienen que ser simétricas. Ni la tabla de rutas de la `GatewaySubnet` ni la de `snet-archive` pueden mandar ese tráfico al firewall. Si una lo manda y la otra no, la ida y la vuelta toman caminos distintos y el firewall corta la conexión. Para lograrlo, `snet-archive` activa las políticas de red de los endpoints privados solo para el NSG y no para las rutas. Así, la ruta propia del endpoint privado se impone a la ruta del hub hacia el firewall.
 
 **Alternativa:** pasar la copia por el firewall, con inspección y registro centralizados, por unos USD 194 más al mes. El costo exacto de la opción elegida incluye el procesamiento del endpoint privado, que se ajusta en el cálculo de costos de la plataforma.
 
@@ -952,13 +952,13 @@ El portal tiene dos caminos, y los dos usan el mismo `/24` de `snet-ingress`:
 
 | | Application Gateway v2 con su controlador para AKS | Application Gateway for Containers |
 |---|---|---|
-| Subred | `snet-ingress` igual que con Container Apps | `snet-ingress` reservada para este servicio, mínimo `/24` |
+| Subred | `snet-ingress`, con delegación a `Microsoft.Network/applicationGateways`: Azure CNI Overlay la exige, junto con un tamaño de `/24` o menor y la misma red virtual que los nodos | `snet-ingress` reservada para este servicio, mínimo `/24` |
 | WAF | Sí | Sí |
 | Entrada con IP privada | Admite | No admite |
 | Rutas | Igual que con Container Apps | Necesita su propia tabla de rutas, sin enviar la salida al firewall |
 | Costo fijo con WAF | El mismo que con Container Apps | Unos USD 193 al mes por ambiente, más capacidad |
 
-`ip-plan-aks.csv` conserva Application Gateway v2 en `snet-ingress`, porque la subred queda idéntica. Si se elige Application Gateway for Containers, cambia la configuración de esa subred y se vuelve a correr la verificación.
+`ip-plan-aks.csv` conserva Application Gateway v2 en `snet-ingress`, con el mismo rango. Con el controlador del Application Gateway, la subred lleva además la delegación indicada en la tabla. Si se elige Application Gateway for Containers, cambia la configuración de esa subred y se vuelve a correr la verificación.
 
 La torre se publica con un balanceador interno del clúster, con IP privada en `snet-app-torre`. Cali y los centros lo alcanzan a través del Azure Firewall. Application Gateway for Containers no sirve para la torre porque no admite IP privada.
 
@@ -1041,7 +1041,7 @@ Esta lista crece con cada sección del documento.
 | La plataforma de aplicación es Container Apps con perfiles de carga, con un máximo de 20 nodos dedicados y 200 réplicas por entorno | Se confirma con el diseño de la plataforma logística. Si fuera AKS, aplica la sección 7.3 |
 | Cada mensaje de telemetría pesa alrededor de 1 KB | Se usa para estimar el volumen de los dos caminos |
 | La copia continua del archivo mueve unos 12.154 GB al mes (37 Mbps) | Sale del crecimiento de 12 TB al mes que indica el reto |
-| El portal se publica con Application Gateway v2 y WAF, el firewall de nube es Azure Firewall Standard y el acceso administrativo es Azure Bastion | Se confirman con el diseño del firewall de nube y el del acceso remoto |
+| El portal se publica con Application Gateway v2 y WAF, el firewall de nube es Azure Firewall Standard y el acceso administrativo es Azure Bastion | El portal y el firewall quedaron confirmados en el diseño del firewall de nube. El acceso administrativo se confirma con el diseño del acceso remoto |
 | La migración en línea de la base usa una cuenta de almacenamiento con token SAS temporal | El servicio de migración no admite una cuenta restringida a la red virtual; se confirma con el diseño de la migración |
 | Una diferencia de latencia menor al 30 % no justifica cambiar de región | La plataforma es una consola web, un portal y alertas con margen de 60 segundos; 10 a 30 ms no cambian la experiencia |
 
