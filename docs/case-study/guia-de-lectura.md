@@ -495,6 +495,8 @@ Si cada mensaje pesa 1 KB (supuesto), son unos 0,5 GB por día, unos 15 GB al me
 
 **En el tablero.** #13 Telemetría, de Melo088, en *Ready*.
 
+> **Decisión tomada (#13).** Los dos caminos llegan a un IoT Hub S1 de 2 unidades en Central US, la región pareja, porque East US 2 no tiene redundancia entre zonas para IoT Hub. Cada dispositivo se da de alta con DPS y certificados X.509. La alerta la evalúa Stream Analytics en East US 2. Las alertas pasan por un event hub a una función (Flex Consumption) que avisa a la torre de 04:00 a 22:00 y a la guardia de calidad de noche, y escala a los 5 y 15 minutos. Ver [`carga-b-telemetria.md`](../architecture/carga-b-telemetria.md), secciones 2 y 3.
+
 **Cuidado con.**
 - **La trampa del muestreo.** El camión mide la temperatura cada **60 segundos**. Hay dos lecturas posibles de
   "menos de un minuto desde el evento":
@@ -503,12 +505,16 @@ Si cada mensaje pesa 1 KB (supuesto), son unos 0,5 GB por día, unos 15 GB al me
   - si el evento es el momento en que *llega la medición*, queda un minuto entero para procesar.
 
   **Es una pregunta clave para la sesión de aclaraciones.** En los cuartos fríos, que miden cada 30 s, hay más margen.
+
+  > **Decisión tomada (#13).** El minuto se cuenta desde la hora de la lectura del sensor hasta que la alerta se ve, con un presupuesto de 40 s. Se confirma con la pregunta 2 de la sesión. Ver [`carga-b-telemetria.md`](../architecture/carga-b-telemetria.md), sección 3.1.
 - **40 TB de históricos frente a menos de 1 TB en 5 años.** Algo no cuadra: los archivos de hoy deben ser muy pesados
   o traer más información. Conviene preguntarlo.
 - **Sin señal celular.** El camión debería guardar las mediciones y enviarlas cuando recupere la señal. El enunciado
   dice "en condiciones normales de red", así que el plazo de 1 minuto solo aplica cuando hay señal.
 - **No pagar dos almacenes.** Si la telemetría guarda su historial en un servicio y Fabric en otro, se paga dos veces.
   Hay que decidir cuál guarda los datos y cuál solo los lee.
+
+> **Decisión tomada (#13).** Guarda el lago de datos de Azure y Fabric solo lee. Hay una copia de evidencia inmutable por cinco años en Central US, que escribe IoT Hub, y una tabla Delta para análisis en East US 2, que Fabric lee con un acceso directo de OneLake, sin copiar. Data Explorer se descartó por costo: más de USD 321 al mes solo de recargo. Ver [`carga-b-telemetria.md`](../architecture/carga-b-telemetria.md), sección 4.
 
 ---
 
@@ -705,6 +711,8 @@ siendo de una persona en la torre**: la IA sugiere, no decide.
 - **Los datos de la operación** (el enunciado los llama "libro operativo") son la base de guías, despachos e
   inventario. Hay que definir cómo llegan a Fabric. Está por confirmar qué opciones ofrece Fabric para MySQL.
 - **La telemetría** puede entrar directo a los componentes de tiempo real de Fabric.
+
+  > **Decisión tomada (#13).** La alerta no pasa por Fabric, para no depender de que una capacidad esté encendida de noche. Fabric lee la tabla de análisis del lago, y los tableros usan un resumen de 5 minutos para quedar bajo los topes de Direct Lake. Ver [`carga-b-telemetria.md`](../architecture/carga-b-telemetria.md), secciones 3.2 y 5.3.
 - **El archivo** se lee con **shortcuts de OneLake**: accesos directos que apuntan a donde ya están los archivos, sin copiarlos.
 - **"No se pide entrenar un modelo propio".** Hay que usar capacidades que ya vienen hechas: funciones de detección de
   anomalías, reglas de alerta, servicios de visión para las fotos. Todo por confirmar.
