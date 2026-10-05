@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-"""Build the draw.io diagrams of the network designs (cloud firewall, portal publication and telemetry).
+"""Build the draw.io diagrams of the network designs: hybrid network and subnets, cloud firewall, portal publication
+and telemetry.
 
 Usage:
     python3 tools/build_drawio_diagrams.py --out ../diagramas   (desde la carpeta red/)
@@ -11,9 +12,11 @@ never cross shapes or labels; export to PNG with the draw.io desktop CLI:
     drawio --disable-gpu -x -f png -e -b 10 -o NAME.drawio.png NAME.drawio
 """
 import argparse
+import csv
 from pathlib import Path
 from xml.sax.saxutils import escape
 
+DATA = Path(__file__).resolve().parent.parent / "data"
 AZ = "img/lib/azure2/"
 ICON = {
     "firewall": AZ + "networking/Firewalls.svg",
@@ -48,6 +51,21 @@ ICON = {
     "onelake": AZ + "analytics/Data_Lake_Store_Gen1.svg",
     "semantic": AZ + "analytics/Analysis_Services.svg",
     "pbi_embedded": AZ + "analytics/Power_BI_Embedded.svg",
+    "mobile_az": AZ + "general/Mobile.svg",
+    "browser": AZ + "general/Browser.svg",
+    "users_az": AZ + "identity/Users.svg",
+    "server_farm": AZ + "general/Server_Farm.svg",
+    "files": AZ + "general/Files.svg",
+    "lb": AZ + "networking/Load_Balancers.svg",
+    "lng": AZ + "networking/Local_Network_Gateways.svg",
+    "iiot": AZ + "iot/Industrial_IoT.svg",
+    "vrouter": AZ + "networking/Virtual_Router.svg",
+    "connections": AZ + "networking/Connections.svg",
+    "aks": AZ + "containers/Kubernetes_Services.svg",
+    "route_table": AZ + "networking/Route_Tables.svg",
+    "vnet": AZ + "networking/Virtual_Networks.svg",
+    "subnet": AZ + "networking/Subnet.svg",
+    "subscription": AZ + "general/Subscriptions.svg",
 }
 NET = "html=1;outlineConnect=0;fillColor=#CCCCCC;strokeColor=#6881B3;gradientColor=none;strokeWidth=2;shape=mxgraph.networks."
 
@@ -189,7 +207,7 @@ def control_points():
     d.zone(30, 120, 270, 330, "Cali", fill="#FFFDE7", stroke="#F9A825")
     d.zone(30, 490, 270, 250, "Ocho centros", fill="#FFFDE7", stroke="#F9A825")
     d.zone(360, 120, 320, 620, "Hub · vnet-hub 10.100.0.0/23", fill="#ECEFF1", stroke="#455A64")
-    d.zone(740, 120, 790, 620, "Producción · vnet-prod 10.101.0.0/21", fill="#FAFAFA", stroke="#616161")
+    d.zone(740, 120, 790, 790, "Producción · vnet-prod 10.101.0.0/21", fill="#FAFAFA", stroke="#616161")
 
     d.icon(60, 165, "users", "Usuarios\n10.20.0.0/24", size=48, label_w=110)
     d.icon(60, 310, "server", "Servidores: aplicación,\nbase y archivo\n10.20.1 a 10.20.3", size=48, label_w=130)
@@ -197,7 +215,7 @@ def control_points():
     d.icon(60, 530, "users", "Usuarios\n10.3X.0.0/24", size=48, label_w=110)
     d.icon(62, 640, "sensor", "Sensores de cuartos\nfríos 10.3X.1.0/24", size=44, label_w=130)
     c_vpn = d.icon(205, 595, "router", "Equipo VPN\ndel centro", size=48, label_w=90)
-    trucks = d.icon(60, 815, "mobile", "Camiones\n(red móvil del operador)", size=48, label_w=150)
+    trucks = d.icon(60, 985, "mobile", "Camiones\n(red móvil del operador)", size=48, label_w=150)
     internet = d.icon(1410, 20, "cloud", "Internet", size=70, label_w=80)
     d.cells[-1] = d.cells[-1].replace("verticalLabelPosition=bottom;verticalAlign=top;", "labelPosition=left;verticalLabelPosition=middle;align=right;verticalAlign=middle;")
 
@@ -225,7 +243,11 @@ def control_points():
     appgw = pz(2, 0, "Portal · snet-ingress", "appgw", "WAF v2")
     portal = pz(2, 1, "Portal · snet-app-portal", "aca", "NSG: solo desde snet-ingress")
     admin = pz(2, 2, "Administración · snet-admin", "vm", "NSG: 22 y 3389 desde Bastion")
-    iot_pub = d.icon(1000, 815, "iothub", "IoT Hub, endpoint público", size=48, label_w=160)
+    iot_pub = d.icon(1000, 985, "iothub", "IoT Hub y DPS, endpoints públicos\n(Central US)", size=48, label_w=200)
+    d.zone(col[0], 650, 470, 130, "Telemetría · snet-telemetry-func", fill="#FFFFFF", stroke="#9E9E9E", font=10)
+    d.icon(col[0] + 30, 692, "func", "Función notificadora", size=48, font=10, label_w=130)
+    d.text(col[0] + 170, 680, 290, 90, "NSG de la torre: 443 desde esta subred, solo para entregar alertas.\n"
+           "Salida por el firewall: FW-319 a 321 (Teams, correo y SMS).", font=10)
 
     d.edge(cali_fw[0], vpngw[0], [(261, 263), (330, 263), (330, 190), (400, 190)], "4 túneles,\n2 proveedores", label_pos=(205, 172, 110), label_h=30)
     d.edge(c_vpn[0], vpngw[0], [(253, 619), (340, 619), (340, 215), (400, 215)], "2 túneles\npor centro", label_pos=(225, 455, 105), label_h=30)
@@ -234,16 +256,16 @@ def control_points():
     d.edge(fw[0], ingest[0], [(552, 410), (735, 410), (735, 396), (851, 396)])
     d.edge(fw[0], integ[0], [(552, 446), (710, 446), (710, 556), (851, 556)], color=C_TEMP, dashed=True)
     d.edge(fw[0], internet[0], [(552, 428), (725, 428), (725, 475), (1545, 475), (1545, 55), (1480, 55)],
-           "FW-301 a 318: salida a internet", label_pos=(1300, 466, 200))
+           "FW-301 a 321: salida a internet", label_pos=(1300, 466, 200))
     d.edge(vpngw[0], archive[0], [(456, 182), (560, 182), (560, 160), (1010, 160), (1010, 236), (1111, 236)],
            color=C_EXC, dashed=True)
     d.edge(internet[0], appgw[0], [(1445, 90), (1445, 236), (1419, 236)], "WAF: 443", label_pos=(1440, 120, 56))
     d.edge(appgw[0], portal[0], [(1419, 250), (1470, 250), (1470, 396), (1419, 396)], "443", label_pos=(1474, 300, 24))
-    d.edge(bastion[0], admin[0], [(448, 644), (500, 644), (500, 725), (1260, 725), (1260, 556), (1371, 556)],
-           "Bastion: NSG, 22 y 3389", label_pos=(880, 716, 160), color=C_EXC)
-    d.edge(trucks[0], iot_pub[0], [(108, 839), (1000, 839)], "TLS y credencial por camión", label_pos=(470, 821, 180), color=C_EXC)
+    d.edge(bastion[0], admin[0], [(448, 644), (500, 644), (500, 870), (1260, 870), (1260, 556), (1371, 556)],
+           "Bastion: NSG, 22 y 3389", label_pos=(880, 861, 160), color=C_EXC)
+    d.edge(trucks[0], iot_pub[0], [(108, 1009), (1000, 1009)], "TLS y credencial por camión", label_pos=(470, 991, 180), color=C_EXC)
 
-    d.text(30, 900, 1500, 60,
+    d.text(30, 1080, 1500, 60,
            "Verde: pasa por el Azure Firewall o por el WAF. Azul punteado: temporal de la migración. Rojo: controlado por NSG o por IoT Hub, sin pasar por el firewall. "
            "El DNS entre Cali y el resolver del hub también se controla con NSG (UDP y TCP 53). El tránsito entre centros y Cali durante la convivencia (FW-401 y FW-402) pasa por el firewall.",
            font=10)
@@ -398,13 +420,412 @@ def telemetry_history_dashboards():
     return d
 
 
+# ---------------------------------------------------------------------------------------------------------------
+# Hybrid network and subnet diagrams. The layout is the hand-placed grid first validated in Lucidchart: every
+# connector is made of horizontal and vertical segments that enter icons from the side or from the top, never
+# through the label under an icon.
+
+NICON = 70
+N_SOLID = "#1F3A5F"
+N_DASH = "#5F6368"
+N_BLUE = "#1E88E5"
+
+CLS = {
+    "vehicle": "mobile", "mobile": "mobile_az", "browser": "browser", "users": "users_az", "farm": "server_farm",
+    "files": "files", "lb": "lb", "lng": "lng", "iiot": "iiot", "edge": "iot_edge", "vrouter": "vrouter",
+    "connections": "connections", "dns": "dns", "bastion": "bastion", "vpngw": "vpngw", "fw": "firewall",
+    "fwpol": "fw_policy", "appgw": "appgw", "aks": "aks", "aca": "aca", "pe": "pe", "mysql": "mysql",
+    "fabgw": "fabricgw", "dms": "dms", "vm": "vm", "iothub": "iothub", "dps": "dps", "storage": "storage",
+    "fabric": "pbi_embedded", "pip": "pip", "rt": "route_table", "waf": "waf", "redis": "redis", "kv": "kv",
+    "func": "func", "cali_fw": "cali_fw",
+}
+
+
+class NetPage(Diagram):
+    """Diagram with named shapes, relative anchor points and segment-labelled connectors."""
+
+    def __init__(self):
+        super().__init__()
+        self.bb = {}
+        self.cid = {}
+
+    def ic(self, sid, cls, x, y, label, label_w=200, font=15):
+        cid, _ = self.icon(x, y, CLS[cls], label, size=NICON, font=font, label_w=label_w)
+        self.bb[sid], self.cid[sid] = (x, y, NICON, NICON), cid
+
+    def _container(self, sid, x, y, w, h, label, stroke, fill, dashed, icon, font=17, bottom=False):
+        self.zone(x, y, w, h, label, fill=fill, stroke=stroke, dashed=dashed, font=font, bold=False)
+        self.cells[-1] = self.cells[-1].replace("spacingLeft=8;", "spacingLeft=36;spacingTop=6;")
+        if bottom:
+            self.cells[-1] = self.cells[-1].replace("verticalAlign=top;", "verticalAlign=bottom;spacingBottom=8;")
+        if icon:
+            self.icon(x + 8, y + 8, icon, "", size=24)
+        self.bb[sid] = (x, y, w, h)
+
+    def vnet(self, sid, x, y, w, h, label, dashed=False):
+        self._container(sid, x, y, w, h, label, N_BLUE, "none", True, "vnet")
+
+    def region(self, sid, x, y, w, h, label, dashed=False, bottom=False):
+        self._container(sid, x, y, w, h, label, N_BLUE, "none", dashed, "subscription", bottom=bottom)
+
+    def subnet(self, sid, x, y, w, h, label):
+        self._container(sid, x, y, w, h, label, "#BDBDBD", "#F5F5F5", False, "subnet", font=16)
+
+    def group(self, sid, x, y, w, h, label, dashed=False):
+        self.zone(x, y, w, h, label, fill="none", stroke="#212121", dashed=dashed, font=17, bold=True)
+        self.bb[sid] = (x, y, w, h)
+
+    def cloud(self, sid, x, y, w, h, label, dashed=False, font=14):
+        cid = self._id("c")
+        style = (f"ellipse;shape=cloud;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor={N_DASH if dashed else N_SOLID};"
+                 f"strokeWidth=2;fontSize={font};{'dashed=1;' if dashed else ''}")
+        self.cells.append(f'<mxCell id="{cid}" value="{escape(label, {chr(10): "&lt;br&gt;"})}" style="{style}" vertex="1" parent="1">'
+                          f'<mxGeometry x="{x}" y="{y}" width="{w}" height="{h}" as="geometry"/></mxCell>')
+        self.bb[sid] = (x, y, w, h)
+
+    def table(self, x, y, col_w, row_h, rows):
+        for yi, row in enumerate(rows):
+            cx = x
+            for xi, val in enumerate(row):
+                self.box(cx, y + yi * row_h, col_w[xi], row_h, val, "#DCE6F2" if yi == 0 else "#FFFFFF", "#212121",
+                         font=13, bold=yi == 0)
+                self.cells[-1] = self.cells[-1].replace("rounded=1;", "rounded=0;")
+                cx += col_w[xi]
+
+    def at(self, sid, rx, ry):
+        x, y, w, h = self.bb[sid]
+        return (x + rx * w, y + ry * h)
+
+    def link(self, a, pa, b, pb, via=(), label=None, seg=-1, pos=0.5, side="top", dashed=False, arrow=True):
+        pts = [self.at(a, *pa)] + list(via) + [self.at(b, *pb)]
+        self.poly(pts, dashed=dashed, arrow=arrow)
+        if label:
+            segs = list(zip(pts[:-1], pts[1:]))
+            (x1, y1), (x2, y2) = segs[seg]
+            px, py = x1 + (x2 - x1) * pos, y1 + (y2 - y1) * pos
+            w = max(50, int(8.4 * max(len(t) for t in label.split("\n")))) + 12
+            h = 22 * (label.count("\n") + 1)
+            if y1 == y2:   # horizontal segment
+                ly = py - h - 2 if side == "top" else (py + 2 if side == "bottom" else py - h / 2)
+                lx = px - w / 2
+            else:          # vertical segment: label on the line
+                lx, ly = px - w / 2, py - h / 2
+            self.text(lx, ly, w, h, label, font=14, color=N_DASH if dashed else N_SOLID, fill="default", align="center")
+
+    def poly(self, pts, dashed=False, arrow=True):
+        cid = self._id("e")
+        color = N_DASH if dashed else N_SOLID
+        style = (f"edgeStyle=none;html=1;rounded=0;endArrow={'block' if arrow else 'none'};endFill=1;strokeColor={color};"
+                 f"strokeWidth=2;{'dashed=1;dashPattern=8 6;' if dashed else ''}")
+        (sx, sy), (tx, ty) = pts[0], pts[-1]
+        mids = "".join(f'<mxPoint x="{px}" y="{py}"/>' for px, py in pts[1:-1])
+        geo = (f'<mxGeometry relative="1" as="geometry"><mxPoint x="{sx}" y="{sy}" as="sourcePoint"/>'
+               f'<mxPoint x="{tx}" y="{ty}" as="targetPoint"/>'
+               f'{"<Array as=" + chr(34) + "points" + chr(34) + ">" + mids + "</Array>" if mids else ""}</mxGeometry>')
+        self.cells.append(f'<mxCell id="{cid}" value="" style="{style}" edge="1" parent="1">{geo}</mxCell>')
+
+
+NL, NR, NT, NB = (0, 0.5), (1, 0.5), (0.5, 0), (0.5, 1)
+R0, R1, R2, R3 = 500, 760, 1000, 1240
+CY = {r: r + NICON / 2 for r in (R0, R1, R2, R3)}
+LNG_X, JOG_X = 1660, 1820
+CA, CB = 1980, 2240
+C8, C9, C10, C11, C12, C13 = 2900, 3160, 3420, 3680, 3940, 4200
+UP_X, DOWN_X = 2460, 2500
+COPY_Y, COPY_X = 1400, 3620
+
+
+def net_title(d, text, sub):
+    d.text(0, -170, 2600, 40, text, font=26, color="#212121")
+    d.cells[-1] = d.cells[-1].replace("fontSize=26;", "fontSize=26;fontStyle=1;")
+    d.text(0, -125, 2600, 30, sub, font=18, color="#212121")
+
+
+def network_overview(steady, aks=False):
+    d = NetPage()
+    phase = "Estado estable (después del día 90)" if steady else "Convivencia (máximo 90 días)"
+    if aks:
+        net_title(d, f"FríoAndes · Alternativa con Kubernetes (AKS) · {phase}",
+                  "Cambia solo la plataforma de aplicación; la red común es la misma")
+    else:
+        net_title(d, f"FríoAndes · Red híbrida · {phase}",
+                  "Plan de direcciones verificado sin solapamiento con las 23 subredes on-premises")
+
+    # Containers first, so icons and lines stay on top
+    d.group("ext", 1580, 0, 2760, 300, "Internet y terceros")
+    d.group("onprem", 0, 560, 1250, 1620, "On-premises FríoAndes")
+    d.group("cali", 40, 620, 1170, 480, "Sede Cali · 10.20.0.0/16" + ("" if steady else " · datacenter en convivencia"))
+    d.group("centros", 40, 1200, 1170, 940, "8 centros · 10.31.0.0/16 a 10.38.0.0/16")
+    d.group("ctipo", 80, 1640, 1090, 460, "Centro tipo (igual en los 8)")
+    d.region("azure", 1580, 440, 2760, 1260, "Azure · East US 2 · 10.100.0.0/14")
+    d.vnet("hub", 1880, 660, 680, 720, "vnet-hub · 10.100.0.0/23")
+    d.vnet("prod", 2640, 660, 1300, 800, "vnet-prod · 10.101.0.0/21")
+    d.vnet("test", 1960, 1480, 230, 160, "vnet-test · 10.102.0.0/21")
+    d.text(1980, 1550, 190, 60, "Mismo módulo de subredes", font=15)
+    d.vnet("dev", 2230, 1480, 230, 160, "vnet-dev · 10.103.0.0/21")
+    d.text(2250, 1550, 190, 60, "Mismo módulo de subredes", font=15)
+    d.region("cus", 4400, 560, 400, 380, "Azure · Central US\nPaaS de la telemetría, sin red virtual", bottom=True)
+    d.group("fabbox", 4420, 970, 320, 260, "Microsoft Fabric (SaaS)")
+    if steady:
+        d.region("pareja", 2520, 1780, 520, 160, "Central US · 10.104.0.0/15 (reserva)", dashed=True)
+
+    # Internet and third parties
+    d.ic("camion", "vehicle", 1660, 65, "Camiones\n120, 180 en campaña")
+    d.ic("movil", "mobile", 1960, 65, "Red móvil\ndel operador")
+    d.cloud("inet", 2400, 40, 300, 200, "Internet", font=22)
+    d.ic("clientes", "browser", 2900, 65, "Clientes del portal\nunos 2.000")
+    d.ic("remotos", "users", 3200, 165, "Equipos remotos\nacceso administrativo")
+
+    # On-premises
+    d.ic("cali-usr", "users", 100, R1, "Usuarios y torre\n10.20.0.0/24")
+    if not steady:
+        d.ic("cali-app", "farm", 290, R1, "App y front\n10.20.1.0/24")
+        d.ic("cali-db", "farm", 480, R1, "MySQL 5.7 y Redis 5\n10.20.2.0/24")
+        d.ic("cali-arc", "files", 670, R1, "Archivo NFS 1,2 PB\n10.20.3.0/24")
+        d.ic("cali-pub", "lb", 860, R1, "Nginx del rastreo\n10.20.5.0/24")
+    d.ic("cali-fw", "cali_fw", 1050, R1, "Firewall de Cali\non-premises")
+    centres = [("Buenaventura", "10.31"), ("Bogotá", "10.32"), ("Medellín", "10.33"), ("Barranquilla", "10.34"),
+               ("Bucaramanga", "10.35"), ("Pereira", "10.36"), ("Pasto", "10.37"), ("Neiva", "10.38")]
+    for k, (name, net) in enumerate(centres):
+        d.ic(f"c{k}", "lng", 100 + (k % 4) * 280, 1290 if k < 4 else 1470, f"{name}\n{net}.0.0/16")
+    d.ic("ct-usr", "users", 140, 1720, "Usuarios\n10.3X.0.0/24")
+    d.ic("ct-sen", "iiot", 140, 1960, "Sensores cuartos fríos\n10.3X.1.0/24")
+    d.ic("ct-edge", "edge", 520, 1960, "Recolector local\nsi existe")
+    d.ic("ct-vpn", "vrouter", 940, 1960, "Equipo VPN\nIKEv2 y BGP")
+    d.cloud("isp1", 1330, CY[R1] - 50, 190, 100, "ISP 1 · 400 Mbps")
+    d.cloud("isp2", 1330, CY[R2] - 50, 190, 100, "ISP 2 · respaldo\notra ruta física", font=12)
+
+    # Azure East US 2
+    d.ic("conn", "connections", LNG_X, R0, "10 conexiones sitio a sitio\nCali cuenta 2")
+    d.ic("lng1", "lng", LNG_X, R1, "Cali por ISP 1\n2 túneles y BGP")
+    d.ic("lng2", "lng", LNG_X, R2, "Cali por ISP 2\n2 túneles, respaldo")
+    d.ic("lngc", "lng", LNG_X, R3, "8 centros\n2 túneles y BGP cada uno")
+    d.ic("dnsin", "dns", CA, R1, "DNS Resolver\nentrada", label_w=150)
+    d.ic("bastion", "bastion", CB, R1, "Azure Bastion\nEntra ID y MFA", label_w=150)
+    d.ic("vpngw", "vpngw", CA, R2, "VPN Gateway\nVpnGw1AZ activo-activo", label_w=170)
+    d.ic("azfw", "fw", CB, R2, "Azure Firewall\nStandard", label_w=150)
+    d.ic("dnsout", "dns", CA, R3, "DNS Resolver\nsalida a Cali", label_w=150)
+    d.ic("fwpol", "fwpol", CB, R3, "Política del firewall\nreglas por zona", label_w=170)
+    d.ic("appgw", "appgw", C8, R1, "App Gateway v2 con WAF\nsnet-ingress")
+    if aks:
+        d.ic("caepor", "aks", C9, R1, "Clúster AKS del portal\nsnet-app-portal")
+        d.ic("caetor", "aks", C8, R2, "Clúster AKS de la torre\nsnet-app-torre")
+    else:
+        d.ic("caepor", "aca", C9, R1, "Apps del portal\nsnet-app-portal")
+        d.ic("caetor", "aca", C8, R2, "Consola de la torre\nsnet-app-torre")
+    d.ic("func", "func", C11, R1, "Función notificadora\nsnet-telemetry-func", label_w=180)
+    d.ic("peing", "pe", C12, R1, "Ingesta privada\nsnet-ingest", label_w=150)
+    d.ic("mysql", "mysql", C10, R2, "MySQL Flexible HA\nsnet-data", label_w=170)
+    d.ic("fabgw", "fabgw", C11, R2, "Gateway de datos Fabric\nsnet-fabric-egress", label_w=190)
+    d.ic("pearc", "pe", C12, R3, "Archivo privado\nsnet-archive", label_w=150)
+    if aks:
+        d.ic("apisrv", "lb", C10, R3, "API privada de AKS\nsnet-aks-apiserver")
+    if not steady:
+        d.ic("dms", "dms", C9, R3, "DMS (temporal)\nsnet-cali-integration")
+        d.ic("vmcopy", "vm", C11, R3, "Copia del archivo\ntemporal", label_w=160)
+    d.ic("saarc", "storage", C13, R3, "Archivo en Blob\nNFS 3.0 privado", label_w=150)
+    d.ic("iothub", "iothub", 4440, R1, "IoT Hub\ningesta de telemetría", label_w=160)
+    d.ic("dps", "dps", 4640, R1, "DPS\nalta de dispositivos", label_w=140)
+    d.ic("fabric", "fabric", 4545, R2 + 60, "Capacidad F\nIA de la torre", label_w=150)
+
+    d.cloud("nube2", 1760, 1780, 300, 130, "Segunda nube · 10.110.0.0/15\nreserva a 24 meses", dashed=True, font=12)
+    if not steady:
+        d.text(620, 1110, 560, 60, "VPN actual de los centros a Cali (línea punteada):\nse retira centro por centro, a más tardar el día 90", font=15)
+    d.text(3300, 1740, 1040, 230,
+           "Leyenda\nLínea continua: tráfico vigente\n"
+           + ("Línea punteada: conexión futura (segunda nube y región pareja)\n" if steady else
+              "Línea punteada: tráfico temporal de la convivencia o conexión futura\n")
+           + "Líneas sin flecha entre redes virtuales: peering con el hub\n"
+           "IoT Hub y DPS viven en Central US, donde IoT Hub es redundante entre zonas; sus endpoints privados están en snet-ingest\n"
+           "La función notificadora entrega las alertas a la torre (ver los diagramas de la telemetría)", font=17)
+
+    # Top band
+    d.link("camion", NR, "movil", NL, label="Red celular")
+    d.link("movil", NR, "inet", (0, 0.3), label="Operador")
+    d.link("clientes", NL, "inet", (1, 0.3), label="HTTPS")
+    d.link("remotos", NL, "inet", (1, 0.8))
+    bx = d.at("bastion", 0.5, 0)[0]
+    d.link("inet", (0.2, 1), "bastion", NT, via=[(2460, 330), (bx, 330)])
+    ax = d.at("appgw", 0.5, 0)[0]
+    d.link("inet", (0.5, 1), "appgw", NT, via=[(2550, 360), (ax, 360)], label="HTTPS 443, única entrada pública",
+           seg=2, pos=0.45, side="middle")
+    ix = d.at("iothub", 0.5, 0)[0]
+    d.link("inet", (0.8, 1), "iothub", NT, via=[(2640, 390), (ix, 390)], label="Camino 2: camiones (TLS)",
+           seg=1, pos=0.85, side="top")
+
+    # Cali: servers on a bus above the row, into the top of the firewall
+    srcs = ["cali-usr"] + ([] if steady else ["cali-app", "cali-db", "cali-arc"])
+    fw_top = d.at("cali-fw", 0.5, 0)
+    bus_y = R1 - 40
+    for sname in srcs:
+        sx = d.at(sname, 0.5, 0)[0]
+        d.poly([(sx, R1), (sx, bus_y)], arrow=False)
+    d.poly([(d.at(srcs[0], 0.5, 0)[0], bus_y), (fw_top[0], bus_y), fw_top])
+    if not steady:
+        d.link("cali-fw", NL, "cali-pub", NR, label="NAT", dashed=True)
+        d.link("centros", (560 / 1170, 0), "cali", (560 / 1170, 1), dashed=True)
+    d.link("cali-fw", NR, "isp1", NL, label="Salida principal", pos=0.5)
+    y2 = d.at("cali-fw", 1, 0.8)[1]
+    d.link("cali-fw", (1, 0.8), "isp2", NL, via=[(1290, y2), (1290, CY[R2])])
+    d.link("isp1", NR, "lng1", NL)
+    d.link("isp2", NR, "lng2", NL)
+    d.link("centros", (1, (CY[R3] - 1200) / 940), "lngc", NL, label="IPsec directo a Azure")
+    vx = d.at("ct-vpn", 0.5, 0)[0]
+    d.link("ct-usr", NR, "ct-vpn", NT, via=[(vx, 1755)])
+    d.link("ct-sen", NR, "ct-edge", NL, label="Lecturas cada 30 s")
+    d.link("ct-edge", NR, "ct-vpn", NL)
+
+    # Gateways into the VPN Gateway
+    for lng, ry in (("lng1", 0.25), ("lngc", 0.75)):
+        y_in = d.at("vpngw", 0, ry)[1]
+        d.link(lng, NR, "vpngw", (0, ry), via=[(JOG_X, d.at(lng, 1, 0.5)[1]), (JOG_X, y_in)])
+    d.link("lng2", NR, "vpngw", NL)
+    d.link("vpngw", NR, "azfw", NL, label="UDR")
+
+    # Firewall into prod
+    d.link("azfw", NR, "caetor", NL, label="Torre: 443, solo red corporativa", pos=0.62, side="bottom")
+    up_y = d.at("azfw", 1, 0.2)[1]
+    px = d.at("peing", 0.5, 0)[0]
+    d.link("azfw", (1, 0.2), "peing", NT, via=[(UP_X, up_y), (UP_X, R1 - 40), (px, R1 - 40)],
+           label="Camino 1: sensores por la VPN y el firewall", seg=2, pos=0.55)
+    if not steady:
+        dn_y = d.at("azfw", 1, 0.8)[1]
+        d.link("azfw", (1, 0.8), "dms", NL, via=[(DOWN_X, dn_y), (DOWN_X, CY[R3])], dashed=True)
+        dx = d.at("dms", 0.5, 0)[0]
+        my = d.at("mysql", 0, 0.8)[1]
+        d.link("dms", NT, "mysql", (0, 0.8), via=[(dx, my)], label="Carga en línea", seg=0, dashed=True)
+        cy0 = d.at("vpngw", 1, 0.85)[1]
+        d.link("vpngw", (1, 0.85), "vmcopy", NL, via=[(2145, cy0), (2145, COPY_Y), (COPY_X, COPY_Y), (COPY_X, CY[R3])],
+               label="Copia del archivo, unos 37 Mbps, fuera del firewall", seg=2, pos=0.5, dashed=True)
+        d.link("vmcopy", NR, "pearc", NL, dashed=True)
+
+    # Prod
+    d.link("appgw", NR, "caepor", NL, label="HTTPS")
+    d.link("caetor", NR, "mysql", NL, label="MySQL 3306", pos=0.3)
+    mx = d.at("mysql", 0.5, 0)[0]
+    d.link("caepor", NR, "mysql", NT, via=[(mx, CY[R1])], label="Lectura 3306", seg=1, pos=0.6)
+    d.link("fabgw", NL, "mysql", NR, label="Lectura 3306")
+    fy = d.at("fabric", 0, 0.5)[1]
+    d.link("fabgw", (1, 0.35), "fabric", NL, via=[(4370, d.at("fabgw", 1, 0.35)[1]), (4370, fy)], label="Salida a Fabric", seg=0, pos=0.75)
+    ax2 = d.at("pearc", 0.5, 0)[0]
+    d.link("fabgw", (1, 0.75), "pearc", NT, via=[(ax2, d.at("fabgw", 1, 0.75)[1])], label="Lectura 443", seg=1, pos=0.5)
+    d.link("pearc", NR, "saarc", NL, label="Private Link")
+    d.link("peing", NR, "iothub", NL, label="Private Link, entre regiones", pos=0.5)
+
+    # Peering and future connections
+    d.link("hub", (1, (1155 - 660) / 720), "prod", (0, (1155 - 660) / 800), arrow=False)
+    d.link("hub", ((2075 - 1880) / 680, 1), "test", NT, arrow=False)
+    d.link("hub", ((2345 - 1880) / 680, 1), "dev", NT, arrow=False)
+    d.link("nube2", NT, "hub", ((1910 - 1880) / 680, 1), label="Futuro: VPN o ExpressRoute", pos=0.3, dashed=True)
+    if steady:
+        hy = d.at("hub", 1, 0.97)[1]
+        d.link("hub", (1, 0.97), "pareja", ((2600 - 2520) / 520, 0), via=[(2600, hy)],
+               label="Futuro: peering global o VPN", seg=1, pos=0.7, dashed=True)
+    return d
+
+
+def network_subnets(aks=False):
+    d = NetPage()
+    if aks:
+        net_title(d, "FríoAndes · Alternativa con Kubernetes (AKS) · Hub y prod: subredes, CIDR y servicios",
+                  "Pruebas y desarrollo repiten el mismo módulo · plan de direcciones verificado sin solapamiento")
+    else:
+        net_title(d, "FríoAndes · Hub y prod: subredes, CIDR y servicios",
+                  "Pruebas y desarrollo repiten el mismo módulo · plan de direcciones verificado sin solapamiento")
+    plan = list(csv.DictReader(open(DATA / ("ip-plan-aks.csv" if aks else "ip-plan.csv"), encoding="utf-8")))
+    cidr = {(r["vnet"], r["subnet"]): r["cidr"] for r in plan}
+
+    cols, prod_h = 5, 1090
+    prod_w = 40 + cols * 465
+    d.vnet("hub", 0, 0, 900, 1130, "vnet-hub · 10.100.0.0/23")
+    d.vnet("prod", 1000, 0, prod_w, prod_h, "vnet-prod · 10.101.0.0/21")
+    hub_subnets = [
+        ("GatewaySubnet", [("vpngw", "vpngw", "VPN Gateway\nVpnGw1AZ")]),
+        ("AzureFirewallSubnet", [("azfw", "fw", "Azure Firewall\nStandard")]),
+        ("AzureFirewallManagementSubnet", [("fwmip", "pip", "IP de gestión\ndel firewall")]),
+        ("AzureBastionSubnet", [("bastion", "bastion", "Azure Bastion\nEntra ID y MFA")]),
+        ("snet-dns-inbound", [("dnsin", "dns", "DNS Resolver\nentrada")]),
+        ("snet-dns-outbound", [("dnsout", "dns", "DNS Resolver\nsalida")]),
+    ]
+    prod_subnets = [
+        ("snet-ingress", [("waf", "waf", "Política WAF\nOWASP y límite"), ("pip", "pip", "IP pública\ndel portal"),
+                          ("appgw", "appgw", "App Gateway v2\nhasta 10 instancias")]),
+        ("snet-app-portal", [("caepor", "aks" if aks else "aca", "Nodos AKS\nclúster del portal" if aks else "Container Apps\nportal")]),
+        ("snet-app-torre", [("caetor", "aks" if aks else "aca", "Nodos AKS\nclúster de la torre" if aks else "Container Apps\ntorre (interno)")]),
+        ("snet-data", [("mysql", "mysql", "MySQL Flexible\nHA entre zonas")]),
+        ("snet-data-pe", [("pedat", "pe", "Endpoints privados: Redis, Key Vault,\nEvent Hubs y cuenta de la función")]),
+        ("snet-archive", [("pearc", "pe", "Endpoints privados Blob y DFS:\narchivo e historial de telemetría")]),
+        ("snet-ingest", [("peing", "pe", "Endpoints privados\nIoT Hub y DPS")]),
+        ("snet-admin", [("vmadm", "vm", "Agentes\ndespliegue y operación")]),
+        ("snet-cali-integration", [("dms", "dms", "DMS\ntemporal"), ("vmcopy", "vm", "Copia del archivo\ntemporal")]),
+        ("snet-fabric-egress", [("fabgw", "fabgw", "Gateway de datos\nFabric")]),
+    ]
+    extra = [(2, 2, "snet-aks-apiserver", [("apisrv", "lb", "API privada\nde los clústeres")])] if aks else []
+    extra.append((4, 2, "snet-telemetry-func", [("func", "func", "Función notificadora\nFlex Consumption")]))
+
+    for k, (name, icons) in enumerate(hub_subnets):
+        x, y = 40 + (k % 2) * 440, 80 + (k // 2) * 300
+        short = "Gestión del firewall" if name == "AzureFirewallManagementSubnet" else name
+        d.subnet(f"sh{k}", x, y, 400, 240, f"{short} · {cidr[('vnet-hub', name)]}")
+        for sid, cls, label in icons:
+            d.ic(sid, cls, x + 165, y + 80, label, label_w=200)
+    placed = [(k % cols, k // cols, name, icons) for k, (name, icons) in enumerate(prod_subnets)] + extra
+    for col, row, name, icons in placed:
+        x, y = 1040 + col * 465, 80 + row * 330
+        d.subnet(f"sp-{name}", x, y, 425, 270, f"{name} · {cidr[('vnet-prod', name)]}")
+        n = len(icons)
+        for j, (sid, cls, label) in enumerate(icons):
+            ix = x + (425 - (n * NICON + (n - 1) * 70)) // 2 + j * (NICON + 70)
+            d.ic(sid, cls, ix, y + 90, label, label_w=130 if n > 1 else 300)
+    d.ic("rt", "rt", 80, 1000, "Rutas al firewall\nUDR", label_w=160)
+
+    side_x = 1000 + prod_w + 100
+    d.ic("redis", "redis", side_x, 170, "Azure Managed Redis\ncaché del rastreo")
+    d.ic("kv", "kv", side_x, 500, "Key Vault\nsecretos y llaves")
+    low_y = prod_h + 120
+    d.ic("saarc", "storage", 1150, low_y, "Cuentas del archivo\ny del historial de telemetría", label_w=220)
+    d.ic("iothub", "iothub", 1615, low_y, "IoT Hub y DPS\nen Central US", label_w=160)
+
+    d.link("pip", NR, "appgw", NL)
+    d.link("appgw", NR, "caepor", NL, label="HTTPS")
+    d.link("caetor", NR, "mysql", NL, label="3306")
+    d.link("pedat", NR, "redis", NL, label="Private Link", pos=0.45)
+    gap_x = 1000 + prod_w + 40
+    ry, ky = d.at("pedat", 1, 0.5)[1], d.at("kv", 0, 0.5)[1]
+    d.poly([(gap_x, ry), (gap_x, ky), d.at("kv", 0, 0.5)])
+    for pe, target, x_side in (("pearc", "saarc", 1065), ("peing", "iothub", 1530)):
+        ty = d.at(target, 0, 0.5)[1]
+        d.link(pe, NL, target, NL, via=[(x_side, d.at(pe, 0, 0.5)[1]), (x_side, ty)],
+               label="Private Link", seg=1, pos=0.8)
+    d.link("vpngw", NR, "azfw", NL, label="UDR")
+    d.link("hub", (1, 720 / 1130), "prod", (0, 720 / prod_h), arrow=False)
+
+    rows = [["Subred", "prod", "test", "dev"], ["Red virtual", "10.101.0.0/21", "10.102.0.0/21", "10.103.0.0/21"]]
+    names = [n for n, _ in prod_subnets] + [e[2] for e in extra]
+    for name in names:
+        rows.append([name] + [cidr[(v, name)] for v in ("vnet-prod", "vnet-test", "vnet-dev")])
+    table_y = low_y + 220
+    d.table(2000, table_y, [230, 150, 150, 150], 34, rows)
+    reserves = [["Reserva", "Rango"]] + [[r["vnet"], r["cidr"]] for r in plan if r["env"] == "reserva"]
+    reserves.append(["on-premises (crecimiento)", "10.20 y 10.31 a 10.38 (cada uno /16)"])
+    d.table(1000, table_y, [260, 420], 34, reserves)
+    d.text(0, 1200, 900, 120, "Cómo leer esta página\nCada recuadro es una subred con su CIDR. Pruebas y desarrollo repiten "
+           "el mismo módulo (tabla). El verificador comprueba que ningún rango choca con las 23 subredes on-premises.", font=16)
+    return d
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--out", required=True)
     args = ap.parse_args()
     out = Path(args.out)
     out.mkdir(parents=True, exist_ok=True)
-    for name, fn in [("firewall-9-p1-publicacion-portal", portal_publication),
+    for name, fn in [("red-8-p1-convivencia", lambda: network_overview(steady=False)),
+                     ("red-8-p2-estado-estable", lambda: network_overview(steady=True)),
+                     ("red-8-p3-subredes", network_subnets),
+                     ("red-8-b1-estado-estable-aks", lambda: network_overview(steady=True, aks=True)),
+                     ("red-8-b2-subredes-aks", lambda: network_subnets(aks=True)),
+                     ("firewall-9-p1-publicacion-portal", portal_publication),
                      ("firewall-9-p2-puntos-de-control", control_points),
                      ("firewall-9-p3-transicion-cali", cali_transition),
                      ("telemetria-13-p1-ingesta-y-alerta", telemetry_ingest_alert),

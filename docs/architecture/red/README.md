@@ -16,9 +16,8 @@ Datos, herramientas y reportes que respaldan [`../red-topologia-subnetting.md`](
 | `tools/` | `verify_ip_plan.py` | Verifica un plan contra el inventario on-premises y las reglas de Azure (12 comprobaciones) |
 | `tools/` | `compare_tfplan.py` | Compara la salida de `terraform show -json` con el plan y la convierte al formato del plan |
 | `tools/` | `measure_latency.py` | Mide la latencia TCP hacia cada región |
-| `tools/` | `build_lucid_diagrams.py` | Genera el JSON de importación de Lucidchart de los diagramas de la red |
 | `tools/` | `verify_firewall_policy.py` | Verifica la tabla de políticas contra el plan de direcciones y las reglas del diseño (12 comprobaciones) |
-| `tools/` | `build_drawio_diagrams.py` | Genera los diagramas de draw.io del firewall, la publicación del portal y la telemetría |
+| `tools/` | `build_drawio_diagrams.py` | Genera los diagramas de draw.io de la red híbrida, las subredes, el firewall, la publicación del portal y la telemetría |
 | `verification/` | `reporte-ip-plan.md` | Resultado de la verificación de `ip-plan.csv` |
 | `verification/` | `reporte-ip-plan-aks.md` | Resultado de la verificación de `ip-plan-aks.csv` |
 | `verification/` | `latencia-medida.md` | Resultados de la medición de latencia desde Cali |
@@ -62,16 +61,11 @@ python3 tools/measure_latency.py --targets data/latency-targets.csv --place "Sed
 
 ## Regenerar los diagramas
 
-```bash
-python3 tools/build_lucid_diagrams.py --variant container-apps --out red-8-lucid.json
-python3 tools/build_lucid_diagrams.py --variant aks --out red-8-lucid-aks.json
-```
-
-El JSON se importa en Lucidchart con la importación estándar. Los documentos editables están enlazados al inicio del documento de red.
-
-Los diagramas del firewall y de la telemetría se generan como archivos de draw.io y se exportan a PNG con el diagrama incrustado, con draw.io de escritorio:
+Todos los diagramas se generan como archivos de draw.io (los de la red y las subredes leen `ip-plan.csv` e `ip-plan-aks.csv`) y se exportan a PNG con el diagrama incrustado, con draw.io de escritorio:
 
 ```bash
 python3 tools/build_drawio_diagrams.py --out ../diagramas
-drawio --disable-gpu -x -f png -e -b 20 -s 1.5 -o ../diagramas/NOMBRE.drawio.png ../diagramas/NOMBRE.drawio
+drawio --disable-gpu -x -f png -e -b 20 -s 1 -o ../diagramas/NOMBRE.drawio.png ../diagramas/NOMBRE.drawio
 ```
+
+Los diagramas de la red y las subredes se exportan con `-s 1` y los demás con `-s 1.5`, porque los primeros son más grandes.

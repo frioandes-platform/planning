@@ -2,10 +2,7 @@
 
 Este documento describe la red que conecta la sede de Cali, los ocho centros de distribución y la nube de FríoAndes en Azure. Explica cada parte de la solución, por qué se eligió, qué alternativas se descartaron y qué debe confirmar FríoAndes antes de implementarla.
 
-Los diagramas editables están en Lucidchart:
-
-- Solución con Container Apps: https://lucid.app/lucidchart/6fe845f4-d757-4b83-96db-92f094dca717/edit
-- Variante con Kubernetes (AKS): https://lucid.app/lucidchart/3acaf69f-deab-4a84-ad80-71ba18f13d42/edit
+Los diagramas están en `diagramas/` como archivos de draw.io. Cada PNG lleva el diagrama editable incrustado: se abre directamente en draw.io.
 
 Los archivos de apoyo están en la carpeta `red/`, junto a este documento:
 
@@ -19,7 +16,7 @@ Los archivos de apoyo están en la carpeta `red/`, junto a este documento:
 | `red/tools/verify_ip_plan.py` | Verifica el plan contra el inventario on-premises (sección 4.8) |
 | `red/tools/compare_tfplan.py` | Compara el plan de Terraform con `ip-plan.csv` (sección 4.8) |
 | `red/tools/measure_latency.py` | Mide la latencia hacia cada región (sección 3) |
-| `red/tools/build_lucid_diagrams.py` | Genera los diagramas de Lucidchart a partir del plan |
+| `red/tools/build_drawio_diagrams.py` | Genera los diagramas de draw.io a partir del plan |
 | `red/verification/` | Reportes de la verificación de los dos planes y resultados de la medición de latencia |
 
 ## Contenido
@@ -273,7 +270,7 @@ Durante la convivencia el firewall de Cali sigue en pie. Esta tabla dice qué pa
 
 #### Convivencia (como máximo 90 días)
 
-![Convivencia: Cali con su datacenter, ocho centros, hub y ambientes de Azure](diagramas/red-8-p1-convivencia.png)
+![Convivencia: Cali con su datacenter, ocho centros, hub y ambientes de Azure](diagramas/red-8-p1-convivencia.drawio.png)
 
 Qué mirar en este diagrama:
 
@@ -286,13 +283,14 @@ Qué mirar en este diagrama:
 
 #### Estado estable (después del día 90)
 
-![Estado estable: centros directo a Azure, Cali con dos proveedores](diagramas/red-8-p2-estado-estable.png)
+![Estado estable: centros directo a Azure, Cali con dos proveedores](diagramas/red-8-p2-estado-estable.drawio.png)
 
 Qué cambia frente a la convivencia:
 
 - Cali ya no aloja servidores: quedan los usuarios y su firewall.
 - Los centros solo tienen la conexión directa a Azure.
 - Aparecen en línea punteada las reservas para el futuro: la región pareja (Central US) y la segunda nube.
+- En los dos diagramas, IoT Hub y su servicio de aprovisionamiento (DPS) están en Central US, fuera de las redes virtuales, y la función notificadora de la telemetría está en `snet-telemetry-func` de producción.
 
 ---
 
@@ -382,7 +380,7 @@ East US 2 es la más barata o empata en los dos rubros. Con un archivo históric
 
 ### 3.7 Región pareja y recuperación
 
-Central US es la región pareja de East US 2. Azure coordina el mantenimiento de las dos para que no queden fuera de servicio al mismo tiempo, y algunos servicios replican datos entre ellas. El plan de direcciones reserva el bloque `10.104.0.0/15` para el hub y la producción de recuperación en Central US (sección 4). El diseño de continuidad de la plataforma define qué se replica y cómo se activa.
+Central US es la región pareja de East US 2. Azure coordina el mantenimiento de las dos para que no queden fuera de servicio al mismo tiempo, y algunos servicios replican datos entre ellas. La telemetría ya usa Central US como región principal de IoT Hub, DPS y la evidencia de temperatura, porque ahí IoT Hub es redundante entre zonas. Esos servicios no necesitan una red virtual en Central US: sus endpoints privados están en East US 2, así que la reserva `10.104.0.0/15` sigue libre. El plan de direcciones reserva el bloque `10.104.0.0/15` para el hub y la producción de recuperación en Central US (sección 4). El diseño de continuidad de la plataforma define qué se replica y cómo se activa.
 
 ### 3.8 Ubicación de los datos
 
@@ -580,9 +578,9 @@ El código de red lee `ip-plan.csv` directamente con `csvdecode(file("ip-plan.cs
 
 ### 4.10 Diagrama de subredes
 
-![Subredes del hub y de producción con sus rangos, tablas del módulo y de reservas](diagramas/red-8-p3-subredes.png)
+![Subredes del hub y de producción con sus rangos, tablas del módulo y de reservas](diagramas/red-8-p3-subredes.drawio.png)
 
-Cada recuadro es una subred con su rango y el ícono del servicio que aloja. La subred `snet-telemetry-func`, que agregó el diseño de telemetría, no figura en el diagrama: está en la tabla de la sección 4.5 y en `ip-plan.csv`. Abajo están la tabla del módulo con los rangos de producción, pruebas y desarrollo, y la tabla de reservas.
+Cada recuadro es una subred con su rango y el ícono del servicio que aloja, incluida `snet-telemetry-func`. Abajo están la tabla del módulo con los rangos de producción, pruebas y desarrollo, y la tabla de reservas.
 
 ---
 
@@ -742,7 +740,7 @@ Camino 1:  sensor del cuarto frío → equipo VPN del centro → túnel IPsec �
 Camino 2:  sensor del camión → red móvil del operador → internet → endpoint público de IoT Hub
 ```
 
-Los dos caminos terminan en el mismo servicio de ingesta. Desde ahí, el procesamiento de la alerta, el almacenamiento del historial y los tableros los define el diseño de telemetría.
+Los dos caminos terminan en el mismo servicio de ingesta. El procesamiento de la alerta, el historial y los tableros están en el diseño de telemetría (`carga-b-telemetria.md`).
 
 **Qué deja la red para la telemetría:**
 
@@ -750,7 +748,7 @@ Los dos caminos terminan en el mismo servicio de ingesta. Desde ahí, el procesa
 - `snet-telemetry-func` (`10.10X.3.0/27`) para la función notificadora que avisa de las alertas, tomada del espacio libre de cada ambiente.
 - El volumen de los dos caminos es muy bajo: los 32 cuartos fríos juntos suman unos 8,5 Kbps y los camiones no usan los enlaces de las sedes, así que la telemetría no condiciona el tamaño de la red.
 
-**Recolector local.** Si cada centro tiene un recolector que agrupe las lecturas antes de enviarlas (por ejemplo, IoT Edge), va en la red de sensores del centro y usa el mismo camino 1. Lo decide el diseño de telemetría y no cambia la red.
+**Recolector local.** Si cada centro tiene un recolector que agrupe las lecturas antes de enviarlas (por ejemplo, IoT Edge), va en la red de sensores del centro y usa el mismo camino 1. El diseño de telemetría admite las dos formas, según lo que confirme FríoAndes (`carga-b-telemetria.md`, sección 2.8), y ninguna cambia la red.
 
 **Resiliencia de IoT Hub.** Como se explicó en la sección 3.5, IoT Hub no tiene redundancia entre zonas en East US 2. El diseño de telemetría lo ubica en Central US, y el endpoint privado de `snet-ingest` apunta a ese servicio en la otra región.
 
@@ -817,7 +815,7 @@ Antes de planear la migración hay que confirmar con Microsoft la capacidad para
 El diagrama de convivencia de la sección 2.5 muestra estos movimientos:
 
 - La línea "Camino 1: sensores por la VPN y el firewall" sale del Azure Firewall y llega a la ingesta privada.
-- La línea "Camino 2: camiones (TLS)" baja desde internet directo a IoT Hub.
+- La línea "Camino 2: camiones (TLS)" baja desde internet directo a IoT Hub, en Central US.
 - La línea punteada del firewall a DMS es la migración de la base. De DMS sale la carga hacia MySQL.
 - La línea punteada "Copia del archivo, unos 37 Mbps, fuera del firewall" sale del VPN Gateway sin pasar por el Azure Firewall y llega a la máquina de copia y al archivo privado.
 
@@ -999,13 +997,13 @@ El plano de control pesa poco frente al Azure Firewall (USD 912,50 al mes). El c
 
 #### Diagramas de la variante
 
-![Estado estable con AKS: la red común sin cambios, clústeres de torre y portal en producción y la API privada](diagramas/red-8-b1-estado-estable-aks.png)
+![Estado estable con AKS: la red común sin cambios, clústeres de torre y portal en producción y la API privada](diagramas/red-8-b1-estado-estable-aks.drawio.png)
 
-La red es la misma del diagrama de estado estable. En producción cambian tres íconos: el clúster de la torre en `snet-app-torre`, el clúster del portal en `snet-app-portal` y la API privada en `snet-aks-apiserver`.
+La red es la misma del diagrama de estado estable, incluida la telemetría. En producción cambian tres íconos: el clúster de la torre en `snet-app-torre`, el clúster del portal en `snet-app-portal` y la API privada en `snet-aks-apiserver`.
 
-![Subredes del hub y de producción con AKS](diagramas/red-8-b2-subredes-aks.png)
+![Subredes del hub y de producción con AKS](diagramas/red-8-b2-subredes-aks.drawio.png)
 
-Las mismas subredes del diagrama de subredes, con los nodos de AKS, la subred de la API y las reservas de pods y servicios.
+Las mismas subredes del diagrama de subredes, incluida `snet-telemetry-func`, con los nodos de AKS, la subred de la API y las reservas de pods y servicios.
 
 #### Verificación de la variante
 
