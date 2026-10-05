@@ -1061,6 +1061,8 @@ Puntos del tablero que conviene corregir o decidir en equipo.
 | **#39 cita el issue equivocado.** Habla del "`terraform plan` de F2-01" (#20), pero la evidencia del plan es F2-05 (#24) | #39 | Detalle de redacción |
 | **Faltan tamaños, estimaciones y fechas**, y por eso la vista *Roadmap* aparece vacía | Tablero | Completarlos cuando se sepa la fecha de la sustentación |
 
+> **Decisión tomada (#13).** Sobre los dos lugares para guardar los datos analíticos: guarda el lago de datos de Azure y Fabric solo lee, con un acceso directo de OneLake. Synapse Data Explorer ya no existe (Microsoft lo retiró el 7 de octubre de 2025) y Data Explorer se descartó por costo. Ver [`carga-b-telemetria.md`](../architecture/carga-b-telemetria.md), sección 4.2.
+
 ---
 
 # Parte III. Preguntas para la sesión de aclaraciones
