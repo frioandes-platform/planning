@@ -326,11 +326,11 @@ No todo el tráfico pasa por el Azure Firewall. Cada flujo tiene un punto de con
 | Azure Firewall | Todo lo que va de las sedes a la nube, de la nube a las sedes, entre sedes durante la convivencia, entre ambientes y hacia internet | Es el paso obligado del hub y registra cada conexión en un solo lugar |
 | WAF del Application Gateway | La entrada del portal desde internet | Revisa el contenido de cada solicitud web, que el firewall no lee (sección 2.1) |
 | NSG de cada subred | El tráfico dentro de un mismo ambiente, entre zonas. Es además una segunda capa detrás del firewall | El tráfico entre subredes de una misma red virtual no pasa por el hub |
-| IoT Hub | Los camiones, que llegan desde internet | No están en la red corporativa: la protección es TLS y una credencial por camión |
+| IoT Hub y DPS | Los camiones, que llegan desde internet | No están en la red corporativa: la protección es TLS y una credencial por camión |
 
 ![Puntos de control: qué pasa por el Azure Firewall, qué por el WAF y qué por NSG o IoT Hub](diagramas/firewall-9-p2-puntos-de-control.drawio.png)
 
-En el diagrama, las líneas verdes pasan por el Azure Firewall o por el WAF, las azules punteadas son temporales de la migración y las rojas se controlan con NSG o en IoT Hub, sin pasar por el firewall.
+En el diagrama, las líneas verdes pasan por el Azure Firewall o por el WAF, las azules punteadas son temporales de la migración y las rojas se controlan con NSG o en IoT Hub, sin pasar por el firewall. La función notificadora de la telemetría (`snet-telemetry-func`) sale a internet por el firewall y llega a la torre por el NSG de la torre.
 
 ### 4.2 Cómo se organiza la política del firewall
 
@@ -457,7 +457,7 @@ Una regla solo sirve si el tráfico llega al firewall. Estas tablas de rutas lo 
 | Subred | Políticas de red | Resultado |
 |---|---|---|
 | `snet-ingest` | NSG y rutas | Los sensores que entran por la VPN pasan por el firewall (FW-204) y luego por el NSG |
-| `snet-data-pe` | NSG y rutas | Solo se usa dentro del ambiente. El NSG controla quién llega a la caché y al Key Vault |
+| `snet-data-pe` | NSG y rutas | Solo se usa dentro del ambiente. El NSG controla quién llega a la caché, al Key Vault, a los Event Hubs de la telemetría y a la cuenta de la función notificadora |
 | `snet-archive` | Solo NSG | La copia del archivo desde Cali sigue la ruta directa del endpoint y no pasa por el firewall. El NSG la limita al servidor de archivo de Cali |
 
 Por lo mismo, la tabla de rutas de la `GatewaySubnet` y la de `snet-archive` quedan coherentes: ninguna de las dos manda la copia al firewall, así que la ida y la vuelta toman el mismo camino.
