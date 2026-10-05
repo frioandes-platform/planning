@@ -2,17 +2,17 @@
 
 Resultado: **aprobada** (12 de 12 comprobaciones).
 
-- Archivo: `firewall-policy.csv`, 72 reglas.
-- SHA-256: `fdbfa737323e5d4789a439dae5e22e5ab7799cc009c0eecc82016320b5163bad`
-- Por punto de control: azure-firewall 30, iot-hub 1, nsg 39, waf 2.
-- Por vigencia: estable 61, temporal 11.
+- Archivo: `firewall-policy.csv`, 85 reglas.
+- SHA-256: `72fca57a76fbad427163f2890a2f060caf1cfa24e46005b2f3c2d7f7f0b32dad`
+- Por punto de control: azure-firewall 33, iot-hub 2, nsg 48, waf 2.
+- Por vigencia: estable 74, temporal 11.
 
 | Comprobación | Resultado |
 |---|---|
 | Cada regla tiene sus campos, una vigencia válida y, si es temporal, cuándo se retira | Cumple |
 | Identificadores únicos | Cumple |
 | Todos los rangos existen en `ip-plan.csv` o en el inventario on-premises | Cumple |
-| La torre solo recibe tráfico de las redes corporativas | Cumple |
+| La torre solo recibe tráfico de las redes corporativas y de la función de alertas de su ambiente | Cumple |
 | Ninguna regla conecta producción, pruebas y desarrollo entre sí | Cumple |
 | Los sensores reales solo llegan a producción (pruebas y desarrollo usan datos simulados) | Cumple |
 | El gateway de Fabric no tiene salida a internet | Cumple |
