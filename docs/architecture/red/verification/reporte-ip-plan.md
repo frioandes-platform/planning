@@ -1,7 +1,7 @@
 # Verificación del plan de direcciones de nube
 
 - Fecha: 2026-10-04
-- Plan verificado: `ip-plan.csv` (sha256 `652ed7ebbb7d`)
+- Plan verificado: `ip-plan.csv` (sha256 `2af88d980e4d`)
 - Inventario on-premises: `onprem-inventory.csv` (23 subredes del enunciado)
 
 ## Resumen
@@ -47,6 +47,7 @@ Ninguno.
 | `10.101.2.128/27` | `vnet-prod/snet-admin` | sin solapamiento |
 | `10.101.2.160/27` | `vnet-prod/snet-cali-integration` | sin solapamiento |
 | `10.101.2.192/27` | `vnet-prod/snet-fabric-egress` | sin solapamiento |
+| `10.101.3.0/27` | `vnet-prod/snet-telemetry-func` | sin solapamiento |
 | `10.102.0.0/21` | `vnet-test` | sin solapamiento |
 | `10.102.0.0/24` | `vnet-test/snet-ingress` | sin solapamiento |
 | `10.102.1.0/25` | `vnet-test/snet-app-torre` | sin solapamiento |
@@ -58,6 +59,7 @@ Ninguno.
 | `10.102.2.128/27` | `vnet-test/snet-admin` | sin solapamiento |
 | `10.102.2.160/27` | `vnet-test/snet-cali-integration` | sin solapamiento |
 | `10.102.2.192/27` | `vnet-test/snet-fabric-egress` | sin solapamiento |
+| `10.102.3.0/27` | `vnet-test/snet-telemetry-func` | sin solapamiento |
 | `10.103.0.0/21` | `vnet-dev` | sin solapamiento |
 | `10.103.0.0/24` | `vnet-dev/snet-ingress` | sin solapamiento |
 | `10.103.1.0/25` | `vnet-dev/snet-app-torre` | sin solapamiento |
@@ -69,6 +71,7 @@ Ninguno.
 | `10.103.2.128/27` | `vnet-dev/snet-admin` | sin solapamiento |
 | `10.103.2.160/27` | `vnet-dev/snet-cali-integration` | sin solapamiento |
 | `10.103.2.192/27` | `vnet-dev/snet-fabric-egress` | sin solapamiento |
+| `10.103.3.0/27` | `vnet-dev/snet-telemetry-func` | sin solapamiento |
 | `10.110.0.0/15` | `segunda-nube/reserva-segunda-nube` | sin solapamiento |
 | `10.104.0.0/15` | `region-pareja/reserva-region-pareja` | sin solapamiento |
 | `10.100.4.0/22` | `hub-vwan/reserva-hub-vwan` | sin solapamiento |
