@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build the draw.io diagrams of the cloud firewall and portal publication design.
+"""Build the draw.io diagrams of the network designs (cloud firewall, portal publication and telemetry).
 
 Usage:
     python3 tools/build_drawio_diagrams.py --out ../diagramas   (desde la carpeta red/)
@@ -38,6 +38,16 @@ ICON = {
     "vm": AZ + "compute/Virtual_Machine.svg",
     "sensor": AZ + "other/Defender_Sensor.svg",
     "monitor": AZ + "management_governance/Log_Analytics_Workspaces.svg",
+    "dps": AZ + "iot/Device_Provisioning_Services.svg",
+    "iot_edge": AZ + "iot/IoT_Edge.svg",
+    "asa": AZ + "iot/Stream_Analytics_Jobs.svg",
+    "func": AZ + "iot/Function_Apps.svg",
+    "eventhub": AZ + "analytics/Event_Hubs.svg",
+    "acs": AZ + "other/Azure_Communication_Services.svg",
+    "datalake": AZ + "storage/Data_Lake_Storage_Gen1.svg",
+    "onelake": AZ + "analytics/Data_Lake_Store_Gen1.svg",
+    "semantic": AZ + "analytics/Analysis_Services.svg",
+    "pbi_embedded": AZ + "analytics/Power_BI_Embedded.svg",
 }
 NET = "html=1;outlineConnect=0;fillColor=#CCCCCC;strokeColor=#6881B3;gradientColor=none;strokeWidth=2;shape=mxgraph.networks."
 
@@ -45,6 +55,14 @@ C_OK = "#2E7D32"
 C_TEMP = "#1565C0"
 C_EXC = "#C62828"
 C_DENY = "#757575"
+C_TRUCK = "#EF6C00"
+C_FABRIC = "#6A1B9A"
+SIDE = {
+    "bottom": "verticalLabelPosition=bottom;verticalAlign=top;",
+    "right": "labelPosition=right;verticalLabelPosition=middle;align=left;verticalAlign=middle;spacingLeft=4;",
+    "left": "labelPosition=left;verticalLabelPosition=middle;align=right;verticalAlign=middle;spacingRight=4;",
+    "top": "verticalLabelPosition=top;verticalAlign=bottom;",
+}
 
 
 class Diagram:
@@ -82,7 +100,7 @@ class Diagram:
                           f'<mxGeometry x="{x}" y="{y}" width="{w}" height="{h}" as="geometry"/></mxCell>')
         return cid
 
-    def icon(self, x, y, kind, label, size=56, font=11, label_w=None):
+    def icon(self, x, y, kind, label, size=56, font=11, label_w=None, side="bottom"):
         cid = self._id("i")
         if kind == "cali_fw":
             kind = "firewall_onprem"
@@ -91,6 +109,8 @@ class Diagram:
                      f"verticalAlign=top;fontSize={font};image={ICON[kind]};")
         else:
             style = NET + kind.replace("firewall_onprem", "firewall") + f";verticalLabelPosition=bottom;verticalAlign=top;fontSize={font};"
+        if side != "bottom":
+            style = style.replace(SIDE["bottom"], SIDE[side]).replace("align=center;", "")
         if label_w:
             style += f"labelWidth={label_w};whiteSpace=wrap;"
         self.cells.append(f'<mxCell id="{cid}" value="{escape(label, {chr(10): "&lt;br&gt;"})}" style="{style}" vertex="1" parent="1">'
@@ -269,6 +289,115 @@ def cali_transition():
     return d
 
 
+def telemetry_ingest_alert():
+    d = Diagram()
+    d.text(30, 10, 1200, 30, "Telemetría: los dos caminos de ingesta y el camino de la alerta", font=14)
+    d.zone(30, 70, 300, 320, "Ocho centros · camino 1", fill="#FFFDE7", stroke="#F9A825")
+    d.zone(30, 470, 300, 230, "Camiones · camino 2", fill="#FFF3E0", stroke="#EF6C00")
+    d.zone(390, 70, 280, 240, "Hub · East US 2", fill="#ECEFF1", stroke="#455A64")
+    d.zone(390, 330, 280, 120, "vnet-prod\nsnet-ingest", fill="#E3F2FD", stroke="#1565C0", font=11)
+    d.zone(710, 70, 300, 560, "Central US", fill="#E8EAF6", stroke="#3949AB")
+    d.zone(1040, 70, 460, 640, "Producción East US 2 · vnet-prod", fill="#FAFAFA", stroke="#616161")
+    d.zone(1550, 70, 220, 640, "Canales por internet\n(salida por el Azure Firewall)", fill="#F3E5F5", stroke="#6A1B9A", font=11)
+
+    sensor = d.icon(60, 124, "sensor", "Sensores de cuartos fríos\n32 (4 por centro)\nuna lectura cada 30 s", size=48, label_w=150)
+    router = d.icon(220, 124, "router", "Equipo VPN\ndel centro", size=48, label_w=100)
+    d.icon(50, 280, "iot_edge", "", size=40)
+    d.text(100, 262, 220, 76, "Recolector opcional por centro con IoT Edge, si los sensores no hablan MQTT o AMQP con TLS", font=10)
+    truck = d.icon(100, 520, "mobile", "120 camiones (180 en campaña)\ntemperatura cada 60 s\nposición cada 30 s\nguardan 18 h sin señal", size=48, label_w=180)
+    vpngw = d.icon(410, 110, "vpngw", "VPN Gateway", size=56, label_w=100)
+    fw = d.icon(560, 110, "firewall", "Azure Firewall\nFW-204", size=56, label_w=76)
+    pe = d.icon(560, 372, "pe", "Endpoints privados\nde IoT Hub y DPS", size=44, label_w=120)
+    internet = d.icon(470, 500, "cloud", "Internet", size=70, label_w=80)
+    dps = d.icon(832, 150, "dps", "DPS: alta automática\ncon certificados X.509", size=48, label_w=120, side="right")
+    iot = d.icon(820, 350, "iothub", "IoT Hub S1 × 2 unidades\n800.000 mensajes al día\nredundante entre zonas", size=72, label_w=170)
+    d.text(720, 560, 280, 60, "Si cae la región, IoT Hub se conmuta a mano a East US 2. Los dispositivos guardan sus lecturas hasta confirmar que llegaron.", font=10)
+
+    ref = d.icon(1110, 150, "storage", "Rangos por cuarto frío\ny por tipo de carga\n(los mantiene calidad)", size=48, label_w=150, side="right")
+    asa = d.icon(1100, 352, "asa", "Stream Analytics\nreglas de alerta\n1/3 SU V2 esperado", size=68, label_w=140)
+    func = d.icon(1320, 352, "func", "Función notificadora\nFlex Consumption\nsnet-telemetry-func", size=68, label_w=160)
+    eh = d.icon(1100, 560, "eventhub", "Event hub de estado\nen vivo para el mapa", size=56, label_w=150)
+    eh_alert = d.icon(1224, 368, "eventhub", "Event hub\nde alertas", size=36, label_w=90, side="top")
+    torre = d.icon(1320, 560, "aca", "API y consola de la torre\nsnet-app-torre", size=64, label_w=170)
+
+    teams = d.icon(1636, 150, "laptop", "Teams (Workflows)\ncomputador y teléfono", size=48, label_w=150)
+    mail = d.icon(1636, 290, "acs", "Correo: Azure\nCommunication Services", size=48, label_w=150)
+    sms = d.icon(1636, 430, "mobile", "SMS: proveedor con\ncobertura en Colombia", size=48, label_w=150)
+
+    d.edge(sensor[0], router[0], [(108, 148), (220, 148)], color=C_TEMP)
+    d.edge(router[0], vpngw[0], [(268, 138), (410, 138)], "IPsec", label_pos=(318, 118, 50), color=C_TEMP)
+    d.edge(vpngw[0], fw[0], [(466, 138), (560, 138)], color=C_TEMP)
+    d.edge(fw[0], pe[0], [(616, 138), (640, 138), (640, 350), (582, 350), (582, 372)], color=C_TEMP)
+    d.edge(pe[0], iot[0], [(604, 394), (820, 394)], "Privado, entre regiones", label_pos=(614, 374, 140), color=C_TEMP)
+    d.edge(truck[0], internet[0], [(148, 544), (470, 544)], "Red móvil del operador", label_pos=(220, 524, 150), color=C_TRUCK)
+    d.edge(internet[0], iot[0], [(540, 535), (760, 535), (760, 412), (820, 412)], "TLS y credencial por camión",
+           label_pos=(562, 515, 170), color=C_TRUCK)
+    d.edge(dps[0], iot[0], [(856, 198), (856, 350)], color=C_DENY, dashed=True)
+    d.edge(iot[0], asa[0], [(892, 386), (1100, 386)], "Endpoint de eventos", label_pos=(915, 366, 130), color=C_OK)
+    d.edge(ref[0], asa[0], [(1134, 198), (1134, 352)], color=C_DENY, dashed=True)
+    d.edge(asa[0], eh_alert[0], [(1168, 386), (1224, 386)], color=C_EXC)
+    d.edge(eh_alert[0], func[0], [(1260, 386), (1320, 386)], color=C_EXC)
+    d.edge(asa[0], eh[0], [(1100, 400), (1070, 400), (1070, 588), (1100, 588)], color=C_OK)
+    d.edge(eh[0], torre[0], [(1156, 588), (1320, 588)], "Mapa en vivo", label_pos=(1190, 568, 100), color=C_OK)
+    d.edge(func[0], torre[0], [(1388, 404), (1470, 404), (1470, 592), (1384, 592)], "Alerta", label_pos=(1420, 500, 46), color=C_EXC)
+    d.edge(func[0], teams[0], [(1388, 358), (1530, 358), (1530, 174), (1636, 174)], color=C_EXC)
+    d.edge(func[0], mail[0], [(1388, 372), (1540, 372), (1540, 314), (1636, 314)], color=C_EXC)
+    d.edge(func[0], sms[0], [(1388, 386), (1530, 386), (1530, 454), (1636, 454)], color=C_EXC)
+
+    d.box(30, 740, 560, 80, "Volumen declarado (mensajes de 1 KB)\nNormal: 7,2 mensajes por segundo, unos 486.000 al día\n"
+          "Campaña con 180 camiones: 10,2 por segundo, unos 682.000 al día", "#FFFFFF", "#9E9E9E", font=11)
+    d.box(620, 740, 560, 80, "Presupuesto de la alerta: hasta 40 s desde la hora de la lectura del sensor\nhasta que se ve en pantalla "
+          "(5 + 10 + 10 + 5 + 10 s), con 20 s de margen dentro del minuto", "#FFFFFF", "#9E9E9E", font=11)
+    d.box(1210, 740, 560, 80, "Destinatario según la hora de Colombia\n04:00 a 22:00: torre de control (consola y Teams), copia a calidad\n"
+          "22:00 a 04:00: guardia de calidad (Teams, correo y SMS). Escala a los 5 y a los 15 minutos", "#FFFFFF", "#9E9E9E", font=11)
+    d.text(30, 840, 1740, 30,
+           "Azul: camino 1, cuartos fríos por la VPN y el Azure Firewall. Naranja: camino 2, camiones por internet. Verde: lecturas hacia el procesamiento y el mapa. "
+           "Rojo: alertas. Gris punteado: configuración. Stream Analytics también escribe el historial (ver el diagrama del historial).", font=10)
+    return d
+
+
+def telemetry_history_dashboards():
+    d = Diagram()
+    d.text(30, 10, 1200, 30, "Telemetría: historial de cinco años y tableros", font=14)
+    d.zone(30, 70, 340, 560, "Central US", fill="#E8EAF6", stroke="#3949AB")
+    d.zone(420, 70, 520, 620, "Producción East US 2 · vnet-prod", fill="#FAFAFA", stroke="#616161")
+    d.zone(1000, 70, 460, 620, "Microsoft Fabric", fill="#F3E5F5", stroke="#6A1B9A")
+
+    iot = d.icon(130, 150, "iothub", "IoT Hub", size=64, label_w=90, side="left")
+    evid = d.icon(130, 330, "datalake", "Evidencia cruda\nADLS Gen2, JSON\nretención bloqueada\n5 años, GRS", size=64, label_w=150, side="right")
+    d.text(40, 540, 320, 76, "Cuenta propia, separada del archivo. Nadie puede modificar ni borrar los archivos, ni siquiera un administrador. Vale en reclamos.", font=10)
+    asa = d.icon(490, 150, "asa", "Stream Analytics", size=64, label_w=140, side="top")
+    delta = d.icon(490, 330, "datalake", "Tabla de análisis (Delta)\ndetalle, resumen de 5 min\ny alertas", size=64, label_w=170)
+    eh = d.icon(650, 154, "eventhub", "Event Hub\nestado en vivo", size=56, label_w=120)
+    torre = d.icon(820, 150, "aca", "Consola de\nla torre", size=64, label_w=100)
+    func = d.icon(820, 450, "func", "Función\nnotificadora", size=64, label_w=100)
+    portal = d.icon(820, 600, "aca", "Portal de rastreo\nsnet-app-portal", size=64, label_w=130, side="left")
+    clients = d.icon(828, 760, "users", "Clientes corporativos:\nsolo sus guías, sin la flota\nni la posición exacta", size=48, label_w=170, side="right")
+
+    short = d.icon(1060, 330, "onelake", "Acceso directo\nde OneLake", size=64, label_w=120)
+    model = d.icon(1230, 330, "semantic", "Modelo semántico\nDirect Lake\nseguridad por filas", size=64, label_w=140)
+    reports = d.icon(1238, 150, "laptop", "Tableros de calidad\nen Power BI", size=48, label_w=130, side="right")
+    emb = d.icon(1230, 520, "pbi_embedded", "Reporte insertado\ntoken V2 con la\nidentidad del cliente", size=64, label_w=150)
+
+    d.edge(iot[0], evid[0], [(162, 214), (162, 330)], "Enrutamiento\na almacenamiento", label_pos=(172, 256, 120), label_h=30, color=C_TEMP)
+    d.edge(iot[0], asa[0], [(194, 182), (490, 182)], "Endpoint de eventos", label_pos=(270, 162, 140), color=C_TEMP)
+    d.edge(asa[0], delta[0], [(522, 214), (522, 330)], "Salida Delta", label_pos=(530, 262, 80), color=C_TEMP)
+    d.edge(asa[0], eh[0], [(554, 182), (650, 182)], color=C_OK)
+    d.edge(eh[0], torre[0], [(706, 182), (820, 182)], "Mapa en vivo", label_pos=(716, 162, 96), color=C_OK)
+    d.edge(func[0], evid[0], [(820, 482), (162, 482), (162, 394)], "Alertas y acuses, con quién y cuándo", label_pos=(560, 462, 230), color=C_EXC)
+    d.edge(delta[0], short[0], [(554, 362), (1060, 362)], "Fabric lee sin copiar", label_pos=(740, 342, 140), color=C_FABRIC)
+    d.edge(short[0], model[0], [(1124, 362), (1230, 362)], color=C_FABRIC)
+    d.edge(model[0], reports[0], [(1262, 330), (1262, 198)], color=C_FABRIC)
+    d.edge(model[0], emb[0], [(1294, 370), (1430, 370), (1430, 552), (1294, 552)], color=C_FABRIC)
+    d.edge(emb[0], portal[0], [(1230, 552), (1150, 552), (1150, 632), (884, 632)], "Inserta el reporte", label_pos=(1015, 612, 120), color=C_FABRIC)
+    d.edge(portal[0], clients[0], [(852, 664), (852, 760)], "Por el WAF", label_pos=(862, 700, 80), color=C_FABRIC)
+
+    d.text(30, 860, 1430, 46,
+           "Azul: lecturas. Verde: estado en vivo. Rojo: alertas. Morado: lectura de Fabric. Cinco años de detalle son unos 890 millones de filas; el resumen de 5 minutos, "
+           "unos 64 millones, queda bajo el tope de Direct Lake de las capacidades pequeñas (300 millones de filas por tabla en F2 a F32). Los tableros usan el resumen.", font=10)
+    return d
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--out", required=True)
@@ -277,7 +406,9 @@ def main():
     out.mkdir(parents=True, exist_ok=True)
     for name, fn in [("firewall-9-p1-publicacion-portal", portal_publication),
                      ("firewall-9-p2-puntos-de-control", control_points),
-                     ("firewall-9-p3-transicion-cali", cali_transition)]:
+                     ("firewall-9-p3-transicion-cali", cali_transition),
+                     ("telemetria-13-p1-ingesta-y-alerta", telemetry_ingest_alert),
+                     ("telemetria-13-p2-historial-y-tableros", telemetry_history_dashboards)]:
         (out / f"{name}.drawio").write_text(fn().xml(), encoding="utf-8")
         print(out / f"{name}.drawio")
 
