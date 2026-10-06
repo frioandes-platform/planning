@@ -255,7 +255,7 @@ Cada ambiente tiene su propia política de WAF, administrada como código:
 2. Se revisan los registros del WAF, se agregan las exclusiones necesarias y se pasa a prevención en pruebas.
 3. Producción arranca en modo prevención desde el corte, con la misma política ya ajustada.
 
-**Lo que se agrega en el diseño de protección de datos personales y del perímetro:** los límites de solicitudes por cliente para frenar el abuso del rastreo y la detección de comportamientos anómalos con Defender for Cloud. Se configuran como reglas personalizadas sobre esta misma política. El Application Gateway entrega la IP real de cada cliente, que esas reglas necesitan.
+**Límites de solicitudes y detección de anomalías.** El diseño de datos personales y perímetro (`seguridad-datos-personales-perimetro.md`, secciones 4 y 5) agrega a esta misma política cuatro reglas de límite dimensionadas para el pico de 2.000 solicitudes por minuto: límite general por IP, consulta de guías, inicio de sesión y registro del tráfico desde fuera de Colombia (WAF-prod-02 a 05 y WAF-test-02 a 05). También define la detección con Defender for Cloud. Las reglas usan la IP real de cada cliente, que el Application Gateway entrega.
 
 ### 3.5 Certificados y cifrado
 
@@ -494,7 +494,7 @@ La tabla completa vive en tres archivos de `red/`, junto al plan de direcciones:
 
 | Archivo | Contenido |
 |---|---|
-| `data/firewall-policy.csv` | Las 85 reglas, ambiente por ambiente: 33 del Azure Firewall, 48 de NSG, 2 del WAF y 2 de IoT Hub y DPS. Cada una con su flujo, punto de control, origen, destino, puerto, acción, vigencia y momento de retiro |
+| `data/firewall-policy.csv` | Las 93 reglas, ambiente por ambiente: 33 del Azure Firewall, 48 de NSG, 10 del WAF y 2 de IoT Hub y DPS. Cada una con su flujo, punto de control, origen, destino, puerto, acción, vigencia y momento de retiro |
 | `data/firewall-settings.csv` | La configuración general: versión, inteligencia de amenazas, rangos sin traducción de origen, proxy DNS, IP públicas y grupos |
 | `tools/verify_firewall_policy.py` | Comprueba la tabla contra `ip-plan.csv` y el inventario on-premises |
 
@@ -508,7 +508,7 @@ El script hace doce comprobaciones. Entre ellas:
 - las reglas temporales tienen fecha de retiro y están en los grupos que se borran completos;
 - ningún endpoint privado queda en la lista sin traducción de origen.
 
-La tabla actual pasa las doce. Su hash SHA-256 es `72fca57a76fbad427163f2890a2f060caf1cfa24e46005b2f3c2d7f7f0b32dad` y el reporte está en `verification/reporte-firewall-policy.md`. El código de infraestructura del módulo de seguridad se revisa regla por regla contra este mismo archivo.
+La tabla actual pasa las doce. Su hash SHA-256 es `dc48052f140a3d61bf5287927a81e544f033098296f96c45df5d0b7fbb6d4a7e` y el reporte está en `verification/reporte-firewall-policy.md`. El código de infraestructura del módulo de seguridad se revisa regla por regla contra este mismo archivo.
 
 Los valores entre `<>` se completan en la implementación: el nombre del registro de contenedores, los dominios de los proveedores externos, el nombre del recurso de Azure Communication Services y del DPS, las IP públicas de Cali, la IP del DNS de Cali y el rango pasivo del servidor FTP.
 
@@ -634,7 +634,7 @@ Todos los registros van al espacio de Log Analytics de la plataforma, en tablas 
 | Salud del firewall | Estado degradado o no disponible, o métricas que dejan de llegar | Sin firewall, las sedes pierden la plataforma y los ambientes, la salida a internet |
 | Cambio en reglas | Cualquier cambio en la política del firewall, los NSG o el WAF. Operación lo contrasta con los cambios aprobados | Detectar un cambio no autorizado en la seguridad de la red |
 
-Las alertas de seguridad van al equipo de operación. La detección de comportamientos anómalos en el uso del portal (por ejemplo, un cliente que consulta guías ajenas) y su integración con Defender for Cloud las define el diseño de protección de datos personales y del perímetro, sobre estos mismos registros.
+Las alertas de seguridad van al equipo de operación. La detección de comportamientos anómalos en el uso del portal (por ejemplo, un cliente que consulta guías ajenas) y los planes de Defender for Cloud están en el diseño de datos personales y perímetro (`seguridad-datos-personales-perimetro.md`, sección 5), sobre estos mismos registros.
 
 ### 6.3 Costo de los registros
 
