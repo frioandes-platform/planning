@@ -1,15 +1,15 @@
 # FríoAndes — Gobierno y landing zone de Azure
 
 Estado: propuesta de arquitectura para revisión del equipo. Fecha: 4 de octubre de 2026.
-Historia cubierta: tarea 2 del listado del backlog (F1-01 según la referencia de la tarea de auditoría; confirmar el número real de issue).
+Issue cubierto: #5.
 
 ## 1. Objetivo y alcance
 
 Establecer una estructura común para gobernar recursos, accesos y costos en Azure, separando seguridad, red compartida, producción y ambientes no productivos. El diagrama de jerarquía se entrega como PNG por separado; este documento describe y justifica su contenido. La jerarquía no representa la topología de red ni un despliegue realizado.
 
-El contexto proporcionado indica que desarrollo, pruebas y producción comparten actualmente el clúster de aplicación del datacenter. Esto dificulta delimitar permisos, cambios y consumo por ambiente. La propuesta crea ámbitos distintos y conserva una administración corporativa común.
+El diagnóstico actual muestra que desarrollo, pruebas y producción comparten actualmente el clúster de aplicación del datacenter. Esto dificulta delimitar permisos, cambios y consumo por ambiente. La propuesta crea ámbitos distintos y conserva una administración corporativa común.
 
-Azure es la nube principal definida en esta historia. Los nombres, cinco suscripciones y umbrales siguientes son decisiones propuestas, no cifras obligatorias del caso. La HU de red fija East US 2 como región principal y Central US como región emparejada; según el resumen de su entrega, una medición de latencia desde Cali confirmó East US 2. Los valores de esa prueba y los montos de presupuesto se consultan en los documentos respectivos.
+Azure es la nube principal del proyecto, según el briefing inicial (`docs/governance-and-decisions/briefing-inicial-juniors.md`). Los nombres, cinco suscripciones y umbrales siguientes son decisiones propuestas, no cifras obligatorias del caso. El issue #8 fija East US 2 como región principal y Central US como región emparejada, y registra una medición de latencia desde Cali que confirma East US 2. Los valores de esa prueba y los montos de presupuesto se consultan en los documentos respectivos.
 
 ## 2. Cómo leer el diseño
 
@@ -28,8 +28,8 @@ Las suscripciones propuestas se vinculan al mismo directorio Entra ID. La separa
 
 | Suscripción | Dominio y recursos previstos | Administración propuesta |
 |---|---|---|
-| `sub-fa-security` | Seguridad y observabilidad central: Log Analytics y herramientas de investigación; archivo de auditoría a definir en su historia | Equipo de seguridad/plataforma; lectura limitada para auditoría |
-| `sub-fa-connectivity` | Red compartida: hub, Azure Firewall, conectividad con Cali y DNS híbrido; los controles del portal y de los flujos que no pasan por el firewall se precisan en la HU de firewall | Equipo de redes |
+| `sub-fa-security` | Seguridad y observabilidad central: Log Analytics y herramientas de investigación; archivo de auditoría a definir en #6 | Equipo de seguridad/plataforma; lectura limitada para auditoría |
+| `sub-fa-connectivity` | Red compartida: hub, Azure Firewall, conectividad con Cali y DNS híbrido; los controles del portal y de los flujos que no pasan por el firewall se precisan en #9 | Equipo de redes |
 | `sub-fa-prod` | Cargas productivas: logística, portal, datos, archivo e ingesta de telemetría | Operadores autorizados e identidad de despliegue de producción |
 | `sub-fa-dev` | Desarrollo con datos sintéticos o anonimizados | Desarrolladores dentro de RG autorizados |
 | `sub-fa-test` | Pruebas de integración y validación previa a producción | QA y automatización dentro de RG autorizados |
@@ -52,7 +52,7 @@ Un tenant corporativo evita crear directorios independientes para cada ambiente.
 | `grp-fa-ops-prod` | Roles de operación específicos en producción | Elevación temporal para acciones privilegiadas |
 | `grp-fa-finops` | Cost Management Reader en las suscripciones pertinentes | Sin modificación de infraestructura |
 
-No se concede Owner global a desarrolladores o QA. Se proponen MFA, acceso condicional y elevación temporal mediante PIM para administradores, sujetos al licenciamiento correspondiente. La matriz completa de usuarios y cifrado pertenece a la tarea 4.
+No se concede Owner global a desarrolladores o QA. Se proponen MFA, acceso condicional y elevación temporal mediante PIM para administradores, sujetos al licenciamiento correspondiente. La matriz completa de usuarios y cifrado pertenece a #7.
 
 Los pipelines usarán identidades distintas por ambiente con federación de identidad cuando sea compatible. Los permisos de acceso a datos deben configurarse por servicio: un rol de gobierno o de lectura de recursos no sustituye la autorización de la aplicación. El acceso a la consola de despacho se diseñará por separado.
 
@@ -70,7 +70,7 @@ Se aplican claves y valores normalizados en minúsculas a los RG y recursos comp
 
 Ejemplo para la ingesta productiva: `ambiente=prod`, `carga=telemetria`, `costo=telemetria`, `criticidad=alta`, `responsable=equipo-plataforma`.
 
-Dev/test se clasifican como `costo=pruebas`, incluso si allí se prueba telemetría. Esto evita contar el mismo recurso simultáneamente como telemetría productiva y pruebas. Red y seguridad comunes usan `costo=compartido`; su reparto interno se definirá en la tarea 3. La capacidad de Fabric tendrá una línea separada, mediante su ámbito de facturación y filtros disponibles, sin asumir que todos sus cargos admiten las mismas etiquetas.
+Dev/test se clasifican como `costo=pruebas`, incluso si allí se prueba telemetría. Esto evita contar el mismo recurso simultáneamente como telemetría productiva y pruebas. Red y seguridad comunes usan `costo=compartido`; su reparto interno se definirá en #6. La capacidad de Fabric tendrá una línea separada, mediante su ámbito de facturación y filtros disponibles, sin asumir que todos sus cargos admiten las mismas etiquetas.
 
 Los recursos no heredan automáticamente etiquetas del RG o la suscripción. Terraform las aplicará explícitamente y Azure Policy verificará su cumplimiento. Para recursos existentes compatibles podrá usarse `Modify` con identidad administrada y remediación. Los recursos sin soporte de etiquetas se clasifican por suscripción/RG y un inventario de excepciones.
 
@@ -86,7 +86,7 @@ Las políticas se agrupan en iniciativas versionadas. Los efectos siguientes son
 | P-04. Diagnósticos centralizados | Suscripciones de cargas y conectividad | `DeployIfNotExists` en servicios compatibles | Crear configuración de diagnóstico hacia el destino autorizado; usar identidad administrada y remediación para recursos existentes |
 | P-05. Transporte seguro en almacenamiento | Suscripciones de cargas | `Deny` para propiedades compatibles | Exigir HTTPS y TLS mínimo 1.2 en cuentas de almacenamiento; otros servicios tendrán controles específicos |
 
-P-02 toma East US 2 y Central US como regiones iniciales para recursos regionales, sujeto a excepciones justificadas para servicios globales y a las definiciones compatibles con cada tipo de recurso. Antes de activar su efecto de bloqueo se comprueba el alcance exacto de la política. P-04 no garantiza por sí sola registrar accesos de negocio: la aplicación debe emitir los eventos definidos en la tarea 3. También se debe coordinar con la HU de firewall el envío central de registros de Azure Firewall, WAF y flujos de red virtual, incluidos los recorridos que no atraviesan el firewall.
+P-02 toma East US 2 y Central US como regiones iniciales para recursos regionales, sujeto a excepciones justificadas para servicios globales y a las definiciones compatibles con cada tipo de recurso. Antes de activar su efecto de bloqueo se comprueba el alcance exacto de la política. P-04 no garantiza por sí sola registrar accesos de negocio: la aplicación debe emitir los eventos definidos en #6. También se debe coordinar con #9 el envío central de registros de Azure Firewall, WAF y flujos de red virtual, incluidos los recorridos que no atraviesan el firewall.
 
 Se verifica primero la compatibilidad de cada política en dev/test. Las excepciones deberán registrar recurso/ámbito, justificación, responsable, control compensatorio y vencimiento. No se excluirá toda producción para resolver un error puntual.
 
@@ -113,13 +113,13 @@ Los presupuestos notifican; no son topes que apaguen automáticamente recursos. 
 |---|---|---|
 | Dev/test/prod comparten clúster de aplicación | Suscripciones y recursos propios por ambiente | No reutilizar el mismo cómputo, base o identidad de despliegue entre ambientes |
 | Permisos sin delimitación común | Tenant corporativo y grupos RBAC con ámbitos separados | Validar permisos efectivos y evitar herencia excesiva |
-| Red y cargas administradas juntas | Conectividad compartida bajo responsabilidad de redes | Definir segmentación, rutas y firewall en la historia de red |
+| Red y cargas administradas juntas | Conectividad compartida bajo responsabilidad de redes | Definir segmentación, rutas y firewall en #8 |
 | Costos mezclados | Etiquetas, presupuestos por suscripción y vistas por línea | Controlar cargos sin etiquetas y distribuir costos comunes |
-| Auditoría dispersa | Destino central y políticas de diagnóstico | Definir eventos, acceso y retención en la tarea 3 |
+| Auditoría dispersa | Destino central y políticas de diagnóstico | Definir eventos, acceso y retención en #6 |
 
 Una suscripción no es un firewall. El aislamiento requiere redes y reglas explícitas; tampoco prohíbe por sí sola que alguien configure conexiones entre ambientes. Los controles de red y los datos de prueba deberán respetar la separación propuesta.
 
-## 9. Validación y cierre de la historia
+## 9. Validación y cierre
 
 Este documento permite revisar el diseño sin contratar ni desplegar servicios. La implementación posterior verificará que un desarrollador de dev no pueda modificar producción, que una creación sin etiquetas sea rechazada, que un recurso regional no autorizado sea bloqueado y que el consumo pueda agruparse por las líneas acordadas.
 
@@ -129,9 +129,7 @@ Este documento permite revisar el diseño sin contratar ni desplegar servicios. 
 | Cuatro dimensiones de etiquetas y tres políticas concretas | Cinco dimensiones en sección 5 y cinco políticas en sección 6 |
 | Explicar cómo se resuelve la mezcla de clústeres e identidades | Modelo de accesos en sección 4 y comparación en sección 8 |
 
-Antes de marcar Done: revisión del equipo, confirmación de nombres y responsables, incorporación a `docs/architecture/gobierno-landing-zone.md` en el repositorio y verificación de que el PNG adjunto coincide con la sección 3. Los importes siguen abiertos para las historias de dimensionamiento/costos; no cambian la jerarquía propuesta. El plan de direcciones, las rutas y las reglas detalladas son responsabilidad de las HU de red y firewall.
-
-La tarea 3 y la tarea 4 pueden continuar después de aprobar esta base. La tarea 1 requiere además la historia de redes referida como #8. Confirmar que #5 corresponde a esta historia de gobierno antes de ajustar vínculos del tablero.
+Antes de marcar Done: revisión del equipo, confirmación de nombres y responsables, incorporación a `docs/architecture/gobierno-landing-zone.md` en el repositorio y verificación de que el PNG adjunto coincide con la sección 3. Los importes siguen abiertos para los issues de costos (#25 a #28); no cambian la jerarquía propuesta. El plan de direcciones, las rutas y las reglas detalladas son responsabilidad de #8 y #9.
 
 ## 10. Fuentes técnicas
 
@@ -141,5 +139,3 @@ Las decisiones de FríoAndes son propuestas del equipo. Las fuentes explican el 
 - [Microsoft Learn — Azure Policy](https://learn.microsoft.com/en-us/azure/governance/policy/overview)
 - [Microsoft Learn — Etiquetas de recursos](https://learn.microsoft.com/en-us/azure/azure-resource-manager/management/tag-resources)
 - [Microsoft Learn — Crear y administrar presupuestos](https://learn.microsoft.com/en-us/azure/cost-management-billing/costs/tutorial-acm-create-budgets)
-
-Consulta técnica: 4 de octubre de 2026. Datos del caso: historias de usuario proporcionadas en el backlog.
