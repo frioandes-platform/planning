@@ -250,6 +250,10 @@ están en *Ready* (listos para empezar).
 
 > **Decisión tomada (#8 y #9).** Torre, portal, ingesta y analítica tienen subredes propias en cada ambiente. El Azure Firewall controla lo que llega de las sedes y lo que sale a internet; los NSG, lo que pasa entre zonas dentro de un ambiente. El portal se protege con Application Gateway WAF v2 (Default Rule Set 2.2 y Bot Manager 1.1, en modo prevención); los límites por cliente y Defender for Cloud quedan en #10, sobre la misma política. Ver [`red-topologia-subnetting.md`](../architecture/red-topologia-subnetting.md), sección 5.1, y [`red-firewall-y-publicacion.md`](../architecture/red-firewall-y-publicacion.md), secciones 3 y 4.7.
 
+> **Decisión tomada (#10).** Portal: dos capas de límites. El WAF limita por IP (300 por minuto en general, 120 en la consulta de guías y 20 en el inicio de sesión, por instancia) dimensionado para 2.000 por minuto, y la aplicación limita por cuenta (60 por usuario y 200 por cliente). Detección con Defender for Cloud por suscripción y cinco alertas propias sobre el portal; Sentinel se evalúa con el volumen del primer mes. Ver [`seguridad-datos-personales-perimetro.md`](../architecture/seguridad-datos-personales-perimetro.md), secciones 4 y 5.
+
+> **Decisión tomada (#10).** Datos personales: FríoAndes es responsable de los datos de conductores y destinatarios, y Microsoft los trata como encargado en Estados Unidos, país de la lista de la SIC. Las evidencias se conservan cinco años por el contrato con los clientes de alimentos (Decreto 1377, artículo 11) y después se borran o se anonimizan. Las posiciones de los camiones quedan fuera de la copia inmutable para poder borrarlas. Sin datos de tarjeta, PCI DSS no aplica. Ver [`seguridad-datos-personales-perimetro.md`](../architecture/seguridad-datos-personales-perimetro.md), secciones 2 y 3.
+
 
 **En el tablero.** #7 Permisos, MFA y cifrado (juandavid175); #10 Datos personales y protección del portal (Melo088);
 y #9 Firewall de nube (Melo088; incluye el firewall web del portal).
@@ -910,6 +914,8 @@ número en vez del número de GitHub. Esta tabla los traduce (F1-04 se deduce po
 | Preparar la sesión de aclaraciones | Detalle técnico | — | `sesion-aclaraciones-preguntas.md` (lo menciona el briefing) | ❌ |
 | Alinear con los cinco pilares Well-Architected | Visión | — | — | ❌ |
 | Que el código coincida con el dibujo | Criterio 3 | #21, #39 | `docs/iac/verificacion-iac-vs-firewall.md`, `docs/cross-cutting/revision-final-…` | ✅ |
+
+> **Decisión tomada (#10).** La transferencia a EE. UU. quedó tratada: es una transmisión a Microsoft como encargado, con contrato (Decreto 1377, artículos 24 y 25), a un país de la lista de la SIC. Ver [`seguridad-datos-personales-perimetro.md`](../architecture/seguridad-datos-personales-perimetro.md), sección 3.3.
 
 > **Decisión tomada (#8 y #9).** "Redes separadas para torre, portal, telemetría y analítica" y "Despacho fuera de internet" ya tienen archivo: [`red-topologia-subnetting.md`](../architecture/red-topologia-subnetting.md) (secciones 5.1 y 5.2) y [`red-firewall-y-publicacion.md`](../architecture/red-firewall-y-publicacion.md) (secciones 3.1 y 4.7). "Proteger el portal" se reparte: #9 hace la capacidad y el WAF; #10, los límites por cliente y Defender for Cloud. La tabla del firewall para #21 está en `red/data/firewall-policy.csv`, con su verificador.
 

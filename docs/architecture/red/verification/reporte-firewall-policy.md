@@ -2,10 +2,10 @@
 
 Resultado: **aprobada** (12 de 12 comprobaciones).
 
-- Archivo: `firewall-policy.csv`, 85 reglas.
-- SHA-256: `72fca57a76fbad427163f2890a2f060caf1cfa24e46005b2f3c2d7f7f0b32dad`
-- Por punto de control: azure-firewall 33, iot-hub 2, nsg 48, waf 2.
-- Por vigencia: estable 74, temporal 11.
+- Archivo: `firewall-policy.csv`, 93 reglas.
+- SHA-256: `a511cdd373e6012fe8dc85f9d51564e07a7aa775924ef60466187d7ec14e7891`
+- Por punto de control: azure-firewall 33, iot-hub 2, nsg 48, waf 10.
+- Por vigencia: estable 82, temporal 11.
 
 | Comprobación | Resultado |
 |---|---|
