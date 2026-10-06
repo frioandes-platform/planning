@@ -1,12 +1,12 @@
 # Latencia medida desde Cali hacia las regiones candidatas
 
-- **Origen:** Cali, por una conexión doméstica.
+- **Origen:** la red cableada de una universidad en Cali. Es una aproximación de la latencia desde la ciudad: la sede de FríoAndes del caso es ficticia, así que la medición no usa su enlace de 400 Mbps. La decisión se mantiene mientras el resultado no cruce la regla del 30 %.
 - **Método:** `tools/measure_latency.py`, con 30 conexiones TCP al puerto 443 por región y por ronda. El tiempo de conexión TCP equivale aproximadamente a un viaje de ida y vuelta.
 - **Servidores:** los de `data/latency-targets.csv`, cuentas de almacenamiento de Azure ubicadas en cada región. Antes de medir se comprobó que los 7 resolvían por DNS y que sus direcciones pertenecen a los rangos oficiales de almacenamiento de cada región.
 - **Cómo repetir la medición** (desde la carpeta `red/`):
 
 ```bash
-python3 tools/measure_latency.py --targets data/latency-targets.csv --place "Sede Cali" --samples 30
+python3 tools/measure_latency.py --targets data/latency-targets.csv --place "Universidad en Cali, red cableada" --samples 30
 ```
 
 ## Ronda 1
