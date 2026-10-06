@@ -250,6 +250,10 @@ están en *Ready* (listos para empezar).
 
 > **Decisión tomada (#8 y #9).** Torre, portal, ingesta y analítica tienen subredes propias en cada ambiente. El Azure Firewall controla lo que llega de las sedes y lo que sale a internet; los NSG, lo que pasa entre zonas dentro de un ambiente. El portal se protege con Application Gateway WAF v2 (Default Rule Set 2.2 y Bot Manager 1.1, en modo prevención); los límites por cliente y Defender for Cloud quedan en #10, sobre la misma política. Ver [`red-topologia-subnetting.md`](../architecture/red-topologia-subnetting.md), sección 5.1, y [`red-firewall-y-publicacion.md`](../architecture/red-firewall-y-publicacion.md), secciones 3 y 4.7.
 
+> **Decisión tomada (#10).** Portal: dos capas de límites. El WAF limita por IP (300 por minuto en general, 120 en la consulta de guías y 20 en el inicio de sesión, por instancia) dimensionado para 2.000 por minuto, y la aplicación limita por cuenta (60 por usuario y 200 por cliente). Detección con Defender for Cloud por suscripción y cinco alertas propias sobre el portal; Sentinel se evalúa con el volumen del primer mes. Ver [`seguridad-datos-personales-perimetro.md`](../architecture/seguridad-datos-personales-perimetro.md), secciones 4 y 5.
+
+> **Decisión tomada (#10).** Datos personales: FríoAndes es responsable de los datos de conductores y destinatarios, y Microsoft los trata como encargado en Estados Unidos, país de la lista de la SIC. Las evidencias se conservan cinco años por el contrato con los clientes de alimentos (Decreto 1377, artículo 11) y después se borran o se anonimizan. Las posiciones de los camiones quedan fuera de la copia inmutable para poder borrarlas. Sin datos de tarjeta, PCI DSS no aplica. Ver [`seguridad-datos-personales-perimetro.md`](../architecture/seguridad-datos-personales-perimetro.md), secciones 2 y 3.
+
 
 **En el tablero.** #7 Permisos, MFA y cifrado (juandavid175); #10 Datos personales y protección del portal (Melo088);
 y #9 Firewall de nube (Melo088; incluye el firewall web del portal).
@@ -495,6 +499,8 @@ Si cada mensaje pesa 1 KB (supuesto), son unos 0,5 GB por día, unos 15 GB al me
 
 **En el tablero.** #13 Telemetría, de Melo088, en *Ready*.
 
+> **Decisión tomada (#13).** Los dos caminos llegan a un IoT Hub S1 de 2 unidades en Central US, la región pareja, porque East US 2 no tiene redundancia entre zonas para IoT Hub. Cada dispositivo se da de alta con DPS y certificados X.509. La alerta la evalúa Stream Analytics en East US 2. Las alertas pasan por un event hub a una función (Flex Consumption) que avisa a la torre de 04:00 a 22:00 y a la guardia de calidad de noche, y escala a los 5 y 15 minutos. Ver [`carga-b-telemetria.md`](../architecture/carga-b-telemetria.md), secciones 2 y 3.
+
 **Cuidado con.**
 - **La trampa del muestreo.** El camión mide la temperatura cada **60 segundos**. Hay dos lecturas posibles de
   "menos de un minuto desde el evento":
@@ -503,12 +509,16 @@ Si cada mensaje pesa 1 KB (supuesto), son unos 0,5 GB por día, unos 15 GB al me
   - si el evento es el momento en que *llega la medición*, queda un minuto entero para procesar.
 
   **Es una pregunta clave para la sesión de aclaraciones.** En los cuartos fríos, que miden cada 30 s, hay más margen.
+
+  > **Decisión tomada (#13).** El minuto se cuenta desde la hora de la lectura del sensor hasta que la alerta se ve, con un presupuesto de 40 s. Se confirma con la pregunta 2 de la sesión. Ver [`carga-b-telemetria.md`](../architecture/carga-b-telemetria.md), sección 3.1.
 - **40 TB de históricos frente a menos de 1 TB en 5 años.** Algo no cuadra: los archivos de hoy deben ser muy pesados
   o traer más información. Conviene preguntarlo.
 - **Sin señal celular.** El camión debería guardar las mediciones y enviarlas cuando recupere la señal. El enunciado
   dice "en condiciones normales de red", así que el plazo de 1 minuto solo aplica cuando hay señal.
 - **No pagar dos almacenes.** Si la telemetría guarda su historial en un servicio y Fabric en otro, se paga dos veces.
   Hay que decidir cuál guarda los datos y cuál solo los lee.
+
+> **Decisión tomada (#13).** Guarda el lago de datos de Azure y Fabric solo lee. Hay una copia de evidencia inmutable por cinco años en Central US, que escribe IoT Hub, y una tabla Delta para análisis en East US 2, que Fabric lee con un acceso directo de OneLake, sin copiar. Data Explorer se descartó por costo: más de USD 321 al mes solo de recargo. Ver [`carga-b-telemetria.md`](../architecture/carga-b-telemetria.md), sección 4.
 
 ---
 
@@ -705,6 +715,8 @@ siendo de una persona en la torre**: la IA sugiere, no decide.
 - **Los datos de la operación** (el enunciado los llama "libro operativo") son la base de guías, despachos e
   inventario. Hay que definir cómo llegan a Fabric. Está por confirmar qué opciones ofrece Fabric para MySQL.
 - **La telemetría** puede entrar directo a los componentes de tiempo real de Fabric.
+
+  > **Decisión tomada (#13).** La alerta no pasa por Fabric, para no depender de que una capacidad esté encendida de noche. Fabric lee la tabla de análisis del lago, y los tableros usan un resumen de 5 minutos para quedar bajo los topes de Direct Lake. Ver [`carga-b-telemetria.md`](../architecture/carga-b-telemetria.md), secciones 3.2 y 5.3.
 - **El archivo** se lee con **shortcuts de OneLake**: accesos directos que apuntan a donde ya están los archivos, sin copiarlos.
 - **"No se pide entrenar un modelo propio".** Hay que usar capacidades que ya vienen hechas: funciones de detección de
   anomalías, reglas de alerta, servicios de visión para las fotos. Todo por confirmar.
@@ -903,6 +915,8 @@ número en vez del número de GitHub. Esta tabla los traduce (F1-04 se deduce po
 | Alinear con los cinco pilares Well-Architected | Visión | — | — | ❌ |
 | Que el código coincida con el dibujo | Criterio 3 | #21, #39 | `docs/iac/verificacion-iac-vs-firewall.md`, `docs/cross-cutting/revision-final-…` | ✅ |
 
+> **Decisión tomada (#10).** La transferencia a EE. UU. quedó tratada: es una transmisión a Microsoft como encargado, con contrato (Decreto 1377, artículos 24 y 25), a un país de la lista de la SIC. Ver [`seguridad-datos-personales-perimetro.md`](../architecture/seguridad-datos-personales-perimetro.md), sección 3.3.
+
 > **Decisión tomada (#8 y #9).** "Redes separadas para torre, portal, telemetría y analítica" y "Despacho fuera de internet" ya tienen archivo: [`red-topologia-subnetting.md`](../architecture/red-topologia-subnetting.md) (secciones 5.1 y 5.2) y [`red-firewall-y-publicacion.md`](../architecture/red-firewall-y-publicacion.md) (secciones 3.1 y 4.7). "Proteger el portal" se reparte: #9 hace la capacidad y el WAF; #10, los límites por cliente y Defender for Cloud. La tabla del firewall para #21 está en `red/data/firewall-policy.csv`, con su verificador.
 
 
@@ -1052,6 +1066,8 @@ Puntos del tablero que conviene corregir o decidir en equipo.
 | **#29 espera más de lo necesario.** Espera al documento de arquitectura completo, pero el formato de la plantilla no lo necesita: solo el ejemplo | #29 | Separar la plantilla del ejemplo para adelantar trabajo |
 | **#39 cita el issue equivocado.** Habla del "`terraform plan` de F2-01" (#20), pero la evidencia del plan es F2-05 (#24) | #39 | Detalle de redacción |
 | **Faltan tamaños, estimaciones y fechas**, y por eso la vista *Roadmap* aparece vacía | Tablero | Completarlos cuando se sepa la fecha de la sustentación |
+
+> **Decisión tomada (#13).** Sobre los dos lugares para guardar los datos analíticos: guarda el lago de datos de Azure y Fabric solo lee, con un acceso directo de OneLake. Synapse Data Explorer ya no existe (Microsoft lo retiró el 7 de octubre de 2025) y Data Explorer se descartó por costo. Ver [`carga-b-telemetria.md`](../architecture/carga-b-telemetria.md), sección 4.2.
 
 ---
 

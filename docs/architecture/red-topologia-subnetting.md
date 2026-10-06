@@ -2,10 +2,7 @@
 
 Este documento describe la red que conecta la sede de Cali, los ocho centros de distribución y la nube de FríoAndes en Azure. Explica cada parte de la solución, por qué se eligió, qué alternativas se descartaron y qué debe confirmar FríoAndes antes de implementarla.
 
-Los diagramas editables están en Lucidchart:
-
-- Solución con Container Apps: https://lucid.app/lucidchart/6fe845f4-d757-4b83-96db-92f094dca717/edit
-- Variante con Kubernetes (AKS): https://lucid.app/lucidchart/3acaf69f-deab-4a84-ad80-71ba18f13d42/edit
+Los diagramas están en `diagramas/` como archivos de draw.io. Cada PNG lleva el diagrama editable incrustado: se abre directamente en draw.io.
 
 Los archivos de apoyo están en la carpeta `red/`, junto a este documento:
 
@@ -19,7 +16,7 @@ Los archivos de apoyo están en la carpeta `red/`, junto a este documento:
 | `red/tools/verify_ip_plan.py` | Verifica el plan contra el inventario on-premises (sección 4.8) |
 | `red/tools/compare_tfplan.py` | Compara el plan de Terraform con `ip-plan.csv` (sección 4.8) |
 | `red/tools/measure_latency.py` | Mide la latencia hacia cada región (sección 3) |
-| `red/tools/build_lucid_diagrams.py` | Genera los diagramas de Lucidchart a partir del plan |
+| `red/tools/build_drawio_diagrams.py` | Genera los diagramas de draw.io a partir del plan |
 | `red/verification/` | Reportes de la verificación de los dos planes y resultados de la medición de latencia |
 
 ## Contenido
@@ -273,7 +270,7 @@ Durante la convivencia el firewall de Cali sigue en pie. Esta tabla dice qué pa
 
 #### Convivencia (como máximo 90 días)
 
-![Convivencia: Cali con su datacenter, ocho centros, hub y ambientes de Azure](diagramas/red-8-p1-convivencia.png)
+![Convivencia: Cali con su datacenter, ocho centros, hub y ambientes de Azure](diagramas/red-8-p1-convivencia.drawio.png)
 
 Qué mirar en este diagrama:
 
@@ -286,13 +283,14 @@ Qué mirar en este diagrama:
 
 #### Estado estable (después del día 90)
 
-![Estado estable: centros directo a Azure, Cali con dos proveedores](diagramas/red-8-p2-estado-estable.png)
+![Estado estable: centros directo a Azure, Cali con dos proveedores](diagramas/red-8-p2-estado-estable.drawio.png)
 
 Qué cambia frente a la convivencia:
 
 - Cali ya no aloja servidores: quedan los usuarios y su firewall.
 - Los centros solo tienen la conexión directa a Azure.
 - Aparecen en línea punteada las reservas para el futuro: la región pareja (Central US) y la segunda nube.
+- En los dos diagramas, IoT Hub y su servicio de aprovisionamiento (DPS) están en Central US, fuera de las redes virtuales, y la función notificadora de la telemetría está en `snet-telemetry-func` de producción.
 
 ---
 
@@ -361,7 +359,7 @@ East US 2 y su pareja Central US tienen disponibles todos los servicios que usa 
 | Telemetría | IoT Hub, Event Hubs, Stream Analytics, Functions, Data Explorer |
 | Analítica | Microsoft Fabric |
 
-Hay una diferencia que conviene conocer: **IoT Hub tiene redundancia entre zonas en Central US; en East US 2 funciona sin ella.** La red no cambia por esto, pero el diseño de telemetría puede elegir otra región para ese servicio o compensarlo de otra forma.
+Hay una diferencia que conviene conocer: **IoT Hub tiene redundancia entre zonas en Central US; en East US 2 funciona sin ella.** Por eso el diseño de telemetría ubica IoT Hub y su servicio de aprovisionamiento (DPS) en Central US. La red no cambia: sus endpoints privados quedan en `snet-ingest` de East US 2, porque Azure permite que un endpoint privado esté en otra región que el servicio (`carga-b-telemetria.md`, sección 2.4).
 
 East US 2 tiene tres zonas de disponibilidad en servicio general. El diseño se apoya en esas tres.
 
@@ -383,7 +381,7 @@ East US 2 es la más barata o empata en los dos rubros. Con un archivo históric
 
 ### 3.7 Región pareja y recuperación
 
-Central US es la región pareja de East US 2. Azure coordina el mantenimiento de las dos para que no queden fuera de servicio al mismo tiempo, y algunos servicios replican datos entre ellas. El plan de direcciones reserva el bloque `10.104.0.0/15` para el hub y la producción de recuperación en Central US (sección 4). El diseño de continuidad de la plataforma define qué se replica y cómo se activa.
+Central US es la región pareja de East US 2. Azure coordina el mantenimiento de las dos para que no queden fuera de servicio al mismo tiempo, y algunos servicios replican datos entre ellas. La telemetría ya usa Central US como región principal de IoT Hub, DPS y la evidencia de temperatura, porque ahí IoT Hub es redundante entre zonas. Esos servicios no necesitan una red virtual en Central US: sus endpoints privados están en East US 2, así que la reserva `10.104.0.0/15` sigue libre. El plan de direcciones reserva el bloque `10.104.0.0/15` para el hub y la producción de recuperación en Central US (sección 4). El diseño de continuidad de la plataforma define qué se replica y cómo se activa.
 
 ### 3.8 Ubicación de los datos
 
@@ -437,7 +435,7 @@ Dentro de cada `/16` la red virtual ocupa solo lo que justifica su cuenta (un `/
 **Decisión: el hub mide `/23` y cada ambiente `/21`.**
 
 - **Hub `/23` (512 direcciones).** Sus seis subredes suman 288 direcciones (cuatro `/26` que exige Azure y dos `/28` del DNS). El `/23` deja 224 libres para lo que el hub puede necesitar después: Azure Route Server si se agrega ExpressRoute y un equipo de red virtual para la segunda nube.
-- **Cada ambiente `/21` (2.048 direcciones).** Sus diez subredes suman 736 direcciones, así que quedan 1.312 libres, un 64 %. Ese espacio permite agregar cómputo de telemetría, otro entorno de aplicación o ejecutores privados del pipeline sin renumerar. Un `/22` dejaría solo 288 libres, poco para tres ambientes que van a crecer.
+- **Cada ambiente `/21` (2.048 direcciones).** Sus once subredes suman 768 direcciones, así que quedan 1.280 libres, un 62,5 %. Ese espacio permite agregar cómputo de telemetría, otro entorno de aplicación o ejecutores privados del pipeline sin renumerar. Un `/22` dejaría solo 288 libres, poco para tres ambientes que van a crecer.
 - **Por qué no un `/16` por red virtual.** Serían 65.536 direcciones para unas 750 usadas, sin una necesidad que lo justifique, y se perdería el espacio para reservas.
 - **Por qué no ambientes contiguos sin bloques.** Ahorraría espacio, pero se perdería la lectura por el segundo número (100, 101, 102, 103) y el resumen de toda la región en un solo prefijo, `10.100.0.0/14`, que simplifica las rutas y las reglas del firewall de Cali.
 
@@ -458,7 +456,7 @@ Quedan libres en el hub `10.100.1.32/27`, `10.100.1.64/26` (lugar previsto para 
 
 ### 4.5 Subredes de cada ambiente
 
-Producción, pruebas y desarrollo tienen las mismas diez subredes. Solo cambia el segundo número de la dirección (101, 102 o 103).
+Producción, pruebas y desarrollo tienen las mismas once subredes. Solo cambia el segundo número de la dirección (101, 102 o 103).
 
 | Subred | Producción | Pruebas | Desarrollo | Servicio |
 |---|---|---|---|---|
@@ -466,16 +464,17 @@ Producción, pruebas y desarrollo tienen las mismas diez subredes. Solo cambia e
 | `snet-app-torre` | `10.101.1.0/25` | `10.102.1.0/25` | `10.103.1.0/25` | Consola de despacho (torre de control) |
 | `snet-app-portal` | `10.101.1.128/25` | `10.102.1.128/25` | `10.103.1.128/25` | Servicios del portal de rastreo |
 | `snet-data` | `10.101.2.0/27` | `10.102.2.0/27` | `10.103.2.0/27` | MySQL Flexible Server (subred exclusiva) |
-| `snet-data-pe` | `10.101.2.32/27` | `10.102.2.32/27` | `10.103.2.32/27` | Endpoints privados de la caché (Azure Managed Redis) y de Key Vault |
-| `snet-archive` | `10.101.2.64/27` | `10.102.2.64/27` | `10.103.2.64/27` | Endpoints privados del almacenamiento del archivo histórico y las evidencias |
-| `snet-ingest` | `10.101.2.96/27` | `10.102.2.96/27` | `10.103.2.96/27` | Endpoints privados de la ingesta de telemetría de los cuartos fríos |
+| `snet-data-pe` | `10.101.2.32/27` | `10.102.2.32/27` | `10.103.2.32/27` | Endpoints privados de la caché (Azure Managed Redis), de Key Vault, de los Event Hubs de la telemetría y de la cuenta de la función notificadora |
+| `snet-archive` | `10.101.2.64/27` | `10.102.2.64/27` | `10.103.2.64/27` | Endpoints privados del almacenamiento del archivo histórico, las evidencias y el historial de telemetría |
+| `snet-ingest` | `10.101.2.96/27` | `10.102.2.96/27` | `10.103.2.96/27` | Endpoints privados de IoT Hub y DPS, por donde entran los cuartos fríos |
 | `snet-admin` | `10.101.2.128/27` | `10.102.2.128/27` | `10.103.2.128/27` | Agentes de despliegue y máquinas de operación, administradas por Bastion |
 | `snet-cali-integration` | `10.101.2.160/27` | `10.102.2.160/27` | `10.103.2.160/27` | Herramientas de la migración desde Cali. Queda vacía en estado estable |
 | `snet-fabric-egress` | `10.101.2.192/27` | `10.102.2.192/27` | `10.103.2.192/27` | Gateway de datos que lleva la información de forma privada hacia Microsoft Fabric |
+| `snet-telemetry-func` | `10.101.3.0/27` | `10.102.3.0/27` | `10.103.3.0/27` | Función notificadora de la telemetría (Azure Functions, plan Flex Consumption), delegada a `Microsoft.App/environments` |
 
 Las dos subredes de aplicación (torre y portal) dependen de la plataforma que se elija para correr la consola y el portal. Sus rangos no cambian, pero su configuración sí (sección 7).
 
-Quedan libres en cada ambiente `10.10X.2.224/27`, `10.10X.3.0/24` y `10.10X.4.0/22`, para cómputo de telemetría, nuevos servicios o ejecutores privados del pipeline. Con la variante Kubernetes, el primero de esos bloques se usa para la API privada del clúster (sección 7).
+Quedan libres en cada ambiente `10.10X.2.224/27`, `10.10X.3.32/27`, `10.10X.3.64/26`, `10.10X.3.128/25` y `10.10X.4.0/22`, para nuevos servicios o ejecutores privados del pipeline. Con la variante Kubernetes, el primero de esos bloques se usa para la API privada del clúster (sección 7).
 
 **Las ocho categorías de subred de cada ambiente:**
 
@@ -485,7 +484,7 @@ Quedan libres en cada ambiente `10.10X.2.224/27`, `10.10X.3.0/24` y `10.10X.4.0/
 | Aplicación | `snet-app-torre` y `snet-app-portal` |
 | Datos | `snet-data` y `snet-data-pe` |
 | Archivo | `snet-archive` |
-| Ingesta de telemetría | `snet-ingest` |
+| Ingesta de telemetría | `snet-ingest` y `snet-telemetry-func` |
 | Administración | `snet-admin` |
 | Integración con Cali | `snet-cali-integration` |
 | Salida a Fabric | `snet-fabric-egress` |
@@ -517,7 +516,7 @@ Una subred con recursos dentro no se puede agrandar, así que cada tamaño se ca
 | `snet-admin` | Hasta 12 máquinas | `/27` |
 | `snet-cali-integration` | Hasta 11 direcciones para las herramientas de migración | `/27` |
 | `snet-fabric-egress` | Hasta 9 nodos del gateway de datos: 5 de Azure + 5 de funcionamiento + 9 + 2 de margen = 21 | `/27` |
-| Red de cada ambiente | 256 + 2 × 128 + 7 × 32 = 736 direcciones | `/21` (2.048): quedan 1.312 libres, un 64 % |
+| Red de cada ambiente | 256 + 2 × 128 + 8 × 32 = 768 direcciones | `/21` (2.048): quedan 1.280 libres, un 62,5 % |
 
 ### 4.8 Verificación de no solapamiento
 
@@ -538,14 +537,14 @@ La verificación no se hace a ojo. Un script, `verify_ip_plan.py`, lee el plan d
 | La única entrada pública de aplicación es el ingreso del portal | Cumple |
 | Las subredes respetan los nombres y tamaños que exige Azure | Cumple |
 
-**Conclusión: sin solapamiento.** Los 45 rangos de la nube (4 redes virtuales, 36 subredes y 5 reservas) se compararon uno por uno contra las 23 subredes on-premises. La tabla completa, rango por rango, está en el Anexo A.
+**Conclusión: sin solapamiento.** Los 48 rangos de la nube (4 redes virtuales, 39 subredes y 5 reservas) se compararon uno por uno contra las 23 subredes on-premises. La tabla completa, rango por rango, está en el Anexo A.
 
 **Cómo comprobarlo.** Cualquiera puede repetir la verificación desde la carpeta `red/`:
 
 ```bash
 python3 tools/verify_ip_plan.py --plan data/ip-plan.csv --out verification/reporte-ip-plan.md
 sha256sum data/ip-plan.csv
-# 652ed7ebbb7d9a67dbd010634f2bc96304fd63630228cb2ccde0d178b90075fd
+# 2af88d980e4de7b6c83f0e5bf0f123c544d235a80017dc8e42fc109b5608be42
 ```
 
 El hash identifica el archivo verificado. Si alguien cambia una sola dirección, el hash cambia y hay que volver a correr el script.
@@ -576,12 +575,13 @@ El código de red lee `ip-plan.csv` directamente con `csvdecode(file("ip-plan.cs
 | `snet-admin` | 6 | 20 | `10.101.2.128/27` |
 | `snet-cali-integration` | 6 | 21 | `10.101.2.160/27` |
 | `snet-fabric-egress` | 6 | 22 | `10.101.2.192/27` |
+| `snet-telemetry-func` | 6 | 24 | `10.101.3.0/27` |
 
 ### 4.10 Diagrama de subredes
 
-![Subredes del hub y de producción con sus rangos, tablas del módulo y de reservas](diagramas/red-8-p3-subredes.png)
+![Subredes del hub y de producción con sus rangos, tablas del módulo y de reservas](diagramas/red-8-p3-subredes.drawio.png)
 
-Cada recuadro es una subred con su rango y el ícono del servicio que aloja. Abajo están la tabla del módulo con los rangos de producción, pruebas y desarrollo, y la tabla de reservas.
+Cada recuadro es una subred con su rango y el ícono del servicio que aloja, incluida `snet-telemetry-func`. Abajo están la tabla del módulo con los rangos de producción, pruebas y desarrollo, y la tabla de reservas.
 
 ---
 
@@ -597,7 +597,7 @@ Una zona es un grupo de subredes con el mismo nivel de confianza. Separar las ca
 |---|---|---|
 | Torre de control | `snet-app-torre` | Solo usuarios de la red corporativa (Cali y los centros), a través del Azure Firewall |
 | Portal de rastreo | `snet-ingress` y `snet-app-portal` | Clientes desde internet, únicamente a `snet-ingress`. `snet-app-portal` solo recibe tráfico desde `snet-ingress` |
-| Ingesta de telemetría | `snet-ingest` | Sensores de los cuartos fríos, por la VPN de cada centro y el Azure Firewall |
+| Ingesta de telemetría | `snet-ingest` y `snet-telemetry-func` | Sensores de los cuartos fríos, por la VPN de cada centro y el Azure Firewall. La función notificadora no recibe tráfico: lee las alertas de un event hub y avisa a la torre y a los canales |
 | Analítica | `snet-fabric-egress` | Nadie desde afuera. El gateway de datos lee la base de datos y el archivo, y envía la información a Microsoft Fabric |
 | Compartida | `snet-data`, `snet-data-pe`, `snet-archive`, `snet-admin`, `snet-cali-integration` | Las aplicaciones de la plataforma, las herramientas de administración y, durante la convivencia, la migración desde Cali |
 
@@ -644,6 +644,8 @@ Esta tabla reúne todo lo que tiene una dirección pública en el diseño, para 
 | Portal de rastreo (HTTPS 443) | Application Gateway en `snet-ingress` | Unos 2.000 clientes | WAF | Permanente |
 | Portal de pruebas y desarrollo | `snet-ingress` de pruebas y desarrollo | Equipos autorizados | Solo orígenes autorizados | Permanente |
 | Endpoint público de IoT Hub | Servicio de ingesta | Camiones, por la red móvil del operador | TLS y una credencial por camión | Permanente |
+| Endpoint público del servicio de aprovisionamiento (DPS) | Servicio de ingesta | Camiones, al darse de alta | TLS y certificado del camión | Permanente |
+| Endpoint público de las cuentas del historial de telemetría | Almacenamiento en Central US y East US 2 | Solo IoT Hub y Stream Analytics, con su identidad administrada | Reglas de instancia de recurso, sin redes ni IP permitidas | Permanente |
 | IP públicas del VPN Gateway (2) | `GatewaySubnet` | Túneles de Cali y de los centros | IPsec IKEv2 | Permanente |
 | IP pública de Azure Bastion | `AzureBastionSubnet` | Equipos de desarrollo y operación | Entra ID y MFA | Permanente |
 | IP de gestión del Azure Firewall | `AzureFirewallManagementSubnet` | Solo la plataforma de Azure | No recibe tráfico de aplicación | Permanente |
@@ -706,6 +708,9 @@ Lista inicial de flujos para el diseño del firewall de nube:
 | `snet-ingress` | Servicios del portal (`snet-app-portal`) | 443 | Permanente |
 | `snet-app-torre` y `snet-app-portal` | Base de datos (`snet-data`) | 3306 | Permanente |
 | `snet-app-torre` y `snet-app-portal` | Caché y Key Vault (`snet-data-pe`) | Puertos del servicio | Permanente |
+| Función notificadora (`snet-telemetry-func`) | API de la torre (`snet-app-torre`) | 443 | Permanente |
+| Función notificadora y torre | Event Hubs de la telemetría (`snet-data-pe`) | 5671 y 443 | Permanente |
+| Función notificadora | Su cuenta y Key Vault (`snet-data-pe`), evidencia de telemetría (`snet-archive`) | 443 | Permanente |
 | Gateway de Fabric (`snet-fabric-egress`) | Base de datos (`snet-data`) y archivo (`snet-archive`) | 3306 y 443 | Permanente |
 | Azure Bastion | Máquinas de administración (`snet-admin`) | 22 y 3389 | Permanente, controlado por NSG |
 | DNS de Cali | DNS Private Resolver | 53 | Permanente, controlado por NSG |
@@ -736,17 +741,17 @@ Camino 1:  sensor del cuarto frío → equipo VPN del centro → túnel IPsec �
 Camino 2:  sensor del camión → red móvil del operador → internet → endpoint público de IoT Hub
 ```
 
-Los dos caminos terminan en el mismo servicio de ingesta. Desde ahí, el procesamiento de la alerta, el almacenamiento del historial y los tableros los define el diseño de telemetría.
+Los dos caminos terminan en el mismo servicio de ingesta. El procesamiento de la alerta, el historial y los tableros están en el diseño de telemetría (`carga-b-telemetria.md`).
 
 **Qué deja la red para la telemetría:**
 
-- `snet-ingest` en cada ambiente, con espacio para hasta 10 endpoints privados (IoT Hub, el servicio de aprovisionamiento de dispositivos, Event Hubs y almacenamiento usan 5). La cantidad de sensores no cambia la cantidad de endpoints.
-- Espacio libre en cada ambiente (`10.10X.3.0/24` y `10.10X.4.0/22`) para el cómputo que procese las alertas.
+- `snet-ingest` en cada ambiente, con los endpoints privados de IoT Hub y del servicio de aprovisionamiento de dispositivos (DPS): 2 de 10. La cantidad de sensores no cambia la cantidad de endpoints. Los Event Hubs y la cuenta de la función van en `snet-data-pe`, y las dos cuentas del historial en `snet-archive`.
+- `snet-telemetry-func` (`10.10X.3.0/27`) para la función notificadora que avisa de las alertas, tomada del espacio libre de cada ambiente.
 - El volumen de los dos caminos es muy bajo: los 32 cuartos fríos juntos suman unos 8,5 Kbps y los camiones no usan los enlaces de las sedes, así que la telemetría no condiciona el tamaño de la red.
 
-**Recolector local.** Si cada centro tiene un recolector que agrupe las lecturas antes de enviarlas (por ejemplo, IoT Edge), va en la red de sensores del centro y usa el mismo camino 1. Lo decide el diseño de telemetría y no cambia la red.
+**Recolector local.** Si cada centro tiene un recolector que agrupe las lecturas antes de enviarlas (por ejemplo, IoT Edge), va en la red de sensores del centro y usa el mismo camino 1. El diseño de telemetría admite las dos formas, según lo que confirme FríoAndes (`carga-b-telemetria.md`, sección 2.8), y ninguna cambia la red.
 
-**Resiliencia de IoT Hub.** Como se explicó en la sección 3.5, IoT Hub no tiene redundancia entre zonas en East US 2. El endpoint privado de `snet-ingest` funciona igual con cualquier opción que elija el diseño de telemetría.
+**Resiliencia de IoT Hub.** Como se explicó en la sección 3.5, IoT Hub no tiene redundancia entre zonas en East US 2. El diseño de telemetría lo ubica en Central US, y el endpoint privado de `snet-ingest` apunta a ese servicio en la otra región.
 
 ### 6.2 Qué pasa en la red durante la convivencia
 
@@ -811,7 +816,7 @@ Antes de planear la migración hay que confirmar con Microsoft la capacidad para
 El diagrama de convivencia de la sección 2.5 muestra estos movimientos:
 
 - La línea "Camino 1: sensores por la VPN y el firewall" sale del Azure Firewall y llega a la ingesta privada.
-- La línea "Camino 2: camiones (TLS)" baja desde internet directo a IoT Hub.
+- La línea "Camino 2: camiones (TLS)" baja desde internet directo a IoT Hub, en Central US.
 - La línea punteada del firewall a DMS es la migración de la base. De DMS sale la carga hacia MySQL.
 - La línea punteada "Copia del archivo, unos 37 Mbps, fuera del firewall" sale del VPN Gateway sin pasar por el Azure Firewall y llega a la máquina de copia y al archivo privado.
 
@@ -888,7 +893,7 @@ Con el mismo máximo de 27 nodos por grupo, los modelos de AKS consumen esto:
 | Azure CNI plano, 30 pods por nodo | 27 + 27 × 30 = 837 | `/22` |
 | Azure CNI plano, 110 pods por nodo | 27 + 27 × 110 = 2.997 | `/20` |
 
-Cada ambiente tiene 1.312 direcciones libres. Con un modelo plano, torre y portal juntos ya pedirían más de eso. Overlay es el único modelo que cabe en el `/21` de cada ambiente sin renumerar.
+Cada ambiente tiene 1.280 direcciones libres. Con un modelo plano, torre y portal juntos ya pedirían más de eso. Overlay es el único modelo que cabe en el `/21` de cada ambiente sin renumerar.
 
 #### Subredes de nodos
 
@@ -993,17 +998,17 @@ El plano de control pesa poco frente al Azure Firewall (USD 912,50 al mes). El c
 
 #### Diagramas de la variante
 
-![Estado estable con AKS: la red común sin cambios, clústeres de torre y portal en producción y la API privada](diagramas/red-8-b1-estado-estable-aks.png)
+![Estado estable con AKS: la red común sin cambios, clústeres de torre y portal en producción y la API privada](diagramas/red-8-b1-estado-estable-aks.drawio.png)
 
-La red es la misma del diagrama de estado estable. En producción cambian tres íconos: el clúster de la torre en `snet-app-torre`, el clúster del portal en `snet-app-portal` y la API privada en `snet-aks-apiserver`.
+La red es la misma del diagrama de estado estable, incluida la telemetría. En producción cambian tres íconos: el clúster de la torre en `snet-app-torre`, el clúster del portal en `snet-app-portal` y la API privada en `snet-aks-apiserver`.
 
-![Subredes del hub y de producción con AKS](diagramas/red-8-b2-subredes-aks.png)
+![Subredes del hub y de producción con AKS](diagramas/red-8-b2-subredes-aks.drawio.png)
 
-Las mismas subredes del diagrama de subredes, con los nodos de AKS, la subred de la API y las reservas de pods y servicios.
+Las mismas subredes del diagrama de subredes, incluida `snet-telemetry-func`, con los nodos de AKS, la subred de la API y las reservas de pods y servicios.
 
 #### Verificación de la variante
 
-`ip-plan-aks.csv` parte de `ip-plan.csv` y suma las tres subredes de la API y las dos reservas de pods y servicios. Tiene 46 filas y pasa las 12 comprobaciones del script, sin solapamiento. Su hash es `b2e874ff12659581b49ed74636e49f8249429ee48b3c8e85750160955732391d`. Las filas que agrega están al final del Anexo A.
+`ip-plan-aks.csv` parte de `ip-plan.csv` y suma las tres subredes de la API y las dos reservas de pods y servicios. Tiene 49 filas y pasa las 12 comprobaciones del script, sin solapamiento. Su hash es `78366ff375ce6c98056dd52145c3dffc6bc7e4ba8fa3b894a563f0be70b4912a`. Las filas que agrega están al final del Anexo A.
 
 ### 7.4 Si se eligiera otra plataforma
 
@@ -1072,6 +1077,7 @@ Salida del script de verificación sobre `ip-plan.csv`. Cada rango de la nube se
 | `10.101.2.128/27` | `vnet-prod/snet-admin` | sin solapamiento |
 | `10.101.2.160/27` | `vnet-prod/snet-cali-integration` | sin solapamiento |
 | `10.101.2.192/27` | `vnet-prod/snet-fabric-egress` | sin solapamiento |
+| `10.101.3.0/27` | `vnet-prod/snet-telemetry-func` | sin solapamiento |
 | `10.102.0.0/21` | `vnet-test` | sin solapamiento |
 | `10.102.0.0/24` | `vnet-test/snet-ingress` | sin solapamiento |
 | `10.102.1.0/25` | `vnet-test/snet-app-torre` | sin solapamiento |
@@ -1083,6 +1089,7 @@ Salida del script de verificación sobre `ip-plan.csv`. Cada rango de la nube se
 | `10.102.2.128/27` | `vnet-test/snet-admin` | sin solapamiento |
 | `10.102.2.160/27` | `vnet-test/snet-cali-integration` | sin solapamiento |
 | `10.102.2.192/27` | `vnet-test/snet-fabric-egress` | sin solapamiento |
+| `10.102.3.0/27` | `vnet-test/snet-telemetry-func` | sin solapamiento |
 | `10.103.0.0/21` | `vnet-dev` | sin solapamiento |
 | `10.103.0.0/24` | `vnet-dev/snet-ingress` | sin solapamiento |
 | `10.103.1.0/25` | `vnet-dev/snet-app-torre` | sin solapamiento |
@@ -1094,6 +1101,7 @@ Salida del script de verificación sobre `ip-plan.csv`. Cada rango de la nube se
 | `10.103.2.128/27` | `vnet-dev/snet-admin` | sin solapamiento |
 | `10.103.2.160/27` | `vnet-dev/snet-cali-integration` | sin solapamiento |
 | `10.103.2.192/27` | `vnet-dev/snet-fabric-egress` | sin solapamiento |
+| `10.103.3.0/27` | `vnet-dev/snet-telemetry-func` | sin solapamiento |
 | `10.110.0.0/15` | `segunda-nube/reserva-segunda-nube` | sin solapamiento |
 | `10.104.0.0/15` | `region-pareja/reserva-region-pareja` | sin solapamiento |
 | `10.100.4.0/22` | `hub-vwan/reserva-hub-vwan` | sin solapamiento |
