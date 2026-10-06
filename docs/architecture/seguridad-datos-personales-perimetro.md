@@ -29,27 +29,24 @@ Este documento identifica los datos personales de conductores y destinatarios qu
 
 ## 1. Contexto y alcance
 
-### 1.1 Qué pide el reto
+### 1.1 Qué resuelve este documento
 
-En el reto de seguridad hay dos pedidos que cubre este documento:
+Este documento responde dos necesidades de seguridad de FríoAndes:
 
-| Pedido | Qué dice el enunciado | Dónde se responde |
+| Necesidad | Qué implica | Dónde se responde |
 |---|---|---|
 | Datos personales | Tratamiento de datos personales de conductores y destinatarios. No hay datos de pago con tarjeta. Las evidencias y la trazabilidad de temperatura se conservan cinco años por contrato con los clientes de alimentos | Secciones 2 y 3 |
 | Perímetro público | Protección del perímetro público (el portal de rastreo) y detección de actividad anómala | Secciones 4 y 5 |
 
 Las cifras para dimensionar el portal: unos 2.000 clientes corporativos habilitados, un pico ordinario de cerca de 800 solicitudes por minuto y, en campaña, 2.000 solicitudes por minuto durante unas cuatro horas.
 
-El reto de inteligencia artificial también pide la residencia de los datos personales de conductores y destinatarios en Microsoft Fabric. Ese diseño toma de aquí el inventario y la posición sobre la ubicación de los datos (sección 3).
+La estrategia de Fabric también tiene que definir la residencia de los datos personales de conductores y destinatarios. Ese diseño toma de aquí el inventario y la posición sobre la ubicación de los datos (sección 3).
 
 ### 1.2 Quién usa el portal
 
-El enunciado describe el portal así:
+El portal de rastreo está publicado en internet; la consola de despacho, en cambio, solo se usa desde la red corporativa. Lo usan los unos 2.000 clientes corporativos habilitados: cada uno se identifica y consulta solo sus guías, en una vista acotada.
 
-- "Portal público de rastreo de guías", "perímetro público (portal de rastreo)" y "el rastreo público se publica por NAT, con Nginx". **Público** quiere decir publicado en internet, a diferencia de la consola de despacho, que solo se usa desde la red corporativa.
-- "Portal de rastreo para clientes corporativos", "otra vista, acotada, para clientes que consultan sus guías" y "unos 2.000 clientes corporativos habilitados en el portal". Quien lo usa es un **cliente corporativo habilitado**, que se identifica y consulta **sus** guías.
-
-Los destinatarios aparecen en el enunciado solo como titulares de datos. Ninguna parte los presenta como usuarios del portal ni habla de consultar una guía sin identificarse. Por eso este documento diseña un portal en internet, de uso exclusivo de los clientes corporativos habilitados, donde cada uno ve solo sus guías. El enunciado no aclara si los 2.000 clientes son empresas o usuarios; la sección 4 lo trata como supuesto.
+Los destinatarios son titulares de datos y no tienen acceso al portal, y no hay consultas de guías sin identificarse. Por eso este documento diseña un portal en internet, de uso exclusivo de los clientes corporativos habilitados, donde cada uno ve solo sus guías. No está definido si los 2.000 clientes son empresas o usuarios; la sección 4 lo trata como supuesto.
 
 ### 1.3 Qué toma de los otros diseños
 
@@ -77,7 +74,7 @@ Los destinatarios aparecen en el enunciado solo como titulares de datos. Ninguna
 
 ### 2.1 Titulares y datos
 
-El enunciado nombra a dos grupos de titulares, conductores y destinatarios, pero no enumera los datos de cada uno. Los de esta tabla salen de lo que la operación necesita para despachar, entregar y responder reclamos. FríoAndes los confirma contra el inventario real de su base (sección 7).
+Los titulares principales son los conductores y los destinatarios. Sus datos exactos no están documentados, así que los de esta tabla salen de lo que la operación necesita para despachar, entregar y responder reclamos. FríoAndes los confirma contra el inventario real de su base (sección 7).
 
 | Titular | Datos | De dónde salen | Para qué se usan |
 |---|---|---|---|
@@ -90,9 +87,9 @@ El enunciado nombra a dos grupos de titulares, conductores y destinatarios, pero
 | Usuario de un cliente corporativo | Nombre, correo, cuenta del portal, IP y actividad en el portal | Alta del usuario y uso del portal | Dar acceso a sus guías y detectar abuso |
 | Empleado de FríoAndes | Identidad corporativa, acciones en la torre y en la plataforma, teléfono de la guardia de calidad, acuses de alertas | Entra ID, registros y la tabla de turnos | Operar, auditar quién hizo qué y avisar de noche |
 
-Los usuarios de los clientes y los empleados no están en el pedido del enunciado, pero son titulares y sus datos pasan por los mismos sistemas. El documento los incluye para que el inventario quede completo.
+Los usuarios de los clientes y los empleados también son titulares, y sus datos pasan por los mismos sistemas. El documento los incluye para que el inventario quede completo.
 
-**No hay datos de pago con tarjeta.** El enunciado lo dice expresamente. Esto deja fuera de alcance las normas de la industria de tarjetas (PCI DSS).
+**No hay datos de pago con tarjeta.** La plataforma no procesa pagos con tarjeta, y eso deja fuera de alcance las normas de la industria de tarjetas (PCI DSS).
 
 ### 2.2 Datos sensibles: imágenes y firmas
 
@@ -100,11 +97,11 @@ La Ley 1581 define dato personal como cualquier información vinculada o que pue
 
 | Dato | Es dato personal | Cómo lo trata el diseño |
 |---|---|---|
-| Video de muelles y de entregas donde aparecen conductores, trabajadores o destinatarios | Sí: una persona en la imagen es determinable | Con las protecciones de un dato sensible: acceso restringido a calidad y a quien atiende un reclamo, sin acceso del cliente (el enunciado ya lo excluye) y sin reconocimiento facial |
+| Video de muelles y de entregas donde aparecen conductores, trabajadores o destinatarios | Sí: una persona en la imagen es determinable | Con las protecciones de un dato sensible: acceso restringido a calidad y a quien atiende un reclamo, sin acceso del cliente y sin reconocimiento facial |
 | Fotos de entregas y comprobantes con la firma de quien recibe | Sí | Igual que el video, salvo que el cliente pueda ver el comprobante de sus propias entregas, si FríoAndes lo confirma (sección 7) |
 | Posición del camión durante la jornada | Sí: se asocia al conductor del viaje | Dato personal no sensible según el artículo 5, pero revela dónde está una persona. Solo la torre ve la posición exacta |
 
-**Ningún componente hace reconocimiento facial ni identifica personas por su imagen.** El apoyo de Fabric al archivo de evidencias que pide el enunciado se limita a marcar fotos ilegibles o con carga visiblemente dañada. Si un uso futuro identificara personas por su rostro, los datos pasarían a ser biométricos y necesitarían la autorización especial del artículo 6.
+**Ningún componente hace reconocimiento facial ni identifica personas por su imagen.** El apoyo de Fabric al archivo de evidencias que prevé la estrategia de Fabric se limita a marcar fotos ilegibles o con carga visiblemente dañada. Si un uso futuro identificara personas por su rostro, los datos pasarían a ser biométricos y necesitarían la autorización especial del artículo 6.
 
 ### 2.3 Dónde vive cada dato
 
@@ -126,7 +123,7 @@ La Ley 1581 define dato personal como cualquier información vinculada o que pue
 | Canales de alerta (Teams, correo, SMS) | Microsoft 365 de FríoAndes, Azure Communication Services y el proveedor de SMS | Teléfonos y correos de la guardia. Las alertas llevan solo camión, guía y temperatura | Torre y guardia de calidad | Lo que conserve cada servicio |
 | Cali durante la convivencia | Datacenter de Cali | Todo lo anterior en su versión actual: base MySQL 5.7, NFS y registros de Nginx | Lo que permite hoy el datacenter | Hasta que se apague, como máximo el día 90 |
 
-**Pruebas y desarrollo no tienen datos personales reales.** Usan datos sintéticos o anonimizados y sensores simulados, como fijaron la landing zone y el firewall. Por eso no se migra ningún dato de la máquina de pruebas que hoy tiene Cali (MySQL 5.7). El enunciado no dice qué contiene, así que el diseño no depende de eso: al apagar Cali, y después de verificar que la migración llegó completa, se borran de forma segura los discos de todos los servidores que guardaron datos personales (base, archivo NFS, pruebas y registros de Nginx).
+**Pruebas y desarrollo no tienen datos personales reales.** Usan datos sintéticos o anonimizados y sensores simulados, como fijaron la landing zone y el firewall. Por eso no se migra ningún dato de la máquina de pruebas que hoy tiene Cali (MySQL 5.7). No está documentado qué contiene, así que el diseño no depende de eso: al apagar Cali, y después de verificar que la migración llegó completa, se borran de forma segura los discos de todos los servidores que guardaron datos personales (base, archivo NFS, pruebas y registros de Nginx).
 
 ### 2.4 Quién ve qué
 
@@ -139,7 +136,7 @@ La Ley 1581 define dato personal como cualquier información vinculada o que pue
 | Analítica en Fabric | Lo que la estrategia de Fabric autorice para cada espacio de trabajo | Lo que no autorice |
 | Microsoft, como proveedor de nube | Ningún acceso de rutina: trata los datos por cuenta de FríoAndes (sección 3) | |
 
-El enunciado fija este límite: la vista del cliente es "acotada" y "reducida", su acceso es "con mínimo privilegio" y no ve "la flota completa ni el video". Con ese criterio, el cliente tampoco ve los datos del conductor ni la posición exacta del camión: para seguir su carga le bastan el estado, la temperatura y la hora estimada de llegada. Un camión puede llevar carga de varios clientes, así que su posición revela rutas de otros clientes y dónde está el conductor. El enunciado restringe la torre a la red corporativa justamente porque muestra la ubicación de la carga. El rol de cada persona y su MFA los define el diseño de identidades.
+La vista del cliente es acotada, su acceso sigue el mínimo privilegio y no incluye la flota completa ni el video. Con ese criterio, el cliente tampoco ve los datos del conductor ni la posición exacta del camión: para seguir su carga le bastan el estado, la temperatura y la hora estimada de llegada. Un camión puede llevar carga de varios clientes, así que su posición revela rutas de otros clientes y dónde está el conductor. La torre solo se usa desde la red corporativa justamente porque muestra la ubicación de la carga. El rol de cada persona y su MFA los define el diseño de identidades.
 
 ### 2.5 Dónde quedan geográficamente
 
@@ -172,7 +169,7 @@ Con esta arquitectura, los datos personales de conductores y destinatarios salen
 | Conductores, empleados y usuarios de los clientes | FríoAndes | Microsoft (Azure, Microsoft 365, Azure Communication Services) y el proveedor de SMS | Autorización de cada titular y contrato con cada encargado |
 | Destinatarios | FríoAndes | Los mismos | El cliente corporativo garantiza en su contrato con FríoAndes que obtuvo la autorización del destinatario para compartir sus datos con la transportadora |
 
-**Por qué FríoAndes es responsable también de los datos de los destinatarios.** La ley llama responsable a quien decide sobre la base de datos o sobre el tratamiento (artículo 3). FríoAndes produce las evidencias de entrega (fotos, comprobantes y video), las conserva cinco años por su propio contrato con los clientes de alimentos y decide para qué se usan: entregar, probar la entrega, responder reclamos, estimar llegadas y apoyar el archivo de evidencias con Fabric. El enunciado también presenta el tratamiento de los datos de conductores y destinatarios como una tarea de FríoAndes. Lo que viene del cliente es el dato inicial del destinatario en la guía, y por eso la cláusula de la tabla.
+**Por qué FríoAndes es responsable también de los datos de los destinatarios.** La ley llama responsable a quien decide sobre la base de datos o sobre el tratamiento (artículo 3). FríoAndes produce las evidencias de entrega (fotos, comprobantes y video), las conserva cinco años por su propio contrato con los clientes de alimentos y decide para qué se usan: entregar, probar la entrega, responder reclamos, estimar llegadas y apoyar el archivo de evidencias con Fabric. Lo que viene del cliente es el dato inicial del destinatario en la guía, y por eso la cláusula de la tabla.
 
 ### 3.3 Los datos en Estados Unidos
 
@@ -218,7 +215,7 @@ El Decreto 1377 obliga a borrar los datos cuando se cumple su finalidad, pero ta
 | Suprimir sus datos (artículos 8 y 15) | 15 días hábiles, prorrogables 8 | Se borra lo que no hace falta para el contrato, por ejemplo una cuenta del portal o el teléfono de un destinatario después de la entrega. Lo que forma parte de la evidencia se conserva los cinco años y se le explica al titular por qué |
 | Reclamo en trámite (artículo 15) | La leyenda se pone en máximo 2 días hábiles | Un campo en la base transaccional marca "reclamo en trámite" en los registros del titular hasta que se resuelva |
 
-**Las posiciones de los camiones quedan fuera de la copia inmutable.** La posición cada 30 segundos es la ubicación del conductor durante su jornada. Si estuviera en la copia inmutable, nadie podría borrarla en cinco años, ni siquiera si la SIC ordenara suprimirla (artículo 8). El enunciado obliga a conservar las evidencias y la trazabilidad de temperatura, y no menciona la posición. Por eso la ruta de IoT Hub hacia la copia inmutable lleva solo los mensajes de temperatura y de puertas: IoT Hub puede filtrar por el tipo de mensaje porque cada mensaje se marca como JSON. Las posiciones quedan en la tabla de análisis, ligadas a la guía y al viaje, también por cinco años para los reclamos. Esa tabla sí se puede corregir y borrar.
+**Las posiciones de los camiones quedan fuera de la copia inmutable.** La posición cada 30 segundos es la ubicación del conductor durante su jornada. Si estuviera en la copia inmutable, nadie podría borrarla en cinco años, ni siquiera si la SIC ordenara suprimirla (artículo 8). El contrato con los clientes de alimentos obliga a conservar las evidencias y la trazabilidad de temperatura; la posición no forma parte de esa obligación. Por eso la ruta de IoT Hub hacia la copia inmutable lleva solo los mensajes de temperatura y de puertas: IoT Hub puede filtrar por el tipo de mensaje porque cada mensaje se marca como JSON. Las posiciones quedan en la tabla de análisis, ligadas a la guía y al viaje, también por cinco años para los reclamos. Esa tabla sí se puede corregir y borrar.
 
 **Al cumplirse los cinco años:**
 
@@ -287,7 +284,7 @@ Por eso el diseño tiene dos capas: el WAF frena por IP lo que es claramente an�
 - La regla 1 nunca toca el pico de campaña legítimo: las 2.000 solicitudes por minuto de todos los clientes juntos se reparten entre muchas IP, y la más grande, con 200, queda por debajo de 300 aunque una instancia reciba todo.
 - La regla 2 apunta al barrido. Una persona consulta unas pocas guías por minuto; cuatro por segundo sostenidas durante un minuto solo las hace un programa.
 - La regla 3 depende del diseño de identidades. Si el inicio de sesión de los clientes lo atiende el servicio de identidades de Microsoft, no pasa por el Application Gateway y la regla no hace falta.
-- La regla 4 no bloquea, porque el enunciado no dice que todos los clientes estén en Colombia. Registra para la detección (sección 5): una cuenta que de repente consulta desde otro país es una señal.
+- La regla 4 no bloquea, porque no hay certeza de que todos los clientes estén en Colombia. Registra para la detección (sección 5): una cuenta que de repente consulta desde otro país es una señal.
 
 **Lo que pasa cuando una regla actúa.** El WAF bloquea a esa IP durante el resto del minuto y después la deja pasar hasta el umbral. Un cliente legítimo que excede el límite por un error de su integración se recupera solo al minuto siguiente; un script sostenido queda frenado.
 
