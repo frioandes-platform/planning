@@ -8,7 +8,7 @@ Datos, herramientas y reportes que respaldan [`../red-topologia-subnetting.md`](
 |---|---|---|
 | `data/` | `ip-plan.csv` | Plan de direcciones de la solución con Container Apps. Es la única fuente de los rangos: el código de Terraform debe leerlo directamente |
 | `data/` | `ip-plan-aks.csv` | Plan de direcciones de la variante con Kubernetes (AKS) |
-| `data/` | `onprem-inventory.csv` | Las 23 subredes on-premises del enunciado |
+| `data/` | `onprem-inventory.csv` | Las 23 subredes on-premises actuales de Cali y los centros |
 | `data/` | `azure-subnet-constraints.csv` | Nombres obligatorios y tamaños mínimos de subred que exige Azure, con su fuente |
 | `data/` | `latency-targets.csv` | Un servidor de almacenamiento de Azure por región, para medir latencia |
 | `data/` | `firewall-policy.csv` | Tabla de políticas del firewall de nube, los NSG, el WAF e IoT Hub, regla por regla y ambiente por ambiente. Es la única fuente para el módulo de seguridad de Terraform |
