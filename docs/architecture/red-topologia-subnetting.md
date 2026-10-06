@@ -10,7 +10,7 @@ Los archivos de apoyo están en la carpeta `red/`, junto a este documento:
 |---|---|
 | `red/data/ip-plan.csv` | El plan de direcciones de la solución con Container Apps: la única fuente de los rangos |
 | `red/data/ip-plan-aks.csv` | El plan de direcciones de la variante con Kubernetes |
-| `red/data/onprem-inventory.csv` | Las 23 subredes on-premises del enunciado |
+| `red/data/onprem-inventory.csv` | Las 23 subredes on-premises actuales de Cali y los centros |
 | `red/data/azure-subnet-constraints.csv` | Los nombres y tamaños mínimos que exige Azure, con su fuente |
 | `red/data/latency-targets.csv` | Los servidores usados para medir la latencia por región |
 | `red/tools/verify_ip_plan.py` | Verifica el plan contra el inventario on-premises (sección 4.8) |
@@ -72,7 +72,7 @@ El diseño de red tiene que respetar estas condiciones del negocio:
 |---|---|
 | Conectividad entre el datacenter, los ocho centros y la nube, con ruta redundante para Cali | Sección 2: topología, conexión de Cali con dos proveedores y conexión de los centros |
 | Tabla de subnetting de la nube sin solapar el inventario on-premises, con ingreso, aplicación, datos, archivo, ingesta de telemetría, administración, integración con Cali y salida a Fabric, y con desarrollo, pruebas y producción en rangos distintos | Sección 4: plan de direcciones y verificación rango por rango |
-| Confirmar con una medición real desde Cali si East US 2 es la región adecuada | Sección 3 |
+| Confirmar con una medición desde Cali si East US 2 es la región adecuada | Sección 3 |
 | Mantener el despacho fuera de internet y publicar el rastreo de forma controlada | Sección 5: subred de la torre sin exposición y una sola entrada pública de aplicación |
 | Acceso administrativo para equipos distribuidos | Sección 5: subred para Azure Bastion y reserva para VPN de usuario |
 | Preparar la interconexión con una segunda nube en 24 meses | Secciones 4 y 5: rango reservado y DNS privado en el hub |
@@ -307,7 +307,7 @@ La región es el lugar físico donde corre la plataforma. Elegirla afecta cuatro
 | Costo | El mismo servicio cuesta distinto según la región |
 | Recuperación ante desastres | Cada región de Azure tiene una región pareja. Ahí se reserva espacio para recuperar la plataforma si la región principal falla |
 
-La propuesta inicial era East US 2, con Central US como región pareja. Esta sección confirma esa elección con una medición real desde Cali.
+La propuesta inicial era East US 2, con Central US como región pareja. Esta sección confirma esa elección con una medición de latencia desde Cali.
 
 ### 3.2 Cómo se midió
 
@@ -316,6 +316,7 @@ Se midió la latencia desde Cali hacia East US 2 y hacia seis alternativas razon
 - **Qué se mide.** El tiempo que tarda en abrirse una conexión TCP al puerto 443 de un servicio de almacenamiento de Azure ubicado en cada región. Ese tiempo equivale aproximadamente a un viaje de ida y vuelta de un paquete, que es lo que más pesa en la rapidez de una aplicación web.
 - **Cuántas veces.** 30 conexiones por región en cada ronda, dos rondas.
 - **Qué se reporta.** La mediana, que es el valor del medio: la mitad de las conexiones tardó menos y la otra mitad más. Es más estable que el promedio porque una conexión lenta aislada no la mueve.
+- **Desde dónde.** Desde la red cableada de una universidad en Cali. Es una aproximación de la latencia desde la ciudad: la medición no pasa por el enlace de 400 Mbps de la sede de FríoAndes. Antes de implementar conviene repetirla desde la sede con el mismo script; la decisión solo cambia si el resultado cruza la regla de la sección 3.4.
 - **Herramienta.** Un script reproducible (`measure_latency.py`), incluido con este documento.
 
 ### 3.3 Resultados
@@ -475,7 +476,7 @@ Las dos subredes de aplicación (torre y portal) dependen de la plataforma que s
 
 Quedan libres en cada ambiente `10.10X.2.224/27`, `10.10X.3.32/27`, `10.10X.3.64/26`, `10.10X.3.128/25` y `10.10X.4.0/22`, para nuevos servicios o ejecutores privados del pipeline. Con la variante Kubernetes, el primero de esos bloques se usa para la API privada del clúster (sección 7).
 
-**Las ocho categorías que pide el reto:**
+**Las ocho categorías de subred de cada ambiente:**
 
 | Categoría pedida | Subred |
 |---|---|
@@ -586,7 +587,7 @@ Cada recuadro es una subred con su rango y el ícono del servicio que aloja, inc
 
 ## 5. Exposición a internet, acceso administrativo y segunda nube
 
-Esta sección responde cinco pedidos del reto: mantener el despacho fuera de internet, publicar el rastreo de forma controlada, dar acceso administrativo a equipos distribuidos sin abrir la red de despacho, preparar un punto de interconexión y DNS para una segunda nube, y separar las cargas en zonas que el firewall pueda controlar.
+Esta sección resuelve cinco necesidades: mantener el despacho fuera de internet, publicar el rastreo de forma controlada, dar acceso administrativo a equipos distribuidos sin abrir la red de despacho, preparar un punto de interconexión y DNS para una segunda nube, y separar las cargas en zonas que el firewall pueda controlar.
 
 ### 5.1 Zonas de red
 
@@ -683,7 +684,7 @@ Las zonas DNS privadas de Azure se enlazan al hub, así que los tres ambientes l
 
 ### 5.7 Preparación para una segunda nube
 
-El reto pide dejar listo un punto de interconexión, DNS e identidad para sumar otra nube en 24 meses, sin duplicar la plataforma desde el inicio. La red deja preparado lo siguiente:
+FríoAndes prevé sumar otra nube en 24 meses, sin duplicar la plataforma desde el inicio. Para eso la red deja preparados el punto de interconexión, el DNS y la identidad:
 
 | Pieza | Qué queda listo |
 |---|---|
@@ -723,7 +724,7 @@ Lista inicial de flujos para el diseño del firewall de nube:
 
 ### 6.1 Los dos caminos de la telemetría
 
-El reto pide alertar cuando un camión o un cuarto frío sale del rango de temperatura, con la alerta visible en menos de un minuto. Los sensores están en dos lugares distintos y llegan a la nube por dos caminos distintos:
+La plataforma alerta cuando un camión o un cuarto frío sale del rango de temperatura, con la alerta visible en menos de un minuto. Los sensores están en dos lugares distintos y llegan a la nube por dos caminos distintos:
 
 | | Camino 1: cuartos fríos | Camino 2: camiones |
 |---|---|---|
@@ -991,7 +992,7 @@ Dos efectos a tener en cuenta:
 |---|---|---|
 | Free | 0 | Sin acuerdo de disponibilidad. Microsoft lo recomienda para menos de 10 nodos |
 | Standard | 73 | Disponibilidad del 99,95 % del servidor de API con zonas |
-| Premium | 438 a 511 | Standard con 24 meses de soporte por versión. El reto no lo pide |
+| Premium | 438 a 511 | Standard con 24 meses de soporte por versión. FríoAndes no lo necesita |
 
 El plano de control pesa poco frente al Azure Firewall (USD 912,50 al mes). El costo real de AKS lo marcan los nodos, que se dimensionan con el diseño de la plataforma.
 
@@ -1045,7 +1046,7 @@ Esta lista crece con cada sección del documento.
 | Unas 60 personas de desarrollo y operación trabajan fuera de la sede | Define el tamaño de la reserva para VPN de usuario |
 | La plataforma de aplicación es Container Apps con perfiles de carga, con un máximo de 20 nodos dedicados y 200 réplicas por entorno | Se confirma con el diseño de la plataforma logística. Si fuera AKS, aplica la sección 7.3 |
 | Cada mensaje de telemetría pesa alrededor de 1 KB | Se usa para estimar el volumen de los dos caminos |
-| La copia continua del archivo mueve unos 12.154 GB al mes (37 Mbps) | Sale del crecimiento de 12 TB al mes que indica el reto |
+| La copia continua del archivo mueve unos 12.154 GB al mes (37 Mbps) | Sale del crecimiento actual del archivo, unos 12 TB al mes |
 | El portal se publica con Application Gateway v2 y WAF, el firewall de nube es Azure Firewall Standard y el acceso administrativo es Azure Bastion | El portal y el firewall quedaron confirmados en el diseño del firewall de nube. El acceso administrativo se confirma con el diseño del acceso remoto |
 | La migración en línea de la base usa una cuenta de almacenamiento con token SAS temporal | El servicio de migración no admite una cuenta restringida a la red virtual; se confirma con el diseño de la migración |
 | Una diferencia de latencia menor al 30 % no justifica cambiar de región | La plataforma es una consola web, un portal y alertas con margen de 60 segundos; 10 a 30 ms no cambian la experiencia |

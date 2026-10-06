@@ -56,11 +56,11 @@ Hoy un firewall de próxima generación en Cali concentra cinco funciones:
 | Políticas entre subredes | Decide qué subred de Cali o de los centros puede hablar con cuál |
 | Firewall de aplicaciones | Delante de Nginx, protege la zona publicada y la zona interna del rastreo |
 
-Durante la convivencia este firewall sigue en pie. El reto pide un firewall de nube adicional, con su tabla de políticas, que incluya el firewall de aplicaciones del rastreo, y pide decir qué políticas del firewall de Cali se conservan, cuáles se trasladan y cuándo se apaga cada función.
+Durante la convivencia este firewall sigue en pie. FríoAndes necesita un firewall de nube adicional, con su tabla de políticas y con el firewall de aplicaciones del rastreo, y saber qué políticas del firewall de Cali se conservan, cuáles se trasladan y cuándo se apaga cada función.
 
 ### 1.2 Qué resuelve este documento
 
-| Pedido del reto | Dónde se responde |
+| Necesidad | Dónde se responde |
 |---|---|
 | Firewall de nube a implementar, además del de Cali | Secciones 2 y 4 |
 | Tabla de políticas: origen, destino, puerto, acción y si la regla es temporal de la migración o queda en estado estable | Sección 4 |
@@ -315,7 +315,7 @@ Se propone el controlador del Application Gateway porque conserva el mismo WAF e
 
 ## 4. Tabla de políticas del firewall de nube
 
-Esta sección es la tabla de políticas que pide el reto: origen, destino, puerto, acción y si cada regla es temporal de la migración o queda en estado estable. La versión completa, regla por regla y ambiente por ambiente, está en `red/data/firewall-policy.csv`. Es la única fuente para el código de infraestructura, y un script la verifica contra el plan de direcciones (sección 4.9).
+Esta sección es la tabla de políticas del firewall de nube: origen, destino, puerto, acción y si cada regla es temporal de la migración o queda en estado estable. La versión completa, regla por regla y ambiente por ambiente, está en `red/data/firewall-policy.csv`. Es la única fuente para el código de infraestructura, y un script la verifica contra el plan de direcciones (sección 4.9).
 
 ### 4.1 Dónde se controla cada flujo
 
@@ -462,9 +462,9 @@ Una regla solo sirve si el tráfico llega al firewall. Estas tablas de rutas lo 
 
 Por lo mismo, la tabla de rutas de la `GatewaySubnet` y la de `snet-archive` quedan coherentes: ninguna de las dos manda la copia al firewall, así que la ida y la vuelta toman el mismo camino.
 
-### 4.7 Cómo se cumple la separación pedida
+### 4.7 Cómo quedan separadas las zonas
 
-El reto pide separar en la red la torre de control, el portal público, la ingesta de sensores y los datos analíticos.
+La torre de control, el portal público, la ingesta de sensores y los datos analíticos quedan separados en la red así:
 
 | Desde \ Hacia | Torre | Portal | Ingesta | Analítica (gateway de Fabric) |
 |---|---|---|---|---|
@@ -516,7 +516,7 @@ Los valores entre `<>` se completan en la implementación: el nombre del registr
 
 ## 5. Transición del firewall de Cali
 
-El firewall de Cali sigue en pie durante la convivencia. El reto pide decir qué políticas se conservan, cuáles se trasladan y cuándo se apaga cada función. Esta sección lo resuelve en tres partes: las funciones del equipo, las políticas que hoy aplica y el orden en que se apagan.
+El firewall de Cali sigue en pie durante la convivencia. Esta sección define qué políticas se conservan, cuáles se trasladan y cuándo se apaga cada función, en tres partes: las funciones del equipo, las políticas que hoy aplica y el orden en que se apagan.
 
 ### 5.1 Los hitos que marcan cada cambio
 
@@ -528,7 +528,7 @@ Los cambios del firewall de Cali se atan a hitos de la migración, no a fechas f
 | Paso de cada centro a la conexión directa | El centro deja de entrar por Cali. Lo que todavía vive en Cali le llega a través del hub de Azure |
 | Corte | La base de datos y el tráfico de despacho y rastreo pasan a Azure. El portal empieza a publicarse desde el Application Gateway |
 | Cierre del plazo de vuelta atrás | Ya no se puede volver a Cali. Se retiran las reglas temporales y los caminos de respaldo |
-| Día 90 | Límite del enunciado: se apaga la carga de Cali. Ningún paso de esta tabla puede quedar después |
+| Día 90 | Límite de la convivencia: se apaga la carga de Cali. Ningún paso de esta tabla puede quedar después |
 
 El plazo de vuelta atrás empieza en el corte y termina, como máximo, el día 90. Su duración exacta la fija el plan de migración y la confirma FríoAndes.
 
@@ -549,7 +549,7 @@ Al final de la convivencia, el firewall de Cali queda como firewall de sede: pro
 
 ### 5.3 Qué políticas se conservan, cuáles se trasladan y cuáles se retiran
 
-El enunciado no detalla las reglas actuales del firewall de Cali. Esta tabla las deduce del inventario de redes y de las cargas descritas. FríoAndes debe exportar la política real para conciliarla regla por regla antes del día 0 (sección 8).
+Las reglas actuales del firewall de Cali no están documentadas. Esta tabla las deduce del inventario de redes y de las cargas de la sede. FríoAndes debe exportar la política real para conciliarla regla por regla antes del día 0 (sección 8).
 
 | Política de hoy (deducida) | Destino | Dónde queda | Cuándo se retira en Cali |
 |---|---|---|---|
@@ -600,7 +600,7 @@ Después del paso 7, la tabla de políticas tiene solo reglas estables, y el fir
 
 ## 6. Registro y detección de actividad anómala
 
-El reto pide proteger el perímetro público y detectar actividad anómala. Esta sección define qué registra cada pieza del diseño, qué alertas se generan y a dónde van. La retención de los registros la fija el diseño de auditoría y retención, y la operación diaria de las alertas, el diseño de observabilidad.
+El perímetro público tiene que estar protegido y la actividad anómala, detectada. Esta sección define qué registra cada pieza del diseño, qué alertas se generan y a dónde van. La retención de los registros la fija el diseño de auditoría y retención, y la operación diaria de las alertas, el diseño de observabilidad.
 
 ### 6.1 Qué se registra
 
@@ -706,9 +706,9 @@ A esto se suma la decisión del diseño de red de llevar la copia del archivo fu
 | Cada usuario interno genera unos 300 Kbps hacia la plataforma | El mismo valor del diseño de red. Se usa para comparar el tráfico del firewall con los límites de cada versión |
 | El equipo que prueba la torre en pruebas y desarrollo trabaja desde Cali o con el acceso remoto definido para FríoAndes | Por eso solo los usuarios de Cali llegan a la torre de esos ambientes |
 | Pruebas y desarrollo usan datos de sensores simulados | No se llevan datos reales a ambientes con menos controles |
-| Los centros envían los históricos de temperatura por FTP pasivo al servidor de archivo de Cali | El enunciado dice que se cargan por lote cada hora y que ese servidor ofrece FTP y NFS |
-| Las políticas actuales del firewall de Cali son las deducidas en la sección 5.3 | El enunciado no detalla la política real |
-| El portal se dimensiona sin campañas de más de 2.000 solicitudes por minuto | Es el pico que da el enunciado. Con más tráfico, el autoescalado agrega instancias hasta 10 sin cambiar la red |
+| Los centros envían los históricos de temperatura por FTP pasivo al servidor de archivo de Cali | Hoy se cargan por lote cada hora, y ese servidor ofrece FTP y NFS |
+| Las políticas actuales del firewall de Cali son las deducidas en la sección 5.3 | La política real no está documentada |
+| El portal se dimensiona sin campañas de más de 2.000 solicitudes por minuto | Es el pico de campaña previsto. Con más tráfico, el autoescalado agrega instancias hasta 10 sin cambiar la red |
 | Los costos son precios de lista en East US 2, con 730 horas al mes, sin descuentos ni reservas | Es la base común del cálculo de costos de la plataforma |
 | El volumen de registros se mide en el primer mes de operación | No hay tráfico real para estimarlo. El plan de cada tabla se ajusta con ese dato |
 | La plataforma de contenedores es Container Apps con perfiles de carga | Lo mismo que el diseño de red. Si fuera AKS, aplican las secciones 3.9 y 4.8 |

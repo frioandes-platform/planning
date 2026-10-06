@@ -30,11 +30,11 @@ Este documento define cómo llegan a la nube las lecturas de los cuartos fríos 
 
 ## 1. Contexto y alcance
 
-### 1.1 Qué pide el reto
+### 1.1 Qué resuelve la telemetría
 
-El reto pide alertar cuando un camión o un cuarto frío sale del rango de temperatura y conservar el historial para reclamos. Son cuatro piezas:
+La telemetría tiene que alertar cuando un camión o un cuarto frío sale del rango de temperatura y conservar el historial para reclamos. Son cuatro piezas:
 
-| Pieza | Qué pide | Dónde se responde |
+| Pieza | Qué necesita FríoAndes | Dónde se responde |
 |---|---|---|
 | Ingesta | Temperatura, apertura de puerta y posición de la flota | Sección 2 |
 | Procesamiento de baja latencia | Alerta visible en menos de un minuto desde el evento, en condiciones normales de red. De 04:00 a 22:00 la recibe la torre; de noche, el turno de guardia de calidad | Sección 3 |
@@ -62,9 +62,9 @@ El reto pide alertar cuando un camión o un cuarto frío sale del rango de tempe
 | **Total normal** | | | **7,2** | **unos 486.000** |
 | **Total en campaña (180 camiones)** | | | **10,2** | **unos 682.000** |
 
-Las aperturas de puerta no tienen cifra en el enunciado. Se suponen dos aperturas por hora en cada cuarto frío y diez paradas al día por camión, con un mensaje al abrir y otro al cerrar. Aunque la cifra real fuera diez veces mayor, seguiría siendo una parte menor del total.
+No hay una cifra de aperturas de puerta. Se suponen dos aperturas por hora en cada cuarto frío y diez paradas al día por camión, con un mensaje al abrir y otro al cerrar. Aunque la cifra real fuera diez veces mayor, seguiría siendo una parte menor del total.
 
-Con mensajes de 1 KB, el volumen es de unos 0,5 GB al día, unos 15 GB al mes y menos de 1 TB en cinco años. El reto de esta carga no es la cantidad: es la latencia de la alerta, los dos caminos de entrada, el destinatario según la hora y la detección de sensores sin señal.
+Con mensajes de 1 KB, el volumen es de unos 0,5 GB al día, unos 15 GB al mes y menos de 1 TB en cinco años. El volumen es bajo. Lo que exige diseño es la latencia de la alerta, los dos caminos de entrada, el destinatario según la hora y la detección de sensores sin señal.
 
 ---
 
@@ -165,7 +165,7 @@ La hora de la medición es la que cuenta para la alerta y para los reclamos, no 
 
 ### 2.7 Camiones sin señal
 
-El enunciado pide la alerta en menos de un minuto "en condiciones normales de red". Cuando un camión pierde la señal celular:
+La alerta tiene que verse en menos de un minuto en condiciones normales de red. Cuando un camión pierde la señal celular:
 
 - El equipo del camión guarda las lecturas con su hora y su número de secuencia, al menos durante una jornada completa (18 horas).
 - Al recuperar la señal, las envía en orden. IoT Hub las recibe como cualquier otra lectura.
@@ -176,7 +176,7 @@ Esto es un requisito para los equipos de los camiones, que FríoAndes debe confi
 
 ### 2.8 Recolector en los centros
 
-El enunciado no dice si los sensores de los cuartos fríos se conectan uno por uno o a través de un equipo del centro. El diseño admite las dos formas:
+Todavía no está definido si los sensores de los cuartos fríos se conectan uno por uno o a través de un equipo del centro. El diseño admite las dos formas:
 
 | | Sensores directos | Recolector por centro con IoT Edge |
 |---|---|---|
@@ -213,7 +213,7 @@ Los ambientes que no son de producción nunca reciben sensores reales: el firewa
 
 ### 3.1 Qué cuenta como "un minuto"
 
-El enunciado pide que la alerta "pueda verse en menos de un minuto desde el evento, en condiciones normales de red". Un camión mide la temperatura cada 60 segundos: si el evento fuera el momento exacto en que la temperatura real cruza el límite, la espera hasta la siguiente lectura podría consumir el minuto entero y ninguna arquitectura lo cumpliría.
+La alerta debe poder verse en menos de un minuto desde el evento, en condiciones normales de red. Un camión mide la temperatura cada 60 segundos: si el evento fuera el momento exacto en que la temperatura real cruza el límite, la espera hasta la siguiente lectura podría consumir el minuto entero y ninguna arquitectura lo cumpliría.
 
 **El diseño mide el minuto desde la hora de la lectura que marca el sensor hasta que la alerta se ve en la pantalla de quien la recibe.** Es un supuesto que se confirma en la sesión de aclaraciones (sección 7). Con esa definición, el presupuesto de tiempo queda así:
 
@@ -329,7 +329,7 @@ El mismo trabajo de Stream Analytics y la misma función se despliegan en prueba
 | Reportes a clientes y tableros de calidad | Lecturas con el contexto de negocio: cuarto frío, camión, guía y cliente | Cinco años |
 | Aviso temprano y estimación de llegada en Fabric | Historial de lecturas y posiciones para los modelos | Lo que defina la estrategia de Fabric |
 
-Con unos 15 GB al mes, el historial completo de cinco años es de unos 900 GB. El reto aquí no es el tamaño: es que la evidencia no se pueda alterar, que no se pague dos veces por guardarla y analizarla, y que Fabric la lea sin copiarla.
+Con unos 15 GB al mes, el historial completo de cinco años es de unos 900 GB. El tamaño es pequeño. Lo que importa es que la evidencia no se pueda alterar, que no se pague dos veces por guardarla y analizarla, y que Fabric la lea sin copiarla.
 
 ### 4.2 Dónde se guarda: el historial vive en el lago de datos de Azure
 
@@ -341,7 +341,7 @@ Con unos 15 GB al mes, el historial completo de cinco años es de unos 900 GB. E
 | Cómo lo usa Fabric | Lo lee en su lugar, con un acceso directo de OneLake, sin copiar | Con un acceso directo de base de datos | Es Fabric |
 | Pagar dos veces | No: Fabric lee lo que ya está en Azure | Sí, si Fabric también guarda la telemetría | No, pero la evidencia queda dentro de la capacidad de Fabric |
 
-**Por qué el lago.** Guardar cinco años de telemetría en archivos cuesta centavos por GB y no exige un motor encendido. La consulta rápida y los tableros los hace Fabric, que el reto exige de todos modos para la inteligencia artificial de la torre, leyendo los mismos archivos. Así hay un solo lugar donde vive el historial y un solo motor que lo analiza.
+**Por qué el lago.** Guardar cinco años de telemetría en archivos cuesta centavos por GB y no exige un motor encendido. La consulta rápida y los tableros los hace Fabric, que la plataforma usa de todos modos para la inteligencia artificial de la torre, leyendo los mismos archivos. Así hay un solo lugar donde vive el historial y un solo motor que lo analiza.
 
 **La opción "Synapse" de la tarjeta ya no aplica.** Microsoft retiró Synapse Data Explorer el 7 de octubre de 2025 y remite a Eventhouse de Fabric.
 
@@ -462,13 +462,13 @@ El resumen queda muy por debajo del tope incluso en la capacidad más pequeña. 
 
 ### 6.1 Cómo se mide el objetivo de la alerta
 
-El reto pide dos objetivos de servicio, y uno es la oportunidad de la alerta de temperatura. El diseño de observabilidad fija el objetivo; esta sección define cómo se mide.
+La plataforma tiene dos objetivos de servicio, y uno es la oportunidad de la alerta de temperatura. El diseño de observabilidad fija el objetivo; esta sección define cómo se mide.
 
 | Elemento | Definición |
 |---|---|
 | Indicador | Porcentaje de alertas de excursión cuya diferencia entre la hora de la lectura del sensor y la hora en que la alerta queda visible es de 60 segundos o menos |
 | "Visible" | La API de la torre confirma que recibió la alerta (de día) o Teams acepta el mensaje (de noche). La función notificadora registra esa hora |
-| Exclusiones | Las alertas tardías: lecturas que llegaron atrasadas por falta de señal, porque el enunciado pide el minuto "en condiciones normales de red". Se identifican por la diferencia entre la hora del sensor y la hora de llegada a IoT Hub |
+| Exclusiones | Las alertas tardías: lecturas que llegaron atrasadas por falta de señal, porque el minuto aplica en condiciones normales de red. Se identifican por la diferencia entre la hora del sensor y la hora de llegada a IoT Hub |
 | Propuesta de objetivo | 99 % de las alertas en 28 días |
 
 Cada alerta guarda cinco marcas de tiempo: lectura en el sensor, llegada a IoT Hub, salida de Stream Analytics, envío del notificador y confirmación del canal. Así, si el objetivo se incumple, se sabe en qué tramo del presupuesto (sección 3.1) se perdió el tiempo.
@@ -496,7 +496,7 @@ Estas señales se integran al diseño de observabilidad de la plataforma, que de
 | Función notificadora | Decenas de alertas al día | Proporcional a la flota | Ninguno: escala sola |
 | Historial | Unos 15 GB al mes | Unos 20 GB al mes durante la campaña | Ninguno |
 
-El enunciado indica que la telemetría de campaña se dimensiona con los 180 camiones, no con el 40 % adicional de la capa de aplicación. Ningún componente de la telemetría cambia de tamaño en campaña, así que el mes de campaña cuesta prácticamente lo mismo que uno normal. Esto importa porque durante una campaña no se hacen cambios en producción.
+La telemetría de campaña se dimensiona con los 180 camiones; el 40 % adicional aplica solo a la capa de aplicación. Ningún componente de la telemetría cambia de tamaño en campaña, así que el mes de campaña cuesta prácticamente lo mismo que uno normal. Esto importa porque durante una campaña no se hacen cambios en producción.
 
 ### 6.4 Costo mensual de producción
 
@@ -550,11 +550,11 @@ No incluye la capacidad de Fabric ni las licencias de Power BI, que van aparte e
 
 | Supuesto | Por qué se asume |
 |---|---|
-| Cada cuarto frío registra unas dos aperturas de puerta por hora y cada camión unas diez paradas al día, con un mensaje al abrir y otro al cerrar | El enunciado no da la cifra. Aunque fuera diez veces mayor, seguiría siendo una parte menor del total (sección 1.3) |
+| Cada cuarto frío registra unas dos aperturas de puerta por hora y cada camión unas diez paradas al día, con un mensaje al abrir y otro al cerrar | No hay una cifra conocida. Aunque fuera diez veces mayor, seguiría siendo una parte menor del total (sección 1.3) |
 | Cada mensaje pesa alrededor de 1 KB | El mismo valor del diseño de red. Un mensaje de hasta 4 KB cuenta como uno en IoT Hub |
 | Los camiones operan una jornada de 18 horas | Define el volumen de los camiones y el tiempo mínimo que el equipo guarda lecturas sin señal |
 | Un equipo por camión envía temperatura, posición y puerta | Una identidad por camión en IoT Hub. Si hubiera un equipo por sensor, aumenta la cantidad de identidades pero no el volumen |
-| La torre de control opera de 04:00 a 22:00, hora de Colombia (UTC-5, sin horario de verano), y de noche recibe la guardia de calidad | Es el horario del enunciado. La función calcula la hora en su código |
+| La torre de control opera de 04:00 a 22:00, hora de Colombia (UTC-5, sin horario de verano), y de noche recibe la guardia de calidad | Es el horario de operación de la torre. La función calcula la hora en su código |
 | El objetivo de la alerta es el 99 % de las alertas visibles en 60 segundos o menos, medido en 28 días | Es la propuesta de la sección 6.1. El diseño de observabilidad fija el valor definitivo |
 | Stream Analytics trabaja con 1/3 de unidad de streaming en producción | Lo confirma la prueba de carga de campaña en pruebas, que arranca con 1 unidad (sección 3.7) |
 | Las operaciones de la cuenta de la función se miden en pruebas | Dependen de cómo trabaja Durable Functions con el volumen real de alertas. Con el dato se completa el costo de la sección 6.4 |
