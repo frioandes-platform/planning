@@ -508,7 +508,7 @@ El script hace doce comprobaciones. Entre ellas:
 - las reglas temporales tienen fecha de retiro y están en los grupos que se borran completos;
 - ningún endpoint privado queda en la lista sin traducción de origen.
 
-La tabla actual pasa las doce. Su hash SHA-256 es `dc48052f140a3d61bf5287927a81e544f033098296f96c45df5d0b7fbb6d4a7e` y el reporte está en `verification/reporte-firewall-policy.md`. El código de infraestructura del módulo de seguridad se revisa regla por regla contra este mismo archivo.
+La tabla actual pasa las doce. Su hash SHA-256 es `a511cdd373e6012fe8dc85f9d51564e07a7aa775924ef60466187d7ec14e7891` y el reporte está en `verification/reporte-firewall-policy.md`. El código de infraestructura del módulo de seguridad se revisa regla por regla contra este mismo archivo.
 
 Los valores entre `<>` se completan en la implementación: el nombre del registro de contenedores, los dominios de los proveedores externos, el nombre del recurso de Azure Communication Services y del DPS, las IP públicas de Cali, la IP del DNS de Cali y el rango pasivo del servidor FTP.
 
