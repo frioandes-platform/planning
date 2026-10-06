@@ -66,6 +66,9 @@ ICON = {
     "vnet": AZ + "networking/Virtual_Networks.svg",
     "subnet": AZ + "networking/Subnet.svg",
     "subscription": AZ + "general/Subscriptions.svg",
+    "defender": AZ + "security/Security_Center.svg",
+    "alerts": AZ + "management_governance/Alerts.svg",
+    "privacy": AZ + "management_governance/User_Privacy.svg",
 }
 NET = "html=1;outlineConnect=0;fillColor=#CCCCCC;strokeColor=#6881B3;gradientColor=none;strokeWidth=2;shape=mxgraph.networks."
 
@@ -386,10 +389,10 @@ def telemetry_history_dashboards():
     d.zone(1000, 70, 460, 620, "Microsoft Fabric", fill="#F3E5F5", stroke="#6A1B9A")
 
     iot = d.icon(130, 150, "iothub", "IoT Hub", size=64, label_w=90, side="left")
-    evid = d.icon(130, 330, "datalake", "Evidencia cruda\nADLS Gen2, JSON\nretención bloqueada\n5 años, GRS", size=64, label_w=150, side="right")
+    evid = d.icon(130, 330, "datalake", "Evidencia cruda\ntemperatura, puertas,\nalertas y acuses\nbloqueada 5 años, GRS", size=64, label_w=150, side="right")
     d.text(40, 540, 320, 76, "Cuenta propia, separada del archivo. Nadie puede modificar ni borrar los archivos, ni siquiera un administrador. Vale en reclamos.", font=10)
     asa = d.icon(490, 150, "asa", "Stream Analytics", size=64, label_w=140, side="top")
-    delta = d.icon(490, 330, "datalake", "Tabla de análisis (Delta)\ndetalle, resumen de 5 min\ny alertas", size=64, label_w=170)
+    delta = d.icon(490, 330, "datalake", "Tabla de análisis (Delta)\ndetalle con posiciones,\nresumen de 5 min y alertas", size=64, label_w=170)
     eh = d.icon(650, 154, "eventhub", "Event Hub\nestado en vivo", size=56, label_w=120)
     torre = d.icon(820, 150, "aca", "Consola de\nla torre", size=64, label_w=100)
     func = d.icon(820, 450, "func", "Función\nnotificadora", size=64, label_w=100)
@@ -401,7 +404,7 @@ def telemetry_history_dashboards():
     reports = d.icon(1238, 150, "laptop", "Tableros de calidad\nen Power BI", size=48, label_w=130, side="right")
     emb = d.icon(1230, 520, "pbi_embedded", "Reporte insertado\ntoken V2 con la\nidentidad del cliente", size=64, label_w=150)
 
-    d.edge(iot[0], evid[0], [(162, 214), (162, 330)], "Enrutamiento\na almacenamiento", label_pos=(172, 256, 120), label_h=30, color=C_TEMP)
+    d.edge(iot[0], evid[0], [(162, 214), (162, 330)], "Enrutamiento: solo\ntemperatura y puertas", label_pos=(172, 256, 130), label_h=30, color=C_TEMP)
     d.edge(iot[0], asa[0], [(194, 182), (490, 182)], "Endpoint de eventos", label_pos=(270, 162, 140), color=C_TEMP)
     d.edge(asa[0], delta[0], [(522, 214), (522, 330)], "Salida Delta", label_pos=(530, 262, 80), color=C_TEMP)
     d.edge(asa[0], eh[0], [(554, 182), (650, 182)], color=C_OK)
@@ -814,6 +817,108 @@ def network_subnets(aks=False):
     return d
 
 
+def personal_data_map():
+    d = Diagram()
+    d.text(30, 10, 1400, 30, "Datos personales: por dónde entran, dónde viven, cuánto duran y quién los ve", font=14)
+    d.zone(30, 70, 240, 640, "Titulares", fill="#FFFDE7", stroke="#F9A825")
+    d.zone(300, 70, 240, 640, "Por dónde entran", fill="#FFF3E0", stroke="#EF6C00")
+    d.zone(580, 70, 700, 640, "Azure · East US 2 (Estados Unidos)", fill="#E3F2FD", stroke="#1565C0")
+    d.zone(1320, 70, 260, 640, "Azure · Central US (Estados Unidos)", fill="#E8EAF6", stroke="#3949AB")
+    d.zone(1620, 70, 340, 640, "Quién ve qué", fill="#F3E5F5", stroke="#6A1B9A")
+
+    conductor = d.icon(126, 150, "users", "Conductores\nnombre, documento, licencia,\nteléfono, posición e imagen", size=48, label_w=210)
+    empleado = d.icon(126, 290, "users", "Empleados\nidentidad, acciones, acuses\ny teléfono de la guardia", size=48, label_w=210)
+    usuario = d.icon(126, 410, "users", "Usuarios de los clientes\nnombre, correo, cuenta,\nIP y actividad", size=48, label_w=210)
+    destinatario = d.icon(126, 530, "users", "Destinatarios\nnombre, dirección, teléfono,\ndocumento, firma e imagen", size=48, label_w=210)
+
+    camion = d.icon(396, 150, "mobile", "Equipo del camión\nposición y temperatura", size=48, label_w=200)
+    torre = d.icon(396, 290, "aca", "Consola de la torre\nconductores y guías", size=48, label_w=200)
+    portal = d.icon(396, 410, "appgw", "Portal de rastreo\ncuentas de los clientes", size=48, label_w=200)
+    entrega = d.icon(396, 530, "files", "Cámaras y equipo de entrega\nvideo, fotos y comprobantes", size=48, label_w=210)
+
+    eh = d.icon(640, 150, "eventhub", "Estado en vivo (Event Hub)\nposición y estado del camión\n7 días", size=48, label_w=200)
+    fn = d.icon(860, 150, "func", "Estado de las alertas\nmientras están abiertas", size=48, label_w=200)
+    delta = d.icon(1080, 150, "datalake", "Tabla de análisis\nlecturas y posiciones\n5 años, se puede borrar", size=48, label_w=200)
+    mysql = d.icon(640, 330, "mysql", "Base transaccional\nconductores, destinatarios,\nguías y usuarios\n5 años, luego se anonimiza", size=48, label_w=200)
+    d.icon(860, 330, "redis", "Caché del rastreo\nminutos", size=48, label_w=200)
+    d.icon(1080, 330, "monitor", "Registros (Log Analytics)\nIP y actividad\nlos fija la auditoría", size=48, label_w=200)
+    video = d.icon(640, 530, "storage", "Video de muelles y entregas\n5 años", size=48, label_w=200)
+    d.icon(860, 530, "storage", "Fotos y comprobantes\n5 años, escaneo de malware", size=48, label_w=200)
+    d.text(1010, 520, 250, 70, "Copias de la base: de 1 a 35 días.\nPruebas y desarrollo: solo datos sintéticos.", font=10)
+
+    iot = d.icon(1426, 150, "iothub", "IoT Hub\nde 1 a 7 días", size=48, label_w=130)
+    evid = d.icon(1422, 330, "datalake", "Evidencia inmutable\ntemperatura, puertas,\nalertas y acuses\n5 años, sin posiciones", size=56, label_w=170)
+
+    d.icon(1640, 100, "aca", "Torre: conductores, destinatarios,\nguías y posición en vivo", size=40, label_w=260, side="right")
+    d.icon(1640, 210, "users", "Calidad: lecturas, alertas,\nevidencias y reclamos", size=40, label_w=260, side="right")
+    d.icon(1640, 320, "browser", "Cliente corporativo: sus guías,\nestado, temperatura y llegada.\nSin flota, posición exacta, video\nni datos del conductor", size=40, label_w=260, side="right")
+    d.icon(1640, 470, "vm", "Operación: configuración.\nDatos solo con permiso\ntemporal y registrado", size=40, label_w=260, side="right")
+    d.icon(1640, 590, "pbi_embedded", "Fabric: lo que autorice la\nestrategia de Fabric", size=40, label_w=260, side="right")
+
+    d.edge(conductor[0], camion[0], [(174, 174), (396, 174)], color=C_TEMP)
+    d.edge(empleado[0], torre[0], [(174, 314), (396, 314)], color=C_TEMP)
+    d.edge(usuario[0], portal[0], [(174, 434), (396, 434)], color=C_TEMP)
+    d.edge(destinatario[0], entrega[0], [(174, 554), (396, 554)], color=C_TEMP)
+    d.edge(camion[0], iot[0], [(444, 174), (555, 174), (555, 118), (1450, 118), (1450, 150)], "Telemetría", label_pos=(900, 100, 90), color=C_TEMP)
+    d.edge(iot[0], delta[0], [(1426, 174), (1128, 174)], "Posiciones y lecturas", label_pos=(1180, 154, 140), color=C_TEMP)
+    d.edge(iot[0], evid[0], [(1474, 174), (1545, 174), (1545, 358), (1478, 358)], "Solo temperatura\ny puertas", label_pos=(1482, 250, 95), label_h=30, color=C_EXC)
+    d.edge(torre[0], mysql[0], [(444, 314), (560, 314), (560, 346), (640, 346)], color=C_TEMP)
+    d.edge(portal[0], mysql[0], [(444, 434), (570, 434), (570, 362), (640, 362)], color=C_TEMP)
+    d.edge(entrega[0], video[0], [(444, 554), (640, 554)], "Video, fotos y\ncomprobantes", label_pos=(462, 518, 120), label_h=30, color=C_TEMP)
+
+    d.text(30, 730, 1930, 46,
+           "Azul: datos que entran. Rojo: lo único que va a la copia inmutable. Todo queda en la geografía de Estados Unidos de Azure; Microsoft trata los datos como encargado. "
+           "El datacenter de Cali conserva todo hasta su apagado (día 90 a más tardar) y después se borra de forma segura. Al cumplirse cinco años, las evidencias se borran y la base anonimiza los campos personales.",
+           font=10)
+    return d
+
+
+def perimeter_detection():
+    d = Diagram()
+    d.text(30, 10, 1400, 30, "Portal de rastreo: capas de protección y de dónde salen las alertas", font=14)
+    d.zone(30, 70, 220, 420, "Internet", fill="#F5F5F5", stroke="#9E9E9E")
+    d.zone(290, 70, 1010, 420, "Producción · vnet-prod", fill="#FAFAFA", stroke="#616161")
+    d.zone(320, 110, 330, 360, "snet-ingress", fill="#FFF3E0", stroke="#EF6C00", font=11)
+    d.zone(690, 110, 340, 360, "snet-app-portal", fill="#E8F5E9", stroke="#2E7D32", font=11)
+    d.zone(1060, 110, 220, 360, "Datos", fill="#E3F2FD", stroke="#1565C0", font=11)
+    d.zone(290, 540, 420, 200, "Suscripción de seguridad", fill="#ECEFF1", stroke="#455A64", font=11)
+    d.zone(790, 540, 690, 200, "Detección y respuesta", fill="#FCE4EC", stroke="#C62828", font=11)
+
+    clients = d.icon(100, 130, "users", "Clientes corporativos\n(unos 2.000)", size=48, label_w=150)
+    bots = d.icon(100, 300, "users", "Scripts, bots\ny abuso", size=48, label_w=150)
+    pip = d.icon(360, 230, "pip", "IP pública con\nDDoS IP Protection", size=48, label_w=140, side="top")
+    appgw = d.icon(520, 226, "appgw", "Application Gateway\nWAF v2", size=56, label_w=150, side="top")
+    d.text(328, 300, 205, 160, "WAF: Default Rule Set 2.2 y Bot Manager 1.1\n\nLímites por IP y por instancia:\n1. General: 300 por minuto\n2. Consulta de guías: 120\n3. Inicio de sesión: 20\n4. Fuera de Colombia: registrar", font=10)
+    portal = d.icon(720, 226, "aca", "Servicios del portal\nContainer Apps", size=56, label_w=150, side="top")
+    d.text(800, 300, 220, 160, "Límite por cuenta:\n60 por minuto por usuario,\n200 por cliente\n\nUna guía ajena recibe la misma respuesta que una inexistente\n\nCada consulta deja un evento de seguridad", font=10)
+    mysql = d.icon(1146, 230, "mysql", "MySQL\ndatos personales", size=48, label_w=130, side="top")
+
+    la = d.icon(524, 600, "monitor", "Log Analytics\nregistros del WAF, del portal\ny eventos de la aplicación", size=48, label_w=190)
+    alerts = d.icon(880, 612, "alerts", "5 alertas propias\nbarrido de guías, otro país,\nvolumen anómalo, límites, 401 y 403", size=48, label_w=220)
+    ops = d.icon(1020, 612, "users", "Operación", size=48, label_w=100)
+    defender = d.icon(1150, 612, "defender", "Defender for Cloud\nStorage, MySQL, Key Vault,\nResource Manager, máquinas", size=48, label_w=200)
+    dpo = d.icon(1360, 612, "privacy", "Oficial de\nprotección de datos", size=48, label_w=130)
+
+    d.edge(clients[0], pip[0], [(148, 154), (260, 154), (260, 246), (360, 246)], "HTTPS 443", label_pos=(150, 134, 80), color=C_OK)
+    d.edge(bots[0], pip[0], [(148, 324), (270, 324), (270, 262), (360, 262)], color=C_EXC, dashed=True)
+    d.edge(pip[0], appgw[0], [(408, 254), (520, 254)], color=C_OK)
+    d.edge(appgw[0], portal[0], [(576, 254), (720, 254)], "443", label_pos=(630, 234, 40), color=C_OK)
+    d.edge(portal[0], mysql[0], [(776, 254), (1146, 254)], "3306", label_pos=(940, 234, 50), color=C_OK)
+    d.edge(appgw[0], la[0], [(548, 282), (548, 600)], "Registros del WAF y\ndel Application Gateway", label_pos=(556, 492, 150), label_h=30, color=C_TEMP)
+    d.edge(portal[0], la[0], [(748, 282), (748, 612), (572, 612)], "Eventos de\nseguridad", label_pos=(756, 492, 90), label_h=30, color=C_TEMP)
+    d.edge(la[0], alerts[0], [(572, 636), (880, 636)], color=C_EXC)
+    d.edge(alerts[0], ops[0], [(928, 636), (1020, 636)], color=C_EXC)
+    d.edge(mysql[0], defender[0], [(1170, 278), (1170, 612)], "Vigila", label_pos=(1178, 500, 50), color=C_DENY, dashed=True)
+    d.edge(defender[0], ops[0], [(1150, 636), (1068, 636)], color=C_EXC)
+    d.edge(defender[0], dpo[0], [(1198, 636), (1360, 636)], "Datos sensibles\n(Defender CSPM)", label_pos=(1222, 600, 110), label_h=30, color=C_DENY)
+
+    d.text(30, 760, 1450, 46,
+           "Verde: tráfico permitido. Rojo: alertas. Azul: registros. Gris: vigilancia de Defender for Cloud. Si una alerta indica acceso no autorizado a datos personales, "
+           "operación activa el procedimiento de incidentes y se evalúa el aviso a la SIC (Ley 1581, artículo 17). Sentinel se evalúa con el volumen del primer mes.",
+           font=10)
+    return d
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--out", required=True)
@@ -829,7 +934,9 @@ def main():
                      ("firewall-9-p2-puntos-de-control", control_points),
                      ("firewall-9-p3-transicion-cali", cali_transition),
                      ("telemetria-13-p1-ingesta-y-alerta", telemetry_ingest_alert),
-                     ("telemetria-13-p2-historial-y-tableros", telemetry_history_dashboards)]:
+                     ("telemetria-13-p2-historial-y-tableros", telemetry_history_dashboards),
+                     ("seguridad-10-p1-mapa-datos-personales", personal_data_map),
+                     ("seguridad-10-p2-perimetro-deteccion", perimeter_detection)]:
         (out / f"{name}.drawio").write_text(fn().xml(), encoding="utf-8")
         print(out / f"{name}.drawio")
 
