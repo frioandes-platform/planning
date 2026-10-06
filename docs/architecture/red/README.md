@@ -57,7 +57,7 @@ El script lee `firewall-policy.csv`, `firewall-settings.csv`, `ip-plan.csv` y `o
 ## Medir la latencia
 
 ```bash
-python3 tools/measure_latency.py --targets data/latency-targets.csv --place "Sede Cali" --samples 30
+python3 tools/measure_latency.py --targets data/latency-targets.csv --place "Universidad en Cali, red cableada" --samples 30
 ```
 
 ## Regenerar los diagramas
