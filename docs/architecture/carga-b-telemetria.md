@@ -351,8 +351,8 @@ Con unos 15 GB al mes, el historial completo de cinco años es de unos 900 GB. E
 
 | | Evidencia cruda | Tabla de análisis |
 |---|---|---|
-| Qué contiene | Cada mensaje tal como llegó a IoT Hub, con la identidad del dispositivo y la hora de llegada. Además, cada alerta y cada acuse con quién y cuándo | Cada lectura con su contexto: cuarto frío o camión, guía, cliente, rango aplicado y si generó alerta |
-| Quién la escribe | IoT Hub, con su enrutamiento a almacenamiento, en JSON. La función notificadora agrega las alertas y los acuses | Stream Analytics, con su salida nativa a tablas Delta |
+| Qué contiene | Cada mensaje de temperatura y de puerta tal como llegó a IoT Hub, con la identidad del dispositivo y la hora de llegada. Además, cada alerta y cada acuse con quién y cuándo. Las posiciones de los camiones no van aquí | Cada lectura con su contexto: cuarto frío o camión, guía, cliente, rango aplicado y si generó alerta. También las posiciones de los camiones, ligadas a la guía y al viaje |
+| Quién la escribe | IoT Hub, con su enrutamiento a almacenamiento, en JSON. La ruta filtra por el tipo de mensaje (`$body.tipo`), que IoT Hub puede leer porque cada mensaje va marcado como JSON. La función notificadora agrega las alertas y los acuses | Stream Analytics, con su salida nativa a tablas Delta |
 | Formato | Archivos JSON por lote, con la ruta de IoT Hub (hub, partición, año, mes, día, hora y minuto) | Tabla Delta (archivos Parquet con su registro de transacciones), que Fabric reconoce como tabla |
 | Protección | Contenedor con política de retención por tiempo, bloqueada, de cinco años: nadie puede modificar ni borrar los archivos, ni siquiera un administrador | Contenedor normal: la tabla necesita mantenimiento periódico (compactar archivos y limpiar los viejos), que no se puede hacer en un contenedor inmutable |
 | Región | Central US, junto a IoT Hub. Con redundancia geográfica, la copia secundaria queda en East US 2 | East US 2, junto al resto de la plataforma |
@@ -368,7 +368,7 @@ Con unos 15 GB al mes, el historial completo de cinco años es de unos 900 GB. E
 - **Cuenta separada del archivo.** Azure no admite políticas de inmutabilidad en cuentas con NFS 3.0, y las cuentas del archivo histórico lo usan para la copia desde Cali. Por eso la telemetría tiene su propia cuenta.
 - **Niveles de acceso.** Los archivos pasan de Hot a Cool a los 30 días y a Cold a los 180, con la política de ciclo de vida de la cuenta. Azure permite cambiar el nivel de acceso de archivos inmutables.
 - **Borrado.** Al vencer los cinco años, el ciclo de vida borra los archivos. Antes de eso, nadie puede borrarlos.
-- **Datos personales.** La posición de un camión identifica al conductor. La retención inmutable impide borrar esos datos antes de cinco años aunque alguien lo pida. El diseño de protección de datos personales concilia la retención contractual con los derechos del titular bajo la Ley 1581.
+- **Datos personales.** La posición de un camión identifica al conductor. Si estuviera en la copia inmutable, nadie podría borrarla en cinco años, ni siquiera por orden de la SIC. Por eso las posiciones van solo a la tabla de análisis, que se puede corregir y borrar, y la copia inmutable guarda la temperatura, las puertas, las alertas y los acuses. El enunciado obliga a conservar las evidencias y la trazabilidad de temperatura, y no menciona la posición. El diseño de datos personales y perímetro (`seguridad-datos-personales-perimetro.md`, sección 3.5) concilia la retención contractual con los derechos del titular bajo la Ley 1581.
 
 ### 4.5 Acceso privado
 
