@@ -248,6 +248,9 @@ están en *Ready* (listos para empezar).
   hacer cada cliente. Servicios como **Defender for Cloud** detectan comportamientos raros.
 - **Datos personales.** Hace falta un inventario: qué dato, de quién es, dónde vive, quién lo ve y cuándo se borra.
 
+> **Decisión tomada (#8 y #9).** Torre, portal, ingesta y analítica tienen subredes propias en cada ambiente. El Azure Firewall controla lo que llega de las sedes y lo que sale a internet; los NSG, lo que pasa entre zonas dentro de un ambiente. El portal se protege con Application Gateway WAF v2 (Default Rule Set 2.2 y Bot Manager 1.1, en modo prevención); los límites por cliente y Defender for Cloud quedan en #10, sobre la misma política. Ver [`red-topologia-subnetting.md`](../architecture/red-topologia-subnetting.md), sección 5.1, y [`red-firewall-y-publicacion.md`](../architecture/red-firewall-y-publicacion.md), secciones 3 y 4.7.
+
+
 **En el tablero.** #7 Permisos, MFA y cifrado (juandavid175); #10 Datos personales y protección del portal (Melo088);
 y #9 Firewall de nube (Melo088; incluye el firewall web del portal).
 
@@ -303,6 +306,9 @@ Las direcciones de la nube se toman de otro bloque. Un boceto para discutir en #
 10.110.0.0/15  reservado para la segunda nube
 ```
 
+> **Decisión tomada (#8).** Hub en `10.100.0.0/23`; producción, pruebas y desarrollo en `10.101.0.0/21`, `10.102.0.0/21` y `10.103.0.0/21`; segunda nube en `10.110.0.0/15` y región pareja en `10.104.0.0/15`. Rangos más pequeños que el boceto, con reservas para crecer. Ver [`red-topologia-subnetting.md`](../architecture/red-topologia-subnetting.md), sección 4.
+
+
 **Lo que se pide y cómo se resolvería en Azure.**
 
 | Lo que pide el enunciado | Cómo se resolvería en Azure |
@@ -315,6 +321,9 @@ Las direcciones de la nube se toman de otro bloque. Un boceto para discutir en #
 | Tabla de subredes de la nube, sin repetir direcciones, con desarrollo, pruebas y producción separados | Como mínimo ocho subredes por ambiente: entrada, aplicación, datos, archivo, telemetría, administración, conexión con Cali y salida a Fabric |
 | Un firewall en la nube con su tabla de reglas (origen, destino, puerto, acción, y si la regla es temporal de la migración o permanente), incluido el firewall web del portal | Azure Firewall con su política de reglas, más el WAF |
 
+> **Decisión tomada (#8 y #9).** Conexión con VPN Gateway VpnGw1AZ en un hub propio y un segundo proveedor en Cali; los centros, directo a Azure. Portal con Application Gateway WAF v2, sin Front Door, porque el portal es regional y la zona pública queda dentro de la red de FríoAndes. Firewall de nube Azure Firewall Standard, en paralelo con el WAF, con su tabla en `red/data/firewall-policy.csv`. Ver [`red-topologia-subnetting.md`](../architecture/red-topologia-subnetting.md), sección 2, y [`red-firewall-y-publicacion.md`](../architecture/red-firewall-y-publicacion.md), secciones 2 y 4.
+
+
 **Qué pasa con el firewall de Cali.** El enunciado pide decir, para cada función del firewall actual, si se queda,
 si pasa a la nube y **cuándo se apaga**. Un borrador para el issue #9:
 
@@ -325,6 +334,9 @@ si pasa a la nube y **cuándo se apaga**. Un borrador para el issue #9:
 | NAT del portal de rastreo | Se mantiene como camino para volver atrás | Desaparece: el portal entra por Front Door o Application Gateway | Cuando vence el plazo para volver atrás después del corte |
 | Reglas entre redes | Las de los sistemas que se mudan se copian al firewall de la nube | Esas reglas viven en la nube y las de la sede siguen en Cali | El día 90, las que protegían sistemas ya apagados |
 | Firewall web delante de Nginx | Sigue protegiendo el portal en Cali | Lo reemplaza el firewall web de la nube | En el corte, más el plazo para volver atrás |
+
+> **Decisión tomada (#8 y #9).** Los centros se conectan directo a Azure, centro por centro, y la VPN hacia Cali queda de respaldo hasta el cierre del plazo de vuelta atrás. El NAT y el firewall web de Cali dejan de recibir tráfico en el corte y quedan configurados como camino de vuelta atrás hasta que cierra ese plazo, como máximo el día 90. Ver [`red-firewall-y-publicacion.md`](../architecture/red-firewall-y-publicacion.md), sección 5.
+
 
 **Los números.**
 - **Capacidad del enlace.** 400 Mbps son unos 50 megabytes por segundo, o sea **4,32 TB por día usando el enlace
@@ -528,6 +540,9 @@ Si cada mensaje pesa 1 KB (supuesto), son unos 0,5 GB por día, unos 15 GB al me
 | Base MySQL 5.7 de producción | Pasa a MySQL administrado por Azure (versión 8.x). Los datos se copian de forma continua desde antes del corte | Así, en el corte solo hay que terminar de copiar lo último y cambiar la dirección |
 | Bases de desarrollo y pruebas | Se crean de cero, con datos inventados | No se mudan datos personales a los ambientes de prueba |
 | Redis 5 (caché) | Se reemplaza por un caché administrado | Es un caché: no hay datos que mudar, se vuelve a llenar solo |
+
+> **Decisión tomada (#9).** Los dos servidores Nginx se reemplazan por Application Gateway WAF v2; Front Door queda como alternativa si se necesita conmutación automática entre regiones. Ver [`red-firewall-y-publicacion.md`](../architecture/red-firewall-y-publicacion.md), sección 2.3.
+
 | Servidor FTP/NFS con 1,2 PB | Copia física con dispositivos (ver abajo), más copia continua de lo nuevo | El enlace no da abasto |
 | La forma en que el contenedor `evidencias` lee los archivos | Durante la convivencia se usa un almacenamiento compatible con NFS para **no tocar la aplicación**. Después se rehace para leer directo del almacenamiento de la nube | Es el ejemplo perfecto de "mudar tal cual y después rehacer" |
 | Carga de temperatura por archivos cada hora | Se retira; la reemplaza la telemetría en tiempo real | Los 40 TB viajan con el archivo |
@@ -887,6 +902,9 @@ número en vez del número de GitHub. Esta tabla los traduce (F1-04 se deduce po
 | Preparar la sesión de aclaraciones | Detalle técnico | — | `sesion-aclaraciones-preguntas.md` (lo menciona el briefing) | ❌ |
 | Alinear con los cinco pilares Well-Architected | Visión | — | — | ❌ |
 | Que el código coincida con el dibujo | Criterio 3 | #21, #39 | `docs/iac/verificacion-iac-vs-firewall.md`, `docs/cross-cutting/revision-final-…` | ✅ |
+
+> **Decisión tomada (#8 y #9).** "Redes separadas para torre, portal, telemetría y analítica" y "Despacho fuera de internet" ya tienen archivo: [`red-topologia-subnetting.md`](../architecture/red-topologia-subnetting.md) (secciones 5.1 y 5.2) y [`red-firewall-y-publicacion.md`](../architecture/red-firewall-y-publicacion.md) (secciones 3.1 y 4.7). "Proteger el portal" se reparte: #9 hace la capacidad y el WAF; #10, los límites por cliente y Defender for Cloud. La tabla del firewall para #21 está en `red/data/firewall-policy.csv`, con su verificador.
+
 
 ## En qué orden se desbloquean los issues
 
