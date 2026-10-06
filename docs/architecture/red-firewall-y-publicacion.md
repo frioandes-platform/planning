@@ -326,11 +326,11 @@ No todo el tráfico pasa por el Azure Firewall. Cada flujo tiene un punto de con
 | Azure Firewall | Todo lo que va de las sedes a la nube, de la nube a las sedes, entre sedes durante la convivencia, entre ambientes y hacia internet | Es el paso obligado del hub y registra cada conexión en un solo lugar |
 | WAF del Application Gateway | La entrada del portal desde internet | Revisa el contenido de cada solicitud web, que el firewall no lee (sección 2.1) |
 | NSG de cada subred | El tráfico dentro de un mismo ambiente, entre zonas. Es además una segunda capa detrás del firewall | El tráfico entre subredes de una misma red virtual no pasa por el hub |
-| IoT Hub | Los camiones, que llegan desde internet | No están en la red corporativa: la protección es TLS y una credencial por camión |
+| IoT Hub y DPS | Los camiones, que llegan desde internet | No están en la red corporativa: la protección es TLS y una credencial por camión |
 
 ![Puntos de control: qué pasa por el Azure Firewall, qué por el WAF y qué por NSG o IoT Hub](diagramas/firewall-9-p2-puntos-de-control.drawio.png)
 
-En el diagrama, las líneas verdes pasan por el Azure Firewall o por el WAF, las azules punteadas son temporales de la migración y las rojas se controlan con NSG o en IoT Hub, sin pasar por el firewall.
+En el diagrama, las líneas verdes pasan por el Azure Firewall o por el WAF, las azules punteadas son temporales de la migración y las rojas se controlan con NSG o en IoT Hub, sin pasar por el firewall. La función notificadora de la telemetría (`snet-telemetry-func`) sale a internet por el firewall y llega a la torre por el NSG de la torre.
 
 ### 4.2 Cómo se organiza la política del firewall
 
@@ -368,11 +368,12 @@ Los sensores reales solo llegan a producción. Pruebas y desarrollo trabajan con
 | Reglas | Origen | Destino | Puerto | Acción | Vigencia |
 |---|---|---|---|---|---|
 | FW-301, 307 y 313 | Torre y portal (`10.10X.1.0/24`) | Registro de Microsoft y binarios de Container Apps: `mcr.microsoft.com`, `*.data.mcr.microsoft.com`, `packages.aks.azure.com`, `acs-mirror.azureedge.net` | HTTPS 443 | Permitir | Estable |
-| FW-302, 308 y 314 | Torre y portal | Entra ID e identidades administradas: `*.identity.azure.net`, `login.microsoftonline.com`, `*.login.microsoftonline.com`, `login.microsoft.com`, `*.login.microsoft.com` | HTTPS 443 | Permitir | Estable |
+| FW-302, 308 y 314 | Torre, portal y función notificadora de la telemetría (`10.10X.3.0/27`) | Entra ID e identidades administradas: `*.identity.azure.net`, `login.microsoftonline.com`, `*.login.microsoftonline.com`, `login.microsoft.com`, `*.login.microsoft.com` | HTTPS 443 | Permitir | Estable |
 | FW-303, 309 y 315 | Torre, portal y agentes de despliegue (`10.10X.2.128/27`) | Registro de contenedores de FríoAndes (`<registro>.azurecr.io` y su almacenamiento `*.blob.core.windows.net`) | HTTPS 443 | Permitir | Estable |
-| FW-304, 310 y 316 | Torre y portal | Azure Monitor (etiqueta de servicio `AzureMonitor`) | TCP 443 | Permitir | Estable |
+| FW-304, 310 y 316 | Torre, portal y función notificadora | Azure Monitor (etiqueta de servicio `AzureMonitor`) | TCP 443 | Permitir | Estable |
 | FW-305, 311 y 317 | Torre y portal | Servicios externos de la aplicación, como correo y SMS. Cada dominio se agrega con su propio cambio | HTTPS 443 | Permitir | Estable |
 | FW-306, 312 y 318 | Agentes de despliegue y máquinas de operación (`10.10X.2.128/27`) | Azure Resource Manager, Entra ID, los dominios que GitHub publica para sus ejecutores autoalojados y los repositorios de actualizaciones de Ubuntu y Microsoft | HTTPS 443 y HTTP 80 | Permitir | Estable |
+| FW-319, 320 y 321 | Función notificadora de la telemetría (`10.10X.3.0/27`) | Canales de las alertas: webhook de Workflows de Teams (`*.api.powerplatform.com` y `*.logic.azure.com`), correo de Azure Communication Services (`<recurso>.communication.azure.com`) y el proveedor de SMS | HTTPS 443 | Permitir | Estable |
 
 El gateway de Fabric (`snet-fabric-egress`) no tiene ninguna regla de salida a internet. Microsoft devuelve sus resultados a Fabric por un canal interno que no pasa por internet ni por el firewall.
 
@@ -413,10 +414,13 @@ Cada subred tiene su NSG. Todas terminan en una regla que rechaza lo que no est�
 | `snet-ingress` (portal) | Administración de Azure (etiqueta `GatewayManager`) | TCP 65200 a 65535 | Estable |
 | `snet-app-portal` | `snet-ingress` | TCP 443 | Estable |
 | `snet-app-torre` | Usuarios de Cali y de los centros (en pruebas y desarrollo, solo Cali), que llegan por el firewall con su IP real | TCP 443 | Estable |
+| `snet-app-torre` | Función notificadora de la telemetría de su ambiente, que entrega las alertas a la consola | TCP 443 | Estable |
 | `snet-data` (MySQL) | Torre, portal, gateway de Fabric y máquinas de operación | TCP 3306 | Estable |
 | `snet-data-pe` (caché) | Torre, portal y máquinas de operación | TCP 10000 | Estable |
 | `snet-data-pe` (Key Vault) | Torre, portal, Application Gateway y máquinas de operación | TCP 443 | Estable |
-| `snet-archive` | Torre, portal, gateway de Fabric y máquinas de operación | TCP 443 | Estable |
+| `snet-data-pe` (Event Hubs de la telemetría) | Torre | TCP 5671 y 443 | Estable |
+| `snet-data-pe` (event hub de alertas, cuenta de la función y Key Vault) | Función notificadora | TCP 5671 y 443 | Estable |
+| `snet-archive` | Torre, portal, gateway de Fabric, máquinas de operación y función notificadora | TCP 443 | Estable |
 | `snet-ingest` | Azure Firewall (`10.100.0.64/26`) | TCP 8883, 5671 y 443 | Estable |
 | `snet-admin` | Azure Bastion (`10.100.0.192/26`) | TCP 22 y 3389 | Estable |
 | `snet-archive` (producción) | Servidor de archivo de Cali (`10.20.3.0/24`) | TCP 111, 2048 y 443 | Temporal: al terminar la copia continua |
@@ -432,7 +436,7 @@ Cada subred tiene su NSG. Todas terminan en una regla que rechaza lo que no est�
 | Flujo | Cómo se controla | Por qué no pasa por el firewall |
 |---|---|---|
 | Clientes hacia el portal | WAF y NSG de `snet-ingress` | Diseño en paralelo (sección 2.1). Azure no admite desviar la salida del Application Gateway al firewall |
-| Camiones hacia IoT Hub | TLS y una credencial por camión | Llegan desde la red móvil del operador, por internet. Si la plataforma del operador reenvía los datos desde direcciones fijas, el endpoint se limita además a esas direcciones |
+| Camiones hacia IoT Hub y DPS | TLS y una credencial por camión | Llegan desde la red móvil del operador, por internet. Si la plataforma del operador reenvía los datos desde direcciones fijas, el endpoint se limita además a esas direcciones |
 | Copia continua del archivo | NSG temporal de `snet-archive` | Ahorra unos USD 194 al mes de procesamiento por un tráfico temporal, conocido y de un solo origen. Decidido en el diseño de red |
 | Azure Bastion hacia las máquinas de operación | NSG de `snet-admin` | Azure no admite rutas definidas por el usuario en la subred de Bastion, y Microsoft indica que no hace falta pasar ese tráfico por el firewall porque es privado |
 | DNS entre Cali y el resolver del hub | NSG de las subredes del resolver | Es tráfico de un servicio compartido del hub, de un solo puerto y con orígenes conocidos |
@@ -453,7 +457,7 @@ Una regla solo sirve si el tráfico llega al firewall. Estas tablas de rutas lo 
 | Subred | Políticas de red | Resultado |
 |---|---|---|
 | `snet-ingest` | NSG y rutas | Los sensores que entran por la VPN pasan por el firewall (FW-204) y luego por el NSG |
-| `snet-data-pe` | NSG y rutas | Solo se usa dentro del ambiente. El NSG controla quién llega a la caché y al Key Vault |
+| `snet-data-pe` | NSG y rutas | Solo se usa dentro del ambiente. El NSG controla quién llega a la caché, al Key Vault, a los Event Hubs de la telemetría y a la cuenta de la función notificadora |
 | `snet-archive` | Solo NSG | La copia del archivo desde Cali sigue la ruta directa del endpoint y no pasa por el firewall. El NSG la limita al servidor de archivo de Cali |
 
 Por lo mismo, la tabla de rutas de la `GatewaySubnet` y la de `snet-archive` quedan coherentes: ninguna de las dos manda la copia al firewall, así que la ida y la vuelta toman el mismo camino.
@@ -468,9 +472,10 @@ La torre de control, el portal público, la ingesta de sensores y los datos anal
 | Red corporativa | Firewall (FW-201) y NSG, puerto 443 | Por internet, como cualquier cliente | Solo los sensores (FW-204) | Sin camino |
 | Torre | | Rechazado por el NSG del portal | Sin regla | Sin regla |
 | Portal | Rechazado por el NSG de la torre | | Sin regla | Sin regla |
+| Ingesta (función notificadora) | NSG de la torre, puerto 443, solo para entregar las alertas | Sin regla | | Sin regla |
 | Analítica | Sin regla | Sin regla | Sin regla | Solo lee la base y el archivo |
 
-Ninguna de las cuatro zonas puede iniciar una conexión hacia otra. Solo comparten la capa de datos, cada una con su regla en el NSG de la base y del archivo.
+La única conexión entre zonas es la de la función notificadora hacia la API de la torre, para entregar las alertas de temperatura. Fuera de ella, ninguna zona puede iniciar una conexión hacia otra: solo comparten la capa de datos, cada una con su regla en el NSG de la base y del archivo.
 
 ### 4.8 Variante con Kubernetes (AKS): qué cambia en la tabla
 
@@ -489,23 +494,23 @@ La tabla completa vive en tres archivos de `red/`, junto al plan de direcciones:
 
 | Archivo | Contenido |
 |---|---|
-| `data/firewall-policy.csv` | Las 72 reglas, ambiente por ambiente: 30 del Azure Firewall, 39 de NSG, 2 del WAF y 1 de IoT Hub. Cada una con su flujo, punto de control, origen, destino, puerto, acción, vigencia y momento de retiro |
+| `data/firewall-policy.csv` | Las 85 reglas, ambiente por ambiente: 33 del Azure Firewall, 48 de NSG, 2 del WAF y 2 de IoT Hub y DPS. Cada una con su flujo, punto de control, origen, destino, puerto, acción, vigencia y momento de retiro |
 | `data/firewall-settings.csv` | La configuración general: versión, inteligencia de amenazas, rangos sin traducción de origen, proxy DNS, IP públicas y grupos |
 | `tools/verify_firewall_policy.py` | Comprueba la tabla contra `ip-plan.csv` y el inventario on-premises |
 
 El script hace doce comprobaciones. Entre ellas:
 
 - cada rango existe en el plan de direcciones;
-- la torre solo recibe tráfico corporativo;
+- la torre solo recibe tráfico corporativo y, desde la nube, el de la función de alertas de su mismo ambiente;
 - ninguna regla une ambientes;
 - los sensores reales solo llegan a producción;
 - el gateway de Fabric no sale a internet;
 - las reglas temporales tienen fecha de retiro y están en los grupos que se borran completos;
 - ningún endpoint privado queda en la lista sin traducción de origen.
 
-La tabla actual pasa las doce. Su hash SHA-256 es `fdbfa737323e5d4789a439dae5e22e5ab7799cc009c0eecc82016320b5163bad` y el reporte está en `verification/reporte-firewall-policy.md`. El código de infraestructura del módulo de seguridad se revisa regla por regla contra este mismo archivo.
+La tabla actual pasa las doce. Su hash SHA-256 es `72fca57a76fbad427163f2890a2f060caf1cfa24e46005b2f3c2d7f7f0b32dad` y el reporte está en `verification/reporte-firewall-policy.md`. El código de infraestructura del módulo de seguridad se revisa regla por regla contra este mismo archivo.
 
-Los valores entre `<>` se completan en la implementación: el nombre del registro de contenedores, los dominios de los proveedores externos, las IP públicas de Cali, la IP del DNS de Cali y el rango pasivo del servidor FTP.
+Los valores entre `<>` se completan en la implementación: el nombre del registro de contenedores, los dominios de los proveedores externos, el nombre del recurso de Azure Communication Services y del DPS, las IP públicas de Cali, la IP del DNS de Cali y el rango pasivo del servidor FTP.
 
 ---
 

@@ -23,6 +23,7 @@ REQUIRED_FLOWS = ("torre", "portal", "sensores", "flota", "integracion-cali", "a
                   "salida-internet", "dns", "copia-archivo", "datos", "archivo")
 TEMPORAL_GROUPS = ("400 transito-convivencia", "500 migracion")
 ALLOW = ("Permitir",)
+TORRE_CLOUD_SOURCE = "snet-telemetry-func"
 
 
 def load_csv(path):
@@ -115,7 +116,8 @@ def verify(policy_path, settings_path, plan_path, onprem_path):
 
     allow_rows = [r for r in policy if r["accion"] in ALLOW]
 
-    # 4. Torre fuera de internet
+    # 4. Torre fuera de internet. La única fuente de la nube admitida es la función de alertas
+    # de su mismo ambiente, que entrega las alertas a la consola.
     probs = []
     for r in allow_rows:
         for d in cidrs(r["destino_rangos"]):
@@ -125,9 +127,10 @@ def verify(policy_path, settings_path, plan_path, onprem_path):
             if any(t in ("internet", "any") for t in tokens(r["origen_rangos"])):
                 probs.append(f"{r['id']}: permite internet hacia la torre")
             for s in cidrs(r["origen_rangos"]):
-                if owner(s):
+                so = owner(s)
+                if so and not (so[1] == TORRE_CLOUD_SOURCE and so[0] == o[0]):
                     probs.append(f"{r['id']}: `{s}` de la nube llega a la torre")
-    check("La torre solo recibe tráfico de las redes corporativas", probs)
+    check("La torre solo recibe tráfico de las redes corporativas y de la función de alertas de su ambiente", probs)
 
     # 5. Sin cruce de ambientes
     probs = []
