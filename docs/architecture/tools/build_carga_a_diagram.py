@@ -181,8 +181,10 @@ def logistics_platform():
     users = d.icon(100, 650, "users_az", "450 usuarios internos\n(despacho, vía Entra ID)", size=56, label_w=150)
     clients = d.icon(300, 650, "users", "~2.000 clientes corporativos\n(portal, por internet)", size=56, label_w=160)
 
-    torre = d.icon(100, 130, "aca", "Consola de despacho (torre)\nContainer Apps, snet-app-torre", size=64, label_w=190)
-    portal = d.icon(380, 130, "aca", "Servicios del portal\nContainer Apps, snet-app-portal", size=64, label_w=190)
+    # Icons sit well below the zone title and well above the Servicios de negocio zone, so edges
+    # can pass above or below them with real clearance instead of skimming the title or the icon.
+    torre = d.icon(100, 160, "aca", "Consola de despacho (torre)\nContainer Apps, snet-app-torre", size=64, label_w=190)
+    portal = d.icon(380, 160, "aca", "Servicios del portal\nContainer Apps, snet-app-portal", size=64, label_w=190)
 
     d.text(90, 345, 410, 150,
            "Guías · inventario · asignación de muelle y ruta ·\nfacturación corporativa.\n\n"
@@ -208,14 +210,29 @@ def logistics_platform():
            "arranca vacía y se llena con el primer tráfico.",
            font=11)
 
-    d.edge(torre[0], mysql[0], [(164, 162), (270, 162), (270, 230), (610, 230)], "TCP 3306", label_pos=(233, 200, 75))
-    d.edge(portal[0], mysql[0], [(444, 162), (520, 162), (520, 190), (610, 190)], "TCP 3306", label_pos=(460, 170, 70))
-    d.edge(portal[0], redis[0], [(444, 194), (520, 194), (520, 162), (850, 162)], "TCP 10000", label_pos=(640, 140, 80))
-    d.edge(torre[0], entra[0], [(132, 194), (132, 418), (850, 418)], "Autenticación, MFA", color=C_TEMP, label_pos=(300, 400, 110))
-    d.edge(portal[0], kv[0], [(412, 194), (412, 418), (610, 418)], "Secretos y certificado", color=C_TEMP, label_pos=(430, 400, 130))
+    # torre enters MySQL from below (below the icon labels, inside the Front zone, well clear of
+    # the Servicios de negocio zone below it) so the arrow lands on the icon, not on empty space.
+    d.edge(torre[0], mysql[0], [(132, 224), (132, 270), (642, 270), (642, 194)], "TCP 3306", label_pos=(180, 276, 70))
+    d.edge(portal[0], mysql[0], [(444, 192), (520, 192), (520, 190), (610, 190)], "TCP 3306", label_pos=(460, 172, 70))
+    # portal enters Redis from below too (same band as the MySQL edge, offset so the two never touch).
+    d.edge(portal[0], redis[0], [(412, 224), (412, 285), (878, 285), (878, 186)], "TCP 10000", label_pos=(430, 291, 80))
+    # Security edges pass above the icon row, with a full 25-35 px clear of both the zone title and
+    # the icons, then down the clear gap between the two zone columns, then into Seguridad from
+    # above its icons: none of this crosses the Servicios de negocio zone or any unrelated icon.
+    # Both drop straight down the clear gap, well left of where the Seguridad zone title starts
+    # (x568). Secretos goes straight into Key Vault's left side (clear of the title above and the
+    # label below). Autenticación has to reach Entra ID, past Key Vault, so it drops further, past
+    # Key Vault's own label too, before turning right and coming back up into Entra ID's left side:
+    # that way it never crosses the title, the Key Vault icon, or either icon's label.
+    d.edge(torre[0], entra[0], [(132, 160), (132, 135), (545, 135), (545, 495), (730, 495), (730, 418), (850, 418)],
+           "Autenticación, MFA", color=C_TEMP, label_pos=(200, 127, 140))
+    d.edge(portal[0], kv[0], [(412, 160), (412, 145), (535, 145), (535, 418), (610, 418)],
+           "Secretos y certificado", color=C_TEMP, label_pos=(450, 138, 120))
     d.edge(mysql[0], mysql_dr[0], [(674, 130), (674, 60), (1172, 60), (1172, 130)], "Replicación geo-redundante", dashed=True, color=C_FABRIC, label_pos=(760, 42, 220))
-    d.edge(clients[0], portal[0], [(356, 650), (412, 650), (412, 194)], "HTTPS, vía Application Gateway (#9)", color=C_OK, label_pos=(430, 540, 220))
-    d.edge(users[0], torre[0], [(156, 650), (132, 650), (132, 194)], "Red corporativa, vía Azure Firewall (#9)", color=C_OK, label_pos=(10, 560, 200))
+    # Client and user edges run in the margins, never through Servicios de negocio: the left
+    # margin (x=40, left of every zone) for the torre side, the zone gap (x=550) for the portal side.
+    d.edge(clients[0], portal[0], [(328, 650), (550, 650), (550, 224), (412, 224)], "HTTPS, vía Application Gateway (#9)", color=C_OK, label_pos=(560, 595, 260))
+    d.edge(users[0], torre[0], [(128, 650), (40, 650), (40, 224), (132, 224)], "Red corporativa, vía Azure Firewall (#9)", color=C_OK, label_pos=(0, 595, 160))
 
     return d
 
