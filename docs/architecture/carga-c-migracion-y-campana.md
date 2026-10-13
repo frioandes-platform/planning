@@ -106,7 +106,7 @@ Antes del corte los cinco ya están desplegados en Azure, probados contra la bas
 | MySQL 5.7 de producción | **Se rehace** sobre MySQL Flexible Server 8.4, migrando los datos en línea con DMS | `snet-data` de producción | Replicación desde el día 5; cambia en el corte (sección 3) |
 | MySQL 5.7 de desarrollo y de pruebas | **Se rehacen vacías**, con datos inventados | `snet-data` de desarrollo y de pruebas | Antes del día 0. No se migran: pruebas y desarrollo no llevan datos personales reales (#10) |
 | Redis 5 | **Se reemplaza** por Azure Managed Redis | `snet-data-pe` | No hay datos que mudar: es una caché y se llena sola con el primer tráfico |
-| Servidor FTP y NFS con 1,2 PB | **Se retira**. Los datos se siembran antes y se mantienen al día con la copia continua (#15) | Cuentas de archivo y evidencias en `snet-archive` | La siembra termina antes del día 0; la copia continua termina la noche después del corte |
+| Servidor FTP y NFS con 1,2 PB | **Se retira**. Los datos se siembran antes y se mantienen al día con la copia continua (#15) | Cuentas de documentos y de video, con endpoint privado en `snet-archive` | La siembra por discos queda conciliada antes del ensayo (31 de enero); la copia continua corre desde el día 0 hasta la noche después del corte |
 | Carga por lote de temperatura (FTP cada hora) | **Se queda tal cual en Cali** hasta que cada centro envía en línea, y después **se retira** | La reemplaza IoT Hub (#13) | Centro por centro, entre los días 8 y 19 (sección 4.3) |
 | Zabbix | **Se queda tal cual en Cali** vigilando lo que sigue allí, y después **se retira** | Azure Monitor (#16) | Se apaga el día 61, con Cali |
 | VMware (3 clústeres, 6 servidores) | **Se retira** | — | Día 62 (14 de marzo de 2027) |
@@ -212,7 +212,7 @@ Los cambios productivos van de 22:00 a 04:00, fuera de campaña. Entre el 11 de 
 
 | Fase | Días | Fechas | Qué pasa |
 |---|---|---|---|
-| Preparación | Antes del día 0 | Hasta el 10 de enero de 2027 | Plataforma desplegada en los tres ambientes con el código de infraestructura y el pipeline (#20 a #24). Producción en Azure queda encendida al mínimo y sin usuarios: no es un cambio productivo, porque nadie la usa. Adaptaciones de la aplicación probadas en pruebas. Siembra del archivo cargada en Azure y copia continua corriendo (#15). Prueba de carga de campaña en pruebas (sección 7.6) |
+| Preparación | Antes del día 0 | Hasta el 10 de enero de 2027 | Plataforma desplegada en los tres ambientes con el código de infraestructura y el pipeline (#20 a #24). Producción en Azure queda encendida al mínimo y sin usuarios: no es un cambio productivo, porque nadie la usa. Adaptaciones de la aplicación probadas en pruebas. Siembra del archivo por discos en curso desde el 2 de noviembre; la copia a los discos solo lee el servidor y puede seguir durante la campaña (#15). Prueba de carga de campaña en pruebas (sección 7.6) |
 | Inicio de la convivencia | 0 | Lunes 11 de enero | Túneles de Cali hacia Azure por los dos proveedores. Reglas temporales de los dos lados (grupos 400 y 500, `red-firewall-y-publicacion.md`, sección 5.4). Reenvío de DNS entre Cali y el hub |
 | Binlog y piloto de centro | 1 | Martes 12 de enero | Reinicio de MySQL de Cali con binlog (sección 3.2). Primer centro conectado directo a Azure, como piloto |
 | Centros | 3 a 12 | 14 al 23 de enero | Los otros siete centros, uno o dos por noche. Los sensores de cuartos fríos de cada centro empiezan a enviar en línea a IoT Hub apenas el centro queda conectado |
@@ -220,7 +220,9 @@ Los cambios productivos van de 22:00 a 04:00, fuera de campaña. Entre el 11 de 
 | Camiones | 1 a 19 | 12 al 30 de enero | Alta de los camiones en IoT Hub, en grupos de unos 30. No dependen de Cali ni de los centros |
 | Fin de la carga por lote | 8 a 19 | 19 al 30 de enero | Cada centro envía en línea y por FTP en paralelo durante 7 días. Si los dos coinciden, se retira la regla FW-402 de ese centro |
 | Alta disponibilidad de la base | 13 | Domingo 24 de enero | Alta disponibilidad zonal y réplica en Central US (sección 3.6) |
+| Copia continua del archivo | 0 a 35 | 11 de enero al 15 de febrero | Empieza con los túneles del día 0 y queda al día hacia el 15 de enero (#15) |
 | Pruebas en Azure con datos replicados | 6 a 19 | 17 al 30 de enero | Pruebas de solo lectura de los cinco contenedores contra la base replicada, con usuarios clave de despacho y facturación |
+| Siembra conciliada | 14 a 18 | 25 al 29 de enero | Último envío de discos cargado y conciliación completa del archivo (#15) |
 | **Ensayo del corte** | 20 | **Domingo 31 de enero**, 01:00 a 03:00 | El corte completo sobre un servidor temporal (sección 5.2) |
 | Reserva para un segundo ensayo | 27 | Domingo 7 de febrero | Solo si el primero no cumple los criterios |
 | Aviso a clientes corporativos | 27 | Domingo 7 de febrero | Aviso de la ventana de mantenimiento del portal, siete días antes |
@@ -243,7 +245,7 @@ Los cambios productivos van de 22:00 a 04:00, fuera de campaña. Entre el 11 de 
 
 ### 5.1 Qué cubre y qué no
 
-El corte cubre el cambio de la base transaccional y del tráfico de despacho y de rastreo. **No cubre la copia del archivo de 1,2 PB.** Ese volumen se siembra antes del día 0 (#15) y la copia continua lo mantiene al día durante toda la convivencia: unos 12 TB al mes, es decir, unos 400 GB al día.
+El corte cubre el cambio de la base transaccional y del tráfico de despacho y de rastreo. **No cubre la copia del archivo de 1,2 PB.** Ese volumen se siembra con discos y queda conciliado antes del ensayo (#15), y la copia continua lo mantiene al día desde el día 0: unos 12 TB al mes, es decir, unos 400 GB al día.
 
 En el corte solo queda por copiar lo que llegó al archivo de Cali desde la última pasada de la copia continua. Si la copia pasa cada hora, son unos 17 GB (12 TB / 30 días / 24 horas). A 200 Mbps eso toma unos 11 minutos y corre en paralelo con la validación de la base.
 
