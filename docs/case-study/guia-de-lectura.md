@@ -576,9 +576,15 @@ Si cada mensaje pesa 1 KB (supuesto), son unos 0,5 GB por día, unos 15 GB al me
 | Dispositivos necesarios para 1,2 PB | Data Box Heavy (unos 770 TB útiles): **2**. Data Box nuevo de 525 TB: **3**. Data Box de 120 TB: **10**. Data Box clásico (80 TB): **15**. Todo **por confirmar**: qué modelos siguen vigentes y si **se pueden pedir desde Colombia** |
 | Cantidad de archivos pequeños | 110 TB, casi todos de menos de 2 MB. Si promedian 1 MB son **≈ 110 millones de archivos**, lo que hace más lenta la copia y suma costo por operación |
 
+> **Decisión tomada (#15).** Data Box no sirve: Data Box Heavy está retirado y los equipos Data Box no cruzan fronteras comerciales, y Colombia no tiene región de Azure. Se siembra con Azure Import/Export: 71 discos HDD de 20 TB en 9 trabajos, copiados del 2 de noviembre al 16 de diciembre de 2026, más un envío del diferencial el 6 de enero, con el archivo conciliado antes del ensayo del 31 de enero. Ver [`carga-c-siembra-1-2pb.md`](../architecture/carga-c-siembra-1-2pb.md), secciones 3 y 5.
+
+
 **La idea clave.** Si después de la copia con dispositivos queda corriendo una **copia continua** de lo nuevo (unos
 37 Mbps en promedio), el domingo del corte casi no queda nada por copiar. **La diferencia se va cerrando todos los
 días, no en el corte.** Las 2 horas del corte quedan solo para la base de datos y para redirigir el tráfico.
+
+> **Decisión tomada (#15).** El diferencial se cierra en tres tramos: lo anterior al 2 de noviembre va en los discos principales, lo creado hasta el 4 de enero en un envío más de discos y lo posterior por la red desde el día 0, con un agente en Cali que empuja por HTTPS. Las cuentas del archivo quedan sin NFS 3.0, porque Import/Export no lo admite, y eso permite la inmutabilidad de las evidencias. Ver [`carga-c-siembra-1-2pb.md`](../architecture/carga-c-siembra-1-2pb.md), secciones 4 y 6.
+
 
 **Línea de tiempo (boceto).**
 
@@ -1086,6 +1092,8 @@ Puntos del tablero que conviene corregir o decidir en equipo.
 | **Faltan tamaños, estimaciones y fechas**, y por eso la vista *Roadmap* aparece vacía | Tablero | Completarlos cuando se sepa la fecha de la sustentación |
 
 > **Decisión tomada (#13).** Sobre los dos lugares para guardar los datos analíticos: guarda el lago de datos de Azure y Fabric solo lee, con un acceso directo de OneLake. Synapse Data Explorer ya no existe (Microsoft lo retiró el 7 de octubre de 2025) y Data Explorer se descartó por costo. Ver [`carga-b-telemetria.md`](../architecture/carga-b-telemetria.md), sección 4.2.
+
+> **Decisión tomada (#15).** Sobre Data Box Heavy: está retirado, y Data Box no se puede pedir desde Colombia. El medio es Azure Import/Export con discos propios, dimensionado en [`carga-c-siembra-1-2pb.md`](../architecture/carga-c-siembra-1-2pb.md), sección 5. El texto de #15 y #25 todavía nombra Data Box Heavy.
 
 ---
 
