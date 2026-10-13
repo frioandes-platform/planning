@@ -374,6 +374,7 @@ Los sensores reales solo llegan a producción. Pruebas y desarrollo trabajan con
 | FW-305, 311 y 317 | Torre y portal | Servicios externos de la aplicación, como correo y SMS. Cada dominio se agrega con su propio cambio | HTTPS 443 | Permitir | Estable |
 | FW-306, 312 y 318 | Agentes de despliegue y máquinas de operación (`10.10X.2.128/27`) | Azure Resource Manager, Entra ID, los dominios que GitHub publica para sus ejecutores autoalojados y los repositorios de actualizaciones de Ubuntu y Microsoft | HTTPS 443 y HTTP 80 | Permitir | Estable |
 | FW-319, 320 y 321 | Función notificadora de la telemetría (`10.10X.3.0/27`) | Canales de las alertas: webhook de Workflows de Teams (`*.api.powerplatform.com` y `*.logic.azure.com`), correo de Azure Communication Services (`<recurso>.communication.azure.com`) y el proveedor de SMS | HTTPS 443 | Permitir | Estable |
+| FW-322, 323 y 324 | Torre, portal y función notificadora | API de ingesta de registros de Azure Monitor (`*.ingest.monitor.azure.com`), para los eventos de auditoría de negocio y el registro de cada alerta de temperatura. La etiqueta `AzureMonitor` no cubre estos endpoints (`observabilidad-slo-zabbix.md`, sección 2.2) | HTTPS 443 | Permitir | Estable |
 
 El gateway de Fabric (`snet-fabric-egress`) no tiene ninguna regla de salida a internet. Microsoft devuelve sus resultados a Fabric por un canal interno que no pasa por internet ni por el firewall.
 
@@ -494,7 +495,7 @@ La tabla completa vive en tres archivos de `red/`, junto al plan de direcciones:
 
 | Archivo | Contenido |
 |---|---|
-| `data/firewall-policy.csv` | Las 91 reglas, ambiente por ambiente: 32 del Azure Firewall, 47 de NSG, 10 del WAF y 2 de IoT Hub y DPS. Cada una con su flujo, punto de control, origen, destino, puerto, acción, vigencia y momento de retiro |
+| `data/firewall-policy.csv` | Las 94 reglas, ambiente por ambiente: 35 del Azure Firewall, 47 de NSG, 10 del WAF y 2 de IoT Hub y DPS. Cada una con su flujo, punto de control, origen, destino, puerto, acción, vigencia y momento de retiro |
 | `data/firewall-settings.csv` | La configuración general: versión, inteligencia de amenazas, rangos sin traducción de origen, proxy DNS, IP públicas y grupos |
 | `tools/verify_firewall_policy.py` | Comprueba la tabla contra `ip-plan.csv` y el inventario on-premises |
 
@@ -508,7 +509,7 @@ El script hace doce comprobaciones. Entre ellas:
 - las reglas temporales tienen fecha de retiro y están en los grupos que se borran completos;
 - ningún endpoint privado queda en la lista sin traducción de origen.
 
-La tabla actual pasa las doce. Su hash SHA-256 es `23aef1cf6862a7162c0d9b056e0d4c498ef85ce8e633f421860f367d1c2149c0` y el reporte está en `verification/reporte-firewall-policy.md`. El código de infraestructura del módulo de seguridad se revisa regla por regla contra este mismo archivo.
+La tabla actual pasa las doce. Su hash SHA-256 es `8d298e5565e8025c450b92b0ec31ee8a4c9c7924eee9c7ec92c91d4f1267bf1c` y el reporte está en `verification/reporte-firewall-policy.md`. El código de infraestructura del módulo de seguridad se revisa regla por regla contra este mismo archivo.
 
 Los valores entre `<>` se completan en la implementación: el nombre del registro de contenedores, los dominios de los proveedores externos, el nombre del recurso de Azure Communication Services y del DPS, las IP públicas de Cali, la IP del DNS de Cali y el rango pasivo del servidor FTP.
 
@@ -560,7 +561,7 @@ Las reglas actuales del firewall de Cali no están documentadas. Esta tabla las 
 | Servidores de aplicación hacia bases y caché (`10.20.2.0/24`) | Se traslada | NSG de `snet-data` y `snet-data-pe` | Al apagar la base de Cali |
 | Servidores de aplicación hacia el archivo (`10.20.3.0/24`), NFS y FTP | Se traslada | NSG de `snet-archive`, por HTTPS | Al apagar el servidor de archivo |
 | Centros hacia el archivo de Cali, carga de los históricos de temperatura | Se conserva temporalmente | FW-402 para los centros que ya pasaron a la conexión directa | Cuando la telemetría en línea reemplaza la carga por lote |
-| Zabbix (`10.20.3.0/24`) hacia los servidores y equipos de Cali | Se conserva | Sin cambios: Zabbix vigila lo que queda en Cali | El día 90, cuando se apaga Zabbix |
+| Zabbix (`10.20.3.0/24`) hacia los servidores y equipos de Cali | Se conserva | Sin cambios: Zabbix vigila lo que queda en Cali | El día 61, cuando se apaga Zabbix (`observabilidad-slo-zabbix.md`, sección 8) |
 | Administración de VMware (`10.20.4.0/24`) | Se conserva | Sin cambios | Al apagar los clústeres de VMware |
 | Usuarios de Cali hacia internet | Se conserva | Sin cambios | No se retira |
 | Entre ambientes del mismo clúster (desarrollo, pruebas y producción comparten hoy el clúster) | Se reemplaza por un aislamiento más estricto | Cada ambiente en su propia red, sin reglas entre ellos (FW-999) | Al apagar el clúster de aplicación |
@@ -599,7 +600,7 @@ Después del paso 7, la tabla de políticas tiene solo reglas estables, y el fir
 
 ## 6. Registro y detección de actividad anómala
 
-El perímetro público tiene que estar protegido y la actividad anómala, detectada. Esta sección define qué registra cada pieza del diseño, qué alertas se generan y a dónde van. La retención de los registros la fija el diseño de auditoría y retención, y la operación diaria de las alertas, el diseño de observabilidad.
+El perímetro público tiene que estar protegido y la actividad anómala, detectada. Esta sección define qué registra cada pieza del diseño, qué alertas se generan y a dónde van. La retención de los registros la fija el diseño de auditoría y retención, y la operación diaria de las alertas, el diseño de observabilidad (`observabilidad-slo-zabbix.md`, sección 6).
 
 ### 6.1 Qué se registra
 
@@ -633,7 +634,7 @@ Todos los registros van al espacio de Log Analytics de la plataforma, en tablas 
 | Salud del firewall | Estado degradado o no disponible, o métricas que dejan de llegar | Sin firewall, las sedes pierden la plataforma y los ambientes, la salida a internet |
 | Cambio en reglas | Cualquier cambio en la política del firewall, los NSG o el WAF. Operación lo contrasta con los cambios aprobados | Detectar un cambio no autorizado en la seguridad de la red |
 
-Las alertas de seguridad van al equipo de operación. La detección de comportamientos anómalos en el uso del portal (por ejemplo, un cliente que consulta guías ajenas) y los planes de Defender for Cloud están en el diseño de datos personales y perímetro (`seguridad-datos-personales-perimetro.md`, sección 5), sobre estos mismos registros.
+Las alertas de seguridad van al equipo de operación, con los niveles y canales del diseño de observabilidad (`observabilidad-slo-zabbix.md`, sección 6.4). La detección de comportamientos anómalos en el uso del portal (por ejemplo, un cliente que consulta guías ajenas) y los planes de Defender for Cloud están en el diseño de datos personales y perímetro (`seguridad-datos-personales-perimetro.md`, sección 5), sobre estos mismos registros.
 
 ### 6.3 Costo de los registros
 
