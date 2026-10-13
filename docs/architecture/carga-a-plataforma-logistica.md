@@ -27,7 +27,7 @@ Se confirma **Azure Container Apps** como plataforma de contenedores, la propues
 - **Entorno de la torre**, en `snet-app-torre`. Interno: solo lo alcanzan Cali y los centros a través del Azure Firewall (issue #9). Aquí corre la consola de despacho que usan los 450 usuarios internos.
 - **Entorno del portal**, en `snet-app-portal`. Interno también: recibe tráfico únicamente desde el Application Gateway v2 con WAF de `snet-ingress` (issue #9), que es la cara pública para los clientes corporativos.
 
-El tamaño de cada entorno (hasta 20 nodos dedicados y 200 réplicas de consumo) ya está dimensionado en la red con margen para la campaña. Cómo se reparte el +40% de cómputo de campaña entre torre y portal lo detalla el issue #14, sin tocar los rangos de red.
+El tamaño de cada entorno (hasta 20 nodos dedicados y 200 réplicas de consumo) ya está dimensionado en la red con margen para la campaña. Cómo se reparte el +40 % de cómputo de campaña entre torre y portal lo detalla `carga-c-migracion-y-campana.md` (issue #14), sección 7, sin tocar los rangos de red.
 
 ## 3. Servicios de negocio
 
