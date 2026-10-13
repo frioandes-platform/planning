@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
-"""Build the draw.io diagrams of the network designs: hybrid network and subnets, cloud firewall, portal publication
-and telemetry.
+"""Build the draw.io diagrams of the network designs: hybrid network and subnets, cloud firewall, portal publication,
+telemetry, personal data and observability.
 
 Usage:
     python3 tools/build_drawio_diagrams.py --out ../diagramas   (desde la carpeta red/)
@@ -69,6 +69,12 @@ ICON = {
     "defender": AZ + "security/Security_Center.svg",
     "alerts": AZ + "management_governance/Alerts.svg",
     "privacy": AZ + "management_governance/User_Privacy.svg",
+    "metrics": AZ + "management_governance/Metrics.svg",
+    "appinsights": AZ + "devops/Application_Insights.svg",
+    "logicapp": AZ + "integration/Logic_Apps.svg",
+    "workbooks": AZ + "general/Workbooks.svg",
+    "cost": AZ + "general/Cost_Analysis.svg",
+    "activity": AZ + "management_governance/Activity_Log.svg",
 }
 NET = "html=1;outlineConnect=0;fillColor=#CCCCCC;strokeColor=#6881B3;gradientColor=none;strokeWidth=2;shape=mxgraph.networks."
 
@@ -125,7 +131,10 @@ class Diagram:
         cid = self._id("i")
         if kind == "cali_fw":
             kind = "firewall_onprem"
-        if kind in ICON:
+        if kind.startswith("net:"):
+            kind = kind[4:]
+            style = NET + kind + f";verticalLabelPosition=bottom;verticalAlign=top;fontSize={font};"
+        elif kind in ICON:
             style = (f"image;aspect=fixed;html=1;points=[];align=center;verticalLabelPosition=bottom;"
                      f"verticalAlign=top;fontSize={font};image={ICON[kind]};")
         else:
@@ -919,6 +928,111 @@ def perimeter_detection():
     return d
 
 
+def observability_collection():
+    d = Diagram()
+    d.text(30, 10, 1500, 30, "Observabilidad: las cuatro áreas, dónde se recolecta y adónde llegan las alertas y los tableros", font=14)
+    zones = [(30, "1. Salud de la plataforma", "#E8F5E9", "#2E7D32"),
+             (430, "2. Enlaces hacia Cali y los centros", "#E3F2FD", "#1565C0"),
+             (830, "3. Seguridad", "#FCE4EC", "#C62828"),
+             (1230, "4. Despacho, rastreo e ingesta", "#FFF3E0", "#EF6C00")]
+    for x, label, fill, stroke in zones:
+        d.zone(x, 60, 375, 260, label, fill=fill, stroke=stroke, font=12)
+    items = [
+        (30, [("aca", "Container Apps\ntorre y portal"), ("mysql", "MySQL y réplica\nde Central US"), ("redis", "Managed Redis")],
+             [("kv", "Key Vault"), ("storage", "Archivo, historial\ny función"), ("vm", "Máquinas de\noperación")]),
+        (430, [("firewall_onprem", "Cali: 4 túneles,\n2 proveedores"), ("router", "8 centros:\n2 túneles cada uno"), ("vpngw", "VPN Gateway\nBGP por túnel")],
+              [("firewall", "Azure Firewall"), ("dns", "DNS Private\nResolver")]),
+        (830, [("defender", "Defender for Cloud\n5 suscripciones"), ("waf", "WAF del portal"), ("ddos", "DDoS IP\nProtection")],
+              [("fw_policy", "Inteligencia de\namenazas"), ("activity", "Cambios en\nreglas y permisos")]),
+        (1230, [("aca", "Despacho\n(torre)"), ("aca", "Rastreo\n(portal)"), ("appgw", "Application\nGateway")],
+               [("iothub", "IoT Hub"), ("asa", "Stream\nAnalytics"), ("func", "Función\nnotificadora")]),
+    ]
+    for x0, row1, row2 in items:
+        for i, (k, lab) in enumerate(row1):
+            d.icon(x0 + 40 + i * 120, 98, k, lab, size=44, font=10, label_w=112)
+        for i, (k, lab) in enumerate(row2):
+            d.icon(x0 + 40 + i * 120, 202, k, lab, size=44, font=10, label_w=112)
+
+    d.zone(30, 390, 1575, 170, "Azure Monitor · espacio central de Log Analytics en la suscripción de seguridad", fill="#ECEFF1", stroke="#455A64", font=12)
+    met = d.icon(394, 436, "metrics", "Métricas de plataforma\ncada minuto, 93 días, sin costo", size=48, font=10, label_w=200)
+    la = d.icon(994, 436, "monitor", "Log Analytics\nregistros, alertas de Defender y\nregistro de cada alerta", size=48, font=10, label_w=210)
+    ai = d.icon(1394, 436, "appinsights", "Application Insights\nuno por ambiente", size=48, font=10, label_w=170)
+    d.edge(ai[0], la[0], [(1394, 460), (1042, 460)], "Se guarda en el espacio", label_pos=(1138, 440, 160), color=C_TEMP)
+
+    sends = [(218, "Métricas y registros\nde recurso (P-04)", C_OK),
+             (618, "BGP y ancho de banda por túnel,\nResource Health", C_TEMP),
+             (1018, "Exportación continua de Defender,\nregistros del WAF y del firewall", C_EXC),
+             (1418, "OpenTelemetry (10 %), registro de\ncada alerta, prueba de disponibilidad", C_TRUCK)]
+    for x, lab, col in sends:
+        d.edge("", "", [(x, 320), (x, 390)], lab, label_pos=(x - 120, 332, 240), label_h=30, color=col)
+
+    d.zone(30, 620, 1575, 280, "Alertas, guardia y tableros", fill="#FAFAFA", stroke="#616161", font=12)
+    al = d.icon(194, 680, "alerts", "Reglas de alerta\nmétricas, búsquedas,\nResource Health", size=48, font=10, label_w=150)
+    d.edge("", "", [(218, 560), (218, 680)], "Sev0 crítica, Sev1 alta,\nSev2 aviso", label_pos=(228, 572, 160), label_h=30, color=C_EXC)
+    d.box(320, 676, 150, 56, "Reglas de procesamiento\nmantenimientos, pruebas\ny desarrollo", "#FFFFFF", "#616161", font=10)
+    d.box(500, 676, 150, 56, "Grupos de acción\nguardia, operación, aviso,\nseguridad, respaldo de calidad", "#FFFFFF", "#616161", font=10)
+    lg = d.icon(706, 680, "logicapp", "Logic App\nTeams (Workflows) y SMS\ndel proveedor", size=48, font=10, label_w=160)
+    d.edge(al[0], "", [(242, 704), (320, 704)], color=C_EXC)
+    d.edge("", "", [(470, 704), (500, 704)], color=C_EXC)
+    d.edge("", lg[0], [(650, 704), (706, 704)], color=C_EXC)
+    d.text(500, 760, 300, 40, "Push de la app de Azure y correo salen\ndirecto del grupo de acción", font=10)
+    d.zone(840, 650, 340, 230, "Destinatarios", fill="#FFFFFF", stroke="#9E9E9E", font=11, bold=False)
+    d.edge("", "", [(754, 704), (840, 704)], color=C_EXC)
+    d.icon(880, 688, "users", "Guardia de plataforma\n24 horas", size=40, font=10, label_w=150)
+    d.icon(1050, 688, "users", "Operación", size=40, font=10, label_w=120)
+    d.icon(880, 790, "users", "Calidad o torre, si falla\nel camino de la alerta", size=40, font=10, label_w=170)
+    d.icon(1050, 790, "users", "Responsable\nde seguridad", size=40, font=10, label_w=120)
+
+    wb = d.icon(1290, 680, "workbooks", "Tablero de operación\n(Workbooks): objetivos,\nenlaces, datos, telemetría,\nseguridad, migración", size=48, font=10, label_w=180)
+    d.edge("", wb[0], [(1314, 560), (1314, 680)], "Consultas", label_pos=(1322, 580, 70), color=C_TEMP)
+    d.icon(1480, 680, "cost", "Vistas de Cost\nManagement por línea:\noperación, telemetría,\npruebas, compartido;\nFabric aparte", size=48, font=10, label_w=150)
+
+    d.text(30, 915, 1575, 46,
+           "Objetivos de servicio: portal de rastreo, 99,9 % de minutos buenos en 28 días; alerta de temperatura, 99 % visible en 60 segundos o menos desde la lectura del sensor. "
+           "Las métricas no se muestrean. Las vistas de costo leen directamente la facturación de Azure.", font=10)
+    return d
+
+
+def zabbix_transition():
+    d = Diagram()
+    phases = ["Días 0 a 33\nconvivencia antes del corte", "Días 34 a 55\nplazo de vuelta atrás", "Días 56 a 60\napagado de Cali", "Día 61 en adelante\nsolo Azure Monitor"]
+    x0, w0, cw, rh = 40, 300, 230, 64
+    y0 = 90
+    d.text(40, -40, 1200, 30, "Quién vigila cada pieza en cada etapa de la convivencia: Zabbix, Azure Monitor o los dos", font=14)
+    for i, p in enumerate(phases):
+        d.box(x0 + w0 + i * cw, y0 - 50, cw - 6, 44, p, "#455A64", "#455A64", font=11, color="#FFFFFF", bold=True)
+    S = {"zbx": ("#FFE0B2", "#EF6C00"), "az": ("#BBDEFB", "#1565C0"), "both": ("#C8E6C9", "#2E7D32"),
+         "off": ("#E0E0E0", "#9E9E9E"), "vendor": ("#E1BEE7", "#6A1B9A")}
+    rows = [
+        ("cali_fw", "Túneles de Cali hacia Azure", [("both", "Los dos, cada uno\ndesde su lado"), ("both", "Los dos"), ("both", "Los dos"), ("az", "BGP de los 4 túneles")]),
+        ("vpngw", "Túneles directos de cada centro", [("az", "Desde la noche en que\nse conecta (días 1 a 12)"), ("az", "Azure Monitor"), ("az", "Azure Monitor"), ("az", "Azure Monitor")]),
+        ("router", "VPN de cada centro hacia Cali (respaldo)", [("zbx", "Zabbix"), ("zbx", "Zabbix"), ("off", "Retirada el día 56"), ("off", "No existe")]),
+        ("iothub", "Carga por lote de temperatura", [("both", "Zabbix hasta el día 19;\nIoT Hub por centro"), ("off", "Retirada"), ("off", "Retirada"), ("off", "Retirada")]),
+        ("mysql", "Base de datos", [("both", "Zabbix: base de Cali.\nAzure: escrituras de DMS"), ("both", "Zabbix: Cali en solo lectura.\nAzure: base nueva"), ("az", "Azure Monitor. La base\nde Cali se apaga"), ("az", "Azure Monitor")]),
+        ("storage", "Copia continua del archivo", [("both", "Zabbix: el agente.\nAzure: datos que entran"), ("off", "Termina el día 35"), ("off", "No existe"), ("off", "No existe")]),
+        ("aca", "Torre, portal y servicios", [("both", "Zabbix: Cali en uso.\nAzure: plataforma sin usuarios"), ("az", "Azure Monitor y objetivo\ndel portal desde el corte"), ("az", "Azure Monitor"), ("az", "Azure Monitor")]),
+        ("server", "Servidores de Cali y VMware", [("zbx", "Zabbix"), ("zbx", "Zabbix: Cali lista\npara volver atrás"), ("zbx", "Cada servidor sale de\nZabbix al apagarse"), ("off", "VMware se apaga el día 62")]),
+        ("cali_fw", "Firewall de Cali como equipo", [("zbx", "Zabbix"), ("zbx", "Zabbix"), ("zbx", "Zabbix"), ("vendor", "Herramienta del fabricante")]),
+        ("net:monitor", "Zabbix (máquina Ubuntu 20.04 en Cali)", [("zbx", "Vigila solo Cali"), ("zbx", "Vigila solo Cali"), ("zbx", "Se revisan las condiciones\npara apagarlo"), ("off", "Apagado el día 61,\nconfiguración exportada")]),
+    ]
+    for r, (kind, label, cells) in enumerate(rows):
+        y = y0 + r * rh
+        d.icon(x0, y + 10, kind, "", size=40)
+        d.text(x0 + 50, y + 4, w0 - 60, rh - 8, label, font=11)
+        for i, (st, txt) in enumerate(cells):
+            fill, stroke = S[st]
+            d.box(x0 + w0 + i * cw, y + 6, cw - 6, rh - 12, txt, fill, stroke, font=10)
+    ly = y0 + len(rows) * rh + 16
+    legend = [("zbx", "Zabbix"), ("az", "Azure Monitor"), ("both", "Las dos herramientas"), ("off", "Retirado o apagado"), ("vendor", "Herramienta del fabricante")]
+    x = x0
+    for st, txt in legend:
+        fill, stroke = S[st]
+        d.box(x, ly, 24, 18, "", fill, stroke)
+        d.text(x + 30, ly - 4, 190, 26, txt, font=10)
+        x += 230
+    return d
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--out", required=True)
@@ -936,7 +1050,9 @@ def main():
                      ("telemetria-13-p1-ingesta-y-alerta", telemetry_ingest_alert),
                      ("telemetria-13-p2-historial-y-tableros", telemetry_history_dashboards),
                      ("seguridad-10-p1-mapa-datos-personales", personal_data_map),
-                     ("seguridad-10-p2-perimetro-deteccion", perimeter_detection)]:
+                     ("seguridad-10-p2-perimetro-deteccion", perimeter_detection),
+                     ("observabilidad-16-p1-recoleccion-y-alertas", observability_collection),
+                     ("observabilidad-16-p2-transicion-zabbix", zabbix_transition)]:
         (out / f"{name}.drawio").write_text(fn().xml(), encoding="utf-8")
         print(out / f"{name}.drawio")
 
