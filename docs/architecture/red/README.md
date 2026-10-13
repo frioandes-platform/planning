@@ -48,7 +48,7 @@ python3 tools/verify_ip_plan.py --plan tf-ip-plan.csv --out verification/reporte
 ```bash
 python3 tools/verify_firewall_policy.py --out verification/reporte-firewall-policy.md
 sha256sum data/firewall-policy.csv
-# a511cdd373e6012fe8dc85f9d51564e07a7aa775924ef60466187d7ec14e7891
+# 23aef1cf6862a7162c0d9b056e0d4c498ef85ce8e633f421860f367d1c2149c0
 ```
 
 El script lee `firewall-policy.csv`, `firewall-settings.csv`, `ip-plan.csv` y `onprem-inventory.csv`, y termina con código 0 solo si pasan las 12 comprobaciones. Si el hash cambia, la tabla cambió: hay que volver a correr la verificación y actualizar el hash en el documento del firewall.

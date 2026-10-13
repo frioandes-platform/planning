@@ -394,9 +394,10 @@ Cuando un centro pasa a la conexión directa con Azure, todo lo que todavía viv
 | FW-502 | Servicio de migración | Cuenta de almacenamiento de la migración (`<cuenta>.blob.core.windows.net`) | HTTPS 443 | Permitir | En el corte, junto con la cuenta y su token |
 | FW-503 | Servidores de aplicación de Cali (`10.20.1.0/24`) | Integración con Cali (`10.101.2.160/27`) | TCP 443 | Permitir | Al cerrar el plazo de vuelta atrás |
 | FW-504 | Integración con Cali | Servidores de aplicación de Cali | TCP 443 | Permitir | Al cerrar el plazo de vuelta atrás |
-| FW-505 | Base de datos de Cali | Base de datos en Azure (`10.101.2.0/27`) | TCP 3306 | Permitir | Al cerrar el plazo de vuelta atrás. Solo si el plan de vuelta atrás replica de Azure hacia Cali |
 
 En FW-501 el origen es el servicio de migración porque es quien abre la conexión hacia la base de Cali, aunque los datos viajen en el otro sentido. El plazo de vuelta atrás termina, como máximo, el día 90.
+
+No hay regla de replicación de Azure hacia la base de Cali: MySQL no replica de 8.4 hacia 5.7, así que el plan de migración no usa replicación inversa (`carga-c-migracion-y-campana.md`, sección 3.5).
 
 **Regla final**
 
@@ -425,7 +426,6 @@ Cada subred tiene su NSG. Todas terminan en una regla que rechaza lo que no est�
 | `snet-admin` | Azure Bastion (`10.100.0.192/26`) | TCP 22 y 3389 | Estable |
 | `snet-archive` (producción) | Servidor de archivo de Cali (`10.20.3.0/24`) | TCP 111, 2048 y 443 | Temporal: al terminar la copia continua |
 | `snet-data` (producción) | Servicio de migración (`10.101.2.160/27`) | TCP 3306 | Temporal: en el corte |
-| `snet-data` (producción) | Base de datos de Cali, pareja de FW-505 | TCP 3306 | Temporal: al cerrar el plazo de vuelta atrás |
 | `snet-cali-integration` (producción) | Servidores de aplicación de Cali, pareja de FW-503 | TCP 443 | Temporal: al cerrar el plazo de vuelta atrás |
 | Resolver DNS, entrada (hub) | DNS de Cali y redes de los tres ambientes | UDP y TCP 53 | Estable |
 | Resolver DNS, salida (hub) | Hacia el DNS de Cali | UDP y TCP 53 | Estable |
@@ -494,7 +494,7 @@ La tabla completa vive en tres archivos de `red/`, junto al plan de direcciones:
 
 | Archivo | Contenido |
 |---|---|
-| `data/firewall-policy.csv` | Las 93 reglas, ambiente por ambiente: 33 del Azure Firewall, 48 de NSG, 10 del WAF y 2 de IoT Hub y DPS. Cada una con su flujo, punto de control, origen, destino, puerto, acción, vigencia y momento de retiro |
+| `data/firewall-policy.csv` | Las 91 reglas, ambiente por ambiente: 32 del Azure Firewall, 47 de NSG, 10 del WAF y 2 de IoT Hub y DPS. Cada una con su flujo, punto de control, origen, destino, puerto, acción, vigencia y momento de retiro |
 | `data/firewall-settings.csv` | La configuración general: versión, inteligencia de amenazas, rangos sin traducción de origen, proxy DNS, IP públicas y grupos |
 | `tools/verify_firewall_policy.py` | Comprueba la tabla contra `ip-plan.csv` y el inventario on-premises |
 
@@ -508,7 +508,7 @@ El script hace doce comprobaciones. Entre ellas:
 - las reglas temporales tienen fecha de retiro y están en los grupos que se borran completos;
 - ningún endpoint privado queda en la lista sin traducción de origen.
 
-La tabla actual pasa las doce. Su hash SHA-256 es `a511cdd373e6012fe8dc85f9d51564e07a7aa775924ef60466187d7ec14e7891` y el reporte está en `verification/reporte-firewall-policy.md`. El código de infraestructura del módulo de seguridad se revisa regla por regla contra este mismo archivo.
+La tabla actual pasa las doce. Su hash SHA-256 es `23aef1cf6862a7162c0d9b056e0d4c498ef85ce8e633f421860f367d1c2149c0` y el reporte está en `verification/reporte-firewall-policy.md`. El código de infraestructura del módulo de seguridad se revisa regla por regla contra este mismo archivo.
 
 Los valores entre `<>` se completan en la implementación: el nombre del registro de contenedores, los dominios de los proveedores externos, el nombre del recurso de Azure Communication Services y del DPS, las IP públicas de Cali, la IP del DNS de Cali y el rango pasivo del servidor FTP.
 
@@ -576,7 +576,6 @@ Para que la convivencia funcione, el firewall de Cali también necesita reglas n
 | Resolver DNS del hub (`10.100.1.16/28`) | DNS de Cali | UDP y TCP 53 | Estable | NSG del resolver |
 | Servicio de migración (`10.101.2.160/27`) | Base de datos de Cali (`10.20.2.0/24`) | TCP 3306 | Temporal, hasta el corte | FW-501 |
 | Servidores de aplicación de Cali (`10.20.1.0/24`) | Integración con Cali (`10.101.2.160/27`), y en sentido contrario | TCP 443 | Temporal, hasta el cierre del plazo de vuelta atrás | FW-503 y FW-504 |
-| Base de datos de Cali | Base de datos en Azure (`10.101.2.0/27`) | TCP 3306 | Temporal, solo si se usa replicación inversa | FW-505 |
 | Servidor de archivo de Cali (`10.20.3.0/24`) | Archivo en Azure (`10.101.2.64/27`) | TCP 111, 2048 y 443 | Temporal, hasta terminar la copia continua | NSG de `snet-archive` |
 | Centros que todavía entran por Cali | Torre en Azure | TCP 443 | Temporal, hasta que cada centro pasa a la conexión directa | FW-201 |
 
@@ -691,7 +690,6 @@ A esto se suma la decisión del diseño de red de llevar la copia del archivo fu
 | Plazo de vuelta atrás | ¿Cuánto tiempo después del corte debe ser posible volver a Cali? | El diseño lo limita al día 90. Un plazo más corto adelanta el retiro de las reglas temporales, del NAT del portal y de la VPN de los centros hacia Cali (sección 5) |
 | Política actual del firewall de Cali | ¿Pueden exportar la política real del firewall de Cali antes del inicio de la convivencia? | Las políticas de la sección 5.3 son deducidas del inventario. La exportación permite conciliarlas regla por regla y agregar a la tabla lo que falte |
 | Carga de los históricos de temperatura | ¿Qué equipo de cada centro envía los archivos de cada hora, por qué protocolo y con qué rango de puertos pasivos? | Cambian el origen y los puertos de FW-402 |
-| Vuelta atrás de la base | ¿El plan de vuelta atrás replica los datos de Azure hacia la base de Cali después del corte? | Si no la usa, FW-505 y su pareja en el NSG no se crean |
 | Integración entre Cali y Azure durante la convivencia | ¿Qué puertos necesita la integración entre los servidores de Cali y la plataforma nueva, además de HTTPS? | Se agregan reglas temporales a los grupos 400 y 500 |
 | Direcciones fijas | ¿Cuáles son las IP públicas de los dos proveedores de Cali y la IP de los servidores DNS de Cali? | Se completan el NSG de entrada de pruebas y desarrollo, y los NSG del resolver DNS |
 | Servicios externos | ¿Qué servicios externos usa la aplicación (correo, SMS u otros) y con qué dominios? | Cada dominio se agrega a FW-305, 311 y 317 con su propio cambio |
