@@ -697,6 +697,12 @@ Los ajustes que habría que pedirle al equipo de desarrollo:
   Azure Monitor vigila la nube. Antes de apagarlo el día 90 hay que confirmar que todo lo que Zabbix vigilaba ya está
   cubierto en la nube o dejó de existir.
 
+> **Decisión tomada (#16).** Portal: 99,9 % de minutos buenos en 28 días; un minuto es malo con más del 1 % de respuestas 5xx en el Application Gateway o si la prueba de disponibilidad falla en 3 de 5 ubicaciones, y los mantenimientos anunciados no cuentan. Alerta: 99 % visible en 60 segundos o menos en 28 días, contando las sintéticas y excluyendo lecturas con más de 25 segundos del sensor a IoT Hub. Ver [`observabilidad-slo-zabbix.md`](../architecture/observabilidad-slo-zabbix.md), sección 5.
+
+> **Decisión tomada (#16).** Un espacio de Log Analytics, un Application Insights por ambiente con OpenTelemetry y muestreo del 10 % de las trazas, alertas sobre métricas de plataforma y una guardia de plataforma. Colombia no tiene SMS ni llamadas en los grupos de acción, así que Teams y SMS salen por una Logic App con el mismo proveedor de la telemetría. Tablero de operación en Workbooks y vistas de costo en Cost Management. Unos USD 159 al mes. Ver [`observabilidad-slo-zabbix.md`](../architecture/observabilidad-slo-zabbix.md), secciones 2, 6, 7 y 9.
+
+> **Decisión tomada (#16).** Zabbix vigila solo Cali y se apaga el día 61, como fija el plan de migración, cuando todo lo que vigilaba está apagado o cubierto en Azure con su alerta probada. Ver [`observabilidad-slo-zabbix.md`](../architecture/observabilidad-slo-zabbix.md), sección 8.
+
 **En el tablero.** #16 Observabilidad: en *Backlog*, sin asignar.
 
 **Cuidado con.**
@@ -1084,6 +1090,8 @@ Puntos del tablero que conviene corregir o decidir en equipo.
 | **#29 espera más de lo necesario.** Espera al documento de arquitectura completo, pero el formato de la plantilla no lo necesita: solo el ejemplo | #29 | Separar la plantilla del ejemplo para adelantar trabajo |
 | **#39 cita el issue equivocado.** Habla del "`terraform plan` de F2-01" (#20), pero la evidencia del plan es F2-05 (#24) | #39 | Detalle de redacción |
 | **Faltan tamaños, estimaciones y fechas**, y por eso la vista *Roadmap* aparece vacía | Tablero | Completarlos cuando se sepa la fecha de la sustentación |
+
+> **Decisión tomada (#16).** Los tableros de operación y de costo quedaron en #16: un libro de Workbooks para la operación y vistas compartidas de Cost Management por línea de costo. Ver [`observabilidad-slo-zabbix.md`](../architecture/observabilidad-slo-zabbix.md), sección 7.
 
 > **Decisión tomada (#13).** Sobre los dos lugares para guardar los datos analíticos: guarda el lago de datos de Azure y Fabric solo lee, con un acceso directo de OneLake. Synapse Data Explorer ya no existe (Microsoft lo retiró el 7 de octubre de 2025) y Data Explorer se descartó por costo. Ver [`carga-b-telemetria.md`](../architecture/carga-b-telemetria.md), sección 4.2.
 
