@@ -407,6 +407,9 @@ Todos están en *Backlog* y sin asignar.
   22:00 a 04:00, hora Colombia, es de **03:00 a 09:00 UTC**.
 - **Las fechas de campaña no están en el enunciado.** Semana Santa cambia cada año, y "mitad" y "fin de año" son
   vagos. Hay que suponer un calendario y escribirlo.
+
+  > **Decisión tomada (#14).** Fin de año del 15 de noviembre al 10 de enero, Semana Santa de 2027 del 15 al 28 de marzo y mitad de año del 15 de junio al 15 de julio. Ver [`carga-c-migracion-y-campana.md`](../architecture/carga-c-migracion-y-campana.md), sección 4.1.
+
 - **El logo va en las notas de versión** (lo pide el Reto 8), así que las plantillas dependen del sistema de diseño. El
   tablero no tiene esa dependencia.
 - **El repositorio `frioandes-platform/iac`**, donde va el código, todavía no existe.
@@ -559,6 +562,9 @@ Si cada mensaje pesa 1 KB (supuesto), son unos 0,5 GB por día, unos 15 GB al me
 | Zabbix (monitoreo actual) | Se apaga el día 90; lo reemplaza Azure Monitor | Ver Reto 6 |
 | VMware (3 clústeres, 6 servidores físicos) | Se apaga | Es el objetivo del proyecto |
 
+> **Decisión tomada (#14).** despacho, inventario, facturación corporativa y rastreo se mueven tal cual a Container Apps y cambian juntos en el corte, porque comparten la base y con 85 a 97 ms hasta East US 2 no conviene moverlos uno por uno. evidencias se rehace en su acceso a archivos: Container Apps no monta Blob Storage, así que pasa a la API de Blob antes del día 0. Las bases de desarrollo y pruebas se crean vacías. Zabbix se apaga el día 61 y VMware el 62. Ver [`carga-c-migracion-y-campana.md`](../architecture/carga-c-migracion-y-campana.md), sección 2.
+
+
 **Los números.**
 
 | Cálculo | Resultado |
@@ -585,19 +591,31 @@ Días 46 a 89:     estabilización. Cali queda de respaldo y Zabbix sigue vigila
 Día 90 o antes:   se apagan los sistemas de Cali, Zabbix y las reglas temporales del firewall.
 ```
 
+> **Decisión tomada (#14).** Día 0 el lunes 11 de enero de 2027, ensayo el domingo 31 de enero (día 20) sobre el servidor temporal de `snet-data`, corte el domingo 14 de febrero (día 34) de 01:00 a 03:00 con decisión a las 02:25, plazo de vuelta atrás de 21 días hasta el 7 de marzo y Cali apagada el domingo 14 de marzo (día 62). El día 90 cae el 11 de abril. Ver [`carga-c-migracion-y-campana.md`](../architecture/carga-c-migracion-y-campana.md), secciones 4 y 5.
+
+
 **En el tablero.** #14 Migración y campaña y #15 Copia del archivo de 1,2 PB, los dos **sin dueño** y en la ruta crítica.
 Los costos están en #25 Costo de la migración y #26 Costo mensual y de campaña.
 
 **Cuidado con.**
 - **Las tres reglas de campaña no se mezclan.** El 40 % extra se aplica **solo** a la capa de aplicación. El portal se
   calcula directo con 2.000 solicitudes por minuto y la telemetría con 180 camiones. El issue #14 lo exige así.
+
+  > **Decisión tomada (#14).** El +40 % va solo al entorno de la torre: de 13 a 20 vCPU (4 a 6 nodos D4), de 04:00 a 22:00 con una regla de escalado por calendario. El portal pasa de 2 a 4 réplicas de rastreo por las 33,3 solicitudes por segundo y el Application Gateway ya reserva su capacidad. La telemetría no cambia con 180 camiones. Ver [`carga-c-migracion-y-campana.md`](../architecture/carga-c-migracion-y-campana.md), sección 7.
+
 - **Los 90 días y las campañas.** En campaña no se pueden hacer cambios, así que si la convivencia se cruza con una
   campaña quedan menos noches útiles. Hoy es fin de septiembre y se viene la campaña de fin de año. Hay que suponer
   una fecha de inicio.
+
+  > **Decisión tomada (#14).** La convivencia empieza después de la campaña de fin de año y termina todo cambio antes de Semana Santa (15 al 28 de marzo de 2027). El corte no puede pasar del 7 de marzo. Ver [`carga-c-migracion-y-campana.md`](../architecture/carga-c-migracion-y-campana.md), secciones 4.1 y 4.4.
+
 - **Volver atrás después del corte es difícil.** Cuando la nube empieza a recibir datos nuevos, volver a Cali exigiría
   copiar esos datos hacia atrás, de MySQL 8.x a 5.7, y eso en general **no funciona** (por confirmar). En la práctica,
   solo se puede volver atrás limpiamente **durante el corte**, antes de que la nube reciba escrituras. La plantilla de
   infraestructura (#30) tiene que decirlo con honestidad.
+
+  > **Decisión tomada (#14).** Confirmado: MySQL no replica de 8.4 hacia 5.7, así que volver atrás limpio solo es posible hasta las 02:30 del corte. FW-505 y su pareja en el NSG se retiraron de la tabla de políticas. Después, la salida es corregir en Azure o pasar a Central US; volver a Cali exige recargar lo creado en Azure con una exportación de la aplicación. Además, DMS no replica cambios de esquema hacia 8.4, así que el esquema de Cali queda congelado desde el arranque de DMS hasta el corte. Ver [`carga-c-migracion-y-campana.md`](../architecture/carga-c-migracion-y-campana.md), secciones 3.3, 3.5 y 6.2.
+
 - **Los nombres no coinciden.** El issue #14 habla de "torre, inventario, facturación, portal, evidencias" y el
   enunciado llama a los contenedores "despacho, inventario, facturación corporativa, rastreo, evidencias". Conviene
   usar los del enunciado.

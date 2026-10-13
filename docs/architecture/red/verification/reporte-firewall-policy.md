@@ -2,10 +2,10 @@
 
 Resultado: **aprobada** (12 de 12 comprobaciones).
 
-- Archivo: `firewall-policy.csv`, 93 reglas.
-- SHA-256: `a511cdd373e6012fe8dc85f9d51564e07a7aa775924ef60466187d7ec14e7891`
-- Por punto de control: azure-firewall 33, iot-hub 2, nsg 48, waf 10.
-- Por vigencia: estable 82, temporal 11.
+- Archivo: `firewall-policy.csv`, 91 reglas.
+- SHA-256: `23aef1cf6862a7162c0d9b056e0d4c498ef85ce8e633f421860f367d1c2149c0`
+- Por punto de control: azure-firewall 32, iot-hub 2, nsg 47, waf 10.
+- Por vigencia: estable 82, temporal 9.
 
 | Comprobación | Resultado |
 |---|---|
@@ -32,8 +32,6 @@ Resultado: **aprobada** (12 de 12 comprobaciones).
 | FW-502 | azure-firewall | Servicio de migración de la base | Cuenta de almacenamiento de la migración | En el corte, junto con la cuenta y su token |
 | FW-503 | azure-firewall | Servidores de aplicación de Cali | Integración con Cali | Al cerrar el plazo de vuelta atrás (como máximo el día 90) |
 | FW-504 | azure-firewall | Integración con Cali | Servidores de aplicación de Cali | Al cerrar el plazo de vuelta atrás (como máximo el día 90) |
-| FW-505 | azure-firewall | Base de datos de Cali | Base de datos en Azure | Al cerrar el plazo de vuelta atrás (como máximo el día 90) |
 | NSG-prod-11 | nsg | Servidor de archivo de Cali | Archivo y evidencias | Al terminar la copia continua del archivo (como máximo el día 90) |
 | NSG-prod-12 | nsg | Servicio de migración de la base | Base de datos | En el corte, cuando termina la replicación hacia Azure |
-| NSG-prod-13 | nsg | Base de datos de Cali | Base de datos | Al cerrar el plazo de vuelta atrás (como máximo el día 90) |
 | NSG-prod-14 | nsg | Servidores de aplicación de Cali | Integración con Cali | Al cerrar el plazo de vuelta atrás (como máximo el día 90) |
