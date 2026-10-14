@@ -469,7 +469,7 @@ Producción, pruebas y desarrollo tienen las mismas once subredes. Solo cambia e
 | `snet-ingest` | `10.101.2.96/27` | `10.102.2.96/27` | `10.103.2.96/27` | Endpoints privados de IoT Hub y DPS, por donde entran los cuartos fríos |
 | `snet-admin` | `10.101.2.128/27` | `10.102.2.128/27` | `10.103.2.128/27` | Agentes de despliegue y máquinas de operación, administradas por Bastion |
 | `snet-cali-integration` | `10.101.2.160/27` | `10.102.2.160/27` | `10.103.2.160/27` | Herramientas de la migración desde Cali. Queda vacía en estado estable |
-| `snet-fabric-egress` | `10.101.2.192/27` | `10.102.2.192/27` | `10.103.2.192/27` | Gateway de datos que lleva la información de forma privada hacia Microsoft Fabric |
+| `snet-fabric-egress` | `10.101.2.192/27` | `10.102.2.192/27` | `10.103.2.192/27` | Gateway de datos que lleva el libro operativo de forma privada hacia Microsoft Fabric |
 | `snet-telemetry-func` | `10.101.3.0/27` | `10.102.3.0/27` | `10.103.3.0/27` | Función notificadora de la telemetría (Azure Functions, plan Flex Consumption), delegada a `Microsoft.App/environments` |
 
 Las dos subredes de aplicación (torre y portal) dependen de la plataforma que se elija para correr la consola y el portal. Sus rangos no cambian, pero su configuración sí (sección 7).
@@ -515,7 +515,7 @@ Una subred con recursos dentro no se puede agrandar, así que cada tamaño se ca
 | Subredes de endpoints privados | Hasta 10 endpoints cada una | `/27` |
 | `snet-admin` | Hasta 12 máquinas | `/27` |
 | `snet-cali-integration` | Hasta 11 direcciones para las herramientas de migración | `/27` |
-| `snet-fabric-egress` | Hasta 9 nodos del gateway de datos: 5 de Azure + 5 de funcionamiento + 9 + 2 de margen = 21 | `/27` |
+| `snet-fabric-egress` | Hasta 11 miembros del gateway de datos: 5 de Azure + 5 de funcionamiento + 11 + 2 de margen = 23 | `/27` |
 | Red de cada ambiente | 256 + 2 × 128 + 8 × 32 = 768 direcciones | `/21` (2.048): quedan 1.280 libres, un 62,5 % |
 
 ### 4.8 Verificación de no solapamiento
@@ -544,7 +544,7 @@ La verificación no se hace a ojo. Un script, `verify_ip_plan.py`, lee el plan d
 ```bash
 python3 tools/verify_ip_plan.py --plan data/ip-plan.csv --out verification/reporte-ip-plan.md
 sha256sum data/ip-plan.csv
-# d55eabf7c7be8e5d0d751e01885f4794fed8b0efe54374c285825ad517f8660b
+# 2f629473e0412f3e4435d201ed5566a5cc9d68ffea6980267bb388bcc2ccf21a
 ```
 
 El hash identifica el archivo verificado. Si alguien cambia una sola dirección, el hash cambia y hay que volver a correr el script.
@@ -598,10 +598,10 @@ Una zona es un grupo de subredes con el mismo nivel de confianza. Separar las ca
 | Torre de control | `snet-app-torre` | Solo usuarios de la red corporativa (Cali y los centros), a través del Azure Firewall |
 | Portal de rastreo | `snet-ingress` y `snet-app-portal` | Clientes desde internet, únicamente a `snet-ingress`. `snet-app-portal` solo recibe tráfico desde `snet-ingress` |
 | Ingesta de telemetría | `snet-ingest` y `snet-telemetry-func` | Sensores de los cuartos fríos, por la VPN de cada centro y el Azure Firewall. La función notificadora no recibe tráfico: lee las alertas de un event hub y avisa a la torre y a los canales |
-| Analítica | `snet-fabric-egress` | Nadie desde afuera. El gateway de datos lee la base de datos y el archivo, y envía la información a Microsoft Fabric |
+| Analítica | `snet-fabric-egress` | Nadie desde afuera. El gateway de datos lee la base de datos y envía la información a Microsoft Fabric |
 | Compartida | `snet-data`, `snet-data-pe`, `snet-archive`, `snet-admin`, `snet-cali-integration` | Las aplicaciones de la plataforma, las herramientas de administración y, durante la convivencia, la migración desde Cali |
 
-**Cómo se representa la analítica.** Microsoft Fabric es un servicio en la nube que no vive dentro de las redes virtuales de FríoAndes. Lo que la red sí tiene que resolver es cómo salen los datos hacia Fabric sin pasar por internet público. Eso lo hace el gateway de datos de red virtual, alojado en `snet-fabric-egress`. Por eso la zona de analítica es esa subred.
+**Cómo se representa la analítica.** Microsoft Fabric es un servicio en la nube que no vive dentro de las redes virtuales de FríoAndes. Lo que la red sí tiene que resolver es cómo salen los datos hacia Fabric sin pasar por internet público. Para el libro operativo eso lo hace el gateway de datos de red virtual, alojado en `snet-fabric-egress`, y por eso la zona de analítica es esa subred. La telemetría y el archivo llegan a Fabric por atajos de OneLake con acceso de confianza, que van por la red de Microsoft entre Fabric y cada cuenta, sin pasar por las redes virtuales (`fabric-workspaces-ingesta-region.md`, sección 3).
 
 Torre, portal, ingesta y analítica tienen subredes propias en los tres ambientes. El script de verificación lo comprueba (sección 4.8).
 
@@ -711,7 +711,7 @@ Lista inicial de flujos para el diseño del firewall de nube:
 | Función notificadora (`snet-telemetry-func`) | API de la torre (`snet-app-torre`) | 443 | Permanente |
 | Función notificadora y torre | Event Hubs de la telemetría (`snet-data-pe`) | 5671 y 443 | Permanente |
 | Función notificadora | Su cuenta y Key Vault (`snet-data-pe`), evidencia de telemetría (`snet-archive`) | 443 | Permanente |
-| Gateway de Fabric (`snet-fabric-egress`) | Base de datos (`snet-data`) y archivo (`snet-archive`) | 3306 y 443 | Permanente |
+| Gateway de Fabric (`snet-fabric-egress`) | Base de datos (`snet-data`) | 3306 | Permanente |
 | Azure Bastion | Máquinas de administración (`snet-admin`) | 22 y 3389 | Permanente, controlado por NSG |
 | DNS de Cali | DNS Private Resolver | 53 | Permanente, controlado por NSG |
 | Ambientes | Internet, por el Azure Firewall | Según reglas | Permanente |
@@ -1044,7 +1044,7 @@ Esta lista crece con cada sección del documento.
 | Cada usuario genera unos 300 Kbps de tráfico hacia la plataforma | Se usa para comparar la carga del enlace de Cali con y sin los centros pasando por la sede |
 | Los cambios por centro se hacen en la ventana de 22:00 a 04:00, uno o dos centros por noche, con un piloto primero | El despacho diurno no puede detenerse |
 | Plan de ASN: Azure 65515, Cali 65020, centros 65031 a 65038 | Valores privados que no chocan entre sí y se leen fácil |
-| Máximos de capacidad usados para los tamaños: Application Gateway hasta 10 instancias, base de datos con 2 réplicas y 1 servidor temporal, hasta 10 endpoints por subred, hasta 9 nodos del gateway de Fabric | Una subred no se puede agrandar con recursos dentro; se dimensiona para el máximo con margen |
+| Máximos de capacidad usados para los tamaños: Application Gateway hasta 10 instancias, base de datos con 2 réplicas y 1 servidor temporal, hasta 10 endpoints por subred, hasta 11 miembros del gateway de Fabric | Una subred no se puede agrandar con recursos dentro; se dimensiona para el máximo con margen |
 | Unas 60 personas de desarrollo y operación trabajan fuera de la sede | Define el tamaño de la reserva para VPN de usuario |
 | La plataforma de aplicación es Container Apps con perfiles de carga, con un máximo de 20 nodos dedicados y 200 réplicas por entorno | Se confirma con el diseño de la plataforma logística. Si fuera AKS, aplica la sección 7.3 |
 | Cada mensaje de telemetría pesa alrededor de 1 KB | Se usa para estimar el volumen de los dos caminos |
