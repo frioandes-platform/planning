@@ -625,8 +625,7 @@ def network_overview(steady, aks=False):
         d.ic("apisrv", "lb", C10, R3, "API privada de AKS\nsnet-aks-apiserver")
     if not steady:
         d.ic("dms", "dms", C9, R3, "DMS (temporal)\nsnet-cali-integration")
-        d.ic("vmcopy", "vm", C11, R3, "Copia del archivo\ntemporal", label_w=160)
-    d.ic("saarc", "storage", C13, R3, "Archivo en Blob\nNFS 3.0 privado", label_w=150)
+    d.ic("saarc", "storage", C13, R3, "Archivo en Blob\nprivado, inmutable", label_w=150)
     d.ic("iothub", "iothub", 4440, R1, "IoT Hub\ningesta de telemetría", label_w=160)
     d.ic("dps", "dps", 4640, R1, "DPS\nalta de dispositivos", label_w=140)
     d.ic("fabric", "fabric", 4545, R2 + 60, "Capacidad F\nIA de la torre", label_w=150)
@@ -698,9 +697,8 @@ def network_overview(steady, aks=False):
         my = d.at("mysql", 0, 0.8)[1]
         d.link("dms", NT, "mysql", (0, 0.8), via=[(dx, my)], label="Carga en línea", seg=0, dashed=True)
         cy0 = d.at("vpngw", 1, 0.85)[1]
-        d.link("vpngw", (1, 0.85), "vmcopy", NL, via=[(2145, cy0), (2145, COPY_Y), (COPY_X, COPY_Y), (COPY_X, CY[R3])],
+        d.link("vpngw", (1, 0.85), "pearc", NL, via=[(2145, cy0), (2145, COPY_Y), (COPY_X, COPY_Y), (COPY_X, CY[R3])],
                label="Copia del archivo, unos 37 Mbps, fuera del firewall", seg=2, pos=0.5, dashed=True)
-        d.link("vmcopy", NR, "pearc", NL, dashed=True)
 
     # Prod
     d.link("appgw", NR, "caepor", NL, label="HTTPS")
@@ -760,7 +758,7 @@ def network_subnets(aks=False):
         ("snet-archive", [("pearc", "pe", "Endpoints privados Blob y DFS:\narchivo e historial de telemetría")]),
         ("snet-ingest", [("peing", "pe", "Endpoints privados\nIoT Hub y DPS")]),
         ("snet-admin", [("vmadm", "vm", "Agentes\ndespliegue y operación")]),
-        ("snet-cali-integration", [("dms", "dms", "DMS\ntemporal"), ("vmcopy", "vm", "Copia del archivo\ntemporal")]),
+        ("snet-cali-integration", [("dms", "dms", "DMS\ntemporal")]),
         ("snet-fabric-egress", [("fabgw", "fabgw", "Gateway de datos\nFabric")]),
     ]
     extra = [(2, 2, "snet-aks-apiserver", [("apisrv", "lb", "API privada\nde los clústeres")])] if aks else []
