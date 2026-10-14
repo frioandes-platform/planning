@@ -603,6 +603,8 @@ Día 90 o antes:   se apagan los sistemas de Cali, Zabbix y las reglas temporale
 **En el tablero.** #14 Migración y campaña y #15 Copia del archivo de 1,2 PB, los dos **sin dueño** y en la ruta crítica.
 Los costos están en #25 Costo de la migración y #26 Costo mensual y de campaña.
 
+> **Decisión tomada (#25).** El proyecto de migración cuesta unos USD 133.000, más un 15 % de contingencia: unos USD 153.000 (COP 507 millones). La siembra es casi la mitad (USD 64.920), las horas del equipo el 29 % y Azure antes del corte el 21 %. Es costo de la migración todo lo que se paga antes del corte del 14 de febrero; desde ahí cuenta #26. Ver [`costo-migracion.md`](../costs/costo-migracion.md).
+
 **Cuidado con.**
 - **Las tres reglas de campaña no se mezclan.** El 40 % extra se aplica **solo** a la capa de aplicación. El portal se
   calcula directo con 2.000 solicitudes por minuto y la telemetría con 180 camiones. El issue #14 lo exige así.
