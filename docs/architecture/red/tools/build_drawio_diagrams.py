@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Build the draw.io diagrams of the network designs: hybrid network and subnets, cloud firewall, portal publication,
-telemetry, personal data and observability.
+telemetry, personal data, observability and Microsoft Fabric.
 
 Usage:
     python3 tools/build_drawio_diagrams.py --out ../diagramas   (desde la carpeta red/)
@@ -75,6 +75,9 @@ ICON = {
     "workbooks": AZ + "general/Workbooks.svg",
     "cost": AZ + "general/Cost_Analysis.svg",
     "activity": AZ + "management_governance/Activity_Log.svg",
+    "copyjob": AZ + "databases/Data_Factory.svg",
+    "wsid": AZ + "identity/Managed_Identities.svg",
+    "pim": AZ + "identity/PIM.svg",
 }
 NET = "html=1;outlineConnect=0;fillColor=#CCCCCC;strokeColor=#6881B3;gradientColor=none;strokeWidth=2;shape=mxgraph.networks."
 
@@ -251,7 +254,7 @@ def control_points():
     integ = pz(0, 2, "Integración con Cali", "dms", "FW-501 a 505 (temporales)")
     archive = pz(1, 0, "Archivo · snet-archive", "storage", "Copia desde Cali fuera del firewall.\nNSG temporal: solo 10.20.3.0/24")
     pz(1, 1, "Datos · snet-data y snet-data-pe", "mysql", "NSG: solo aplicaciones y Fabric")
-    pz(1, 2, "Analítica · snet-fabric-egress", "fabricgw", "Lee base y archivo, sin internet")
+    pz(1, 2, "Analítica · snet-fabric-egress", "fabricgw", "Lee solo la base, sin internet")
     appgw = pz(2, 0, "Portal · snet-ingress", "appgw", "WAF v2")
     portal = pz(2, 1, "Portal · snet-app-portal", "aca", "NSG: solo desde snet-ingress")
     admin = pz(2, 2, "Administración · snet-admin", "vm", "NSG: 22 y 3389 desde Bastion")
@@ -860,7 +863,7 @@ def personal_data_map():
     d.icon(1640, 210, "users", "Calidad: lecturas, alertas,\nevidencias y reclamos", size=40, label_w=260, side="right")
     d.icon(1640, 320, "browser", "Cliente corporativo: sus guías,\nestado, temperatura y llegada.\nSin flota, posición exacta, video\nni datos del conductor", size=40, label_w=260, side="right")
     d.icon(1640, 470, "vm", "Operación: configuración.\nDatos solo con permiso\ntemporal y registrado", size=40, label_w=260, side="right")
-    d.icon(1640, 590, "pbi_embedded", "Fabric: lo que autorice la\nestrategia de Fabric", size=40, label_w=260, side="right")
+    d.icon(1640, 590, "pbi_embedded", "Fabric (East US 2): lee en su lugar\nposiciones y evidencias; copia solo\nla ubicación del punto de entrega", size=40, label_w=260, side="right")
 
     d.edge(conductor[0], camion[0], [(174, 174), (396, 174)], color=C_TEMP)
     d.edge(empleado[0], torre[0], [(174, 314), (396, 314)], color=C_TEMP)
@@ -1031,6 +1034,113 @@ def zabbix_transition():
     return d
 
 
+def fabric_workspaces_paths():
+    d = Diagram()
+    d.text(30, 10, 1700, 30, "Fabric: espacios de trabajo, capacidades y caminos de los datos, sin copiar el archivo", font=14)
+    d.zone(30, 60, 560, 700, "Azure · East US 2 · sub-fa-prod", fill="#E3F2FD", stroke="#1565C0")
+    d.zone(50, 100, 520, 180, "vnet-prod", fill="#FAFAFA", stroke="#616161", font=11)
+    d.zone(70, 130, 220, 130, "snet-data", fill="#FFFFFF", stroke="#9E9E9E", font=10, bold=False)
+    mysql = d.icon(156, 158, "mysql", "MySQL Flexible 8.4\nvistas del esquema fabric", size=48, font=10, label_w=200)
+    d.zone(330, 130, 220, 130, "snet-fabric-egress", fill="#FFFFFF", stroke="#9E9E9E", font=10, bold=False)
+    gw = d.icon(416, 158, "fabricgw", "Gateway de red virtual\n1 a 2 miembros, sin internet", size=48, font=10, label_w=200)
+    d.edge(mysql[0], gw[0], [(204, 182), (416, 182)], "TCP 3306", label_pos=(270, 164, 80), color=C_TEMP)
+
+    ana = d.icon(260, 320, "datalake", "Cuenta de análisis (East US 2)\ndetalle, resumen de 5 minutos y alertas", size=48, font=10, label_w=300)
+    doc = d.icon(260, 460, "storage", "Cuenta de documentos (Cool, GRS)\nfotos y comprobantes nuevos", size=48, font=10, label_w=300)
+    vid = d.icon(260, 600, "storage", "Cuenta de video (Cold, LRS)\nsolo clips de reclamos abiertos", size=48, font=10, label_w=300)
+    d.text(50, 700, 520, 44, "Cada cuenta tiene una regla de instancia que nombra solo a ws-fa-datos-prod. "
+           "El archivo queda con el acceso público desactivado.", font=10)
+
+    d.zone(30, 780, 560, 110, "Azure · Central US", fill="#E8EAF6", stroke="#3949AB")
+    d.icon(70, 815, "datalake", "Evidencia cruda inmutable de telemetría.\nFabric no la lee: su cuenta no tiene regla para Fabric", size=44, font=10, label_w=380, side="right")
+
+    d.zone(640, 60, 840, 830, "Microsoft Fabric · capacidad fcfaprod · East US 2 · rg-fa-analitica-prod", fill="#F3E5F5", stroke="#6A1B9A")
+    d.zone(660, 100, 440, 640, "ws-fa-datos-prod · solo el equipo de datos", fill="#FFFFFF", stroke="#6A1B9A", font=11)
+    cj = d.icon(700, 158, "copyjob", "Copy Job cada 15 min\n(de noche, cada hora)", size=48, font=10, label_w=130)
+    d.edge(gw[0], cj[0], [(464, 182), (700, 182)], color=C_TEMP)
+    d.zone(800, 130, 280, 600, "Lakehouse", fill="#F3E5F5", stroke="#9C27B0", font=11)
+    op = d.box(820, 157, 240, 50, "Tables/operacion\ncopia de las vistas, merge por clave", "#BBDEFB", C_TEMP, font=10)
+    d.edge(cj[0], op, [(748, 182), (820, 182)], color=C_TEMP)
+    tel = d.box(820, 319, 240, 50, "Tables/telemetria\natajo de esquema, sin copia", "#E1BEE7", C_FABRIC, font=10)
+    d.text(820, 372, 240, 40, "Cuaderno nocturno: OPTIMIZE, VACUUM\ny borrado a los cinco años", font=9)
+    fot = d.box(820, 459, 240, 50, "Files/fotos y comprobantes\natajo, lectura diaria", "#E1BEE7", C_FABRIC, font=10)
+    clip = d.box(820, 599, 240, 50, "Files/clips de reclamos\natajo, solo lo que pide un reclamo", "#E1BEE7", C_FABRIC, font=10)
+    d.box(820, 665, 240, 50, "Resultados de la revisión\nruta, guía, fecha y resultado", "#FFFFFF", C_FABRIC, font=10)
+    d.edge(ana[0], tel, [(308, 344), (820, 344)], "Atajo ADLS, acceso de confianza", label_pos=(380, 326, 200), color=C_FABRIC)
+    d.edge(doc[0], fot, [(308, 484), (820, 484)], "Atajo Blob, acceso de confianza", label_pos=(380, 466, 200), color=C_FABRIC)
+    d.edge(vid[0], clip, [(308, 624), (820, 624)], "Atajo Blob, acceso de confianza", label_pos=(380, 606, 200), color=C_FABRIC)
+    d.icon(690, 668, "wsid", "Identidad del\nespacio", size=36, font=9, label_w=100)
+
+    targets = [(100, 190, "ws-fa-torre-prod", "Hora estimada de llegada\ny aviso temprano para la torre", 230),
+               (320, 190, "ws-fa-calidad-prod", "Tableros de calidad, aviso de\nnoche y revisión de fotos", 425),
+               (540, 200, "ws-fa-cliente-prod", "Solo el modelo con seguridad por\nfilas y el reporte insertado", 560)]
+    for y, h, name, label, ey in targets:
+        d.zone(1160, y, 300, h, name, fill="#FFFFFF", stroke="#6A1B9A", font=11)
+        d.icon(1286, y + 50, "pbi_embedded", label, size=48, font=10, label_w=240)
+        d.edge("", "", [(1080, ey), (1160, ey)], color=C_FABRIC)
+    portal = d.icon(1560, 616, "browser", "Portal de rastreo\ninserta el reporte\npara cada cliente", size=48, font=10, label_w=140)
+    d.edge("", portal[0], [(1460, 640), (1560, 640)], color=C_FABRIC)
+
+    d.icon(670, 770, "users_az", "grp-fa-fabric-admin: Admin de\nlos 12 espacios y colaborador\nde las capacidades", size=40, font=10, label_w=200, side="right")
+    d.icon(940, 770, "pim", "Dos personas: Fabric administrator\ncon PIM y administradores de\ncapacidad por nombre", size=40, font=10, label_w=210, side="right")
+    d.icon(1220, 770, "users_az", "Líderes de torre y de calidad:\nMember de su espacio", size=40, font=10, label_w=190, side="right")
+
+    d.zone(1520, 760, 200, 130, "fcfanoprod", fill="#FFFFFF", stroke="#6A1B9A", font=11)
+    d.text(1530, 785, 180, 100, "Los mismos cuatro espacios en desarrollo y pruebas, con datos sintéticos y su propio gateway. Se pausa fuera del horario.", font=10)
+
+    d.text(30, 905, 1690, 46,
+           "Azul: copia del libro operativo por Copy Job y el gateway de red virtual. Morado: atajos de OneLake, que leen en su lugar con la identidad del espacio y el acceso de confianza, "
+           "sin pasar por las redes virtuales ni el firewall. Los tres espacios de consumo leen el lakehouse de datos con atajos internos, solo las tablas que autoriza la matriz de acceso.", font=10)
+    return d
+
+
+def fabric_region_personal_data():
+    d = Diagram()
+    d.text(30, 10, 1700, 30, "Fabric: región, residencia y datos personales", font=14)
+    d.zone(30, 60, 420, 580, "Región principal del tenant (por confirmar)", fill="#FFFDE7", stroke="#F9A825")
+    d.icon(60, 110, "users_az", "Permisos y grupos", size=40, font=10, label_w=280, side="right")
+    d.icon(60, 190, "pbi_embedded", "Metadatos de reportes y mosaicos", size=40, font=10, label_w=280, side="right")
+    d.icon(60, 270, "fabricgw", "Metadatos del gateway y credencial\ncifrada de fabric_lector", size=40, font=10, label_w=280, side="right")
+    d.text(50, 380, 380, 170,
+           "Se revisa en Fabric (Ayuda, Acerca de, “Your data is stored in”) antes de comprar la capacidad.\n\n"
+           "En Estados Unidos o México: nada que agregar.\n\n"
+           "Fuera de la lista de la SIC: se registra como transmisión y ningún nombre de reporte, mosaico, filtro "
+           "ni parámetro lleva datos de conductores o destinatarios.", font=10)
+
+    d.zone(490, 60, 830, 580, "Estados Unidos · East US 2", fill="#E3F2FD", stroke="#1565C0")
+    d.zone(510, 100, 380, 520, "Fabric · fcfaprod · OneLake", fill="#F3E5F5", stroke="#6A1B9A", font=11)
+    copia = d.box(530, 140, 340, 70, "Copia: vistas del libro operativo.\nÚnico dato personal: la ubicación\ndel punto de entrega", "#BBDEFB", C_TEMP, font=10)
+    atajos = d.box(530, 270, 340, 200, "Atajos: se leen en su lugar, no se copian.\n\nPosiciones de los camiones.\nFotos, comprobantes y clips de reclamos.", "#E1BEE7", C_FABRIC, font=10)
+    d.box(530, 510, 340, 70, "Resultados de la revisión de evidencias:\nruta, guía, fecha y resultado, sin imágenes", "#FFFFFF", C_FABRIC, font=10)
+    d.zone(930, 100, 370, 520, "Fuentes en Azure", fill="#FFFFFF", stroke="#1565C0", font=11)
+    my = d.icon(960, 151, "mysql", "Base transaccional. Nombres, teléfonos,\ndocumentos y direcciones escritas\nno entran a Fabric", size=48, font=10, label_w=230, side="right")
+    an = d.icon(960, 296, "datalake", "Tabla de análisis\ncon las posiciones", size=48, font=10, label_w=230, side="right")
+    ar = d.icon(960, 416, "storage", "Archivo: documentos y video.\nEl resto del video, los PDF y los\nhistóricos de temperatura no se leen", size=48, font=10, label_w=230, side="right")
+    d.edge(my[0], copia, [(960, 175), (870, 175)], color=C_TEMP)
+    d.edge(an[0], atajos, [(960, 320), (870, 320)], color=C_FABRIC)
+    d.edge(ar[0], atajos, [(960, 440), (870, 440)], color=C_FABRIC)
+
+    d.zone(1360, 60, 360, 580, "Estados Unidos · Central US", fill="#E8EAF6", stroke="#3949AB")
+    d.icon(1390, 110, "datalake", "Evidencia cruda inmutable.\nFabric no la lee", size=44, font=10, label_w=230, side="right")
+    d.zone(1380, 220, 320, 400, "Recuperación si falla East US 2", fill="#FFFFFF", stroke="#757575", dashed=True, font=11)
+    d.text(1395, 280, 290, 220,
+           "1. Capacidad nueva en Central US, misma geografía.\n\n2. Espacios y elementos desde Git y las canalizaciones de implementación.\n\n"
+           "3. Gateway en la red de recuperación (10.104.0.0/15) y Copy Job contra la base promovida.\n\n"
+           "Sin interruptor de recuperación de OneLake: lo que guarda se reconstruye desde las fuentes.", font=10)
+
+    d.zone(30, 670, 1690, 100, "Borrado a los cinco años y supresiones", fill="#FAFAFA", stroke="#616161", font=11)
+    cols = [(50, "Lo que se lee por atajo se borra en el origen, con las reglas de cada cuenta."),
+            (610, "Lo copiado recibe la anonimización de la base, porque cambia la marca de agua."),
+            (1170, "Resultados y filas de telemetría de más de cinco años: cuaderno mensual de Fabric.")]
+    for x, txt in cols:
+        d.text(x, 700, 520, 56, txt, font=10)
+
+    d.text(30, 785, 1690, 46,
+           "Azul: lo único que se copia. Morado: lo que Fabric lee sin copiar. Todo queda en la geografía de Estados Unidos, en la lista de países con nivel adecuado de la SIC. "
+           "OneLake replica sus datos en reposo dentro de la misma geografía. La revisión de imágenes solo marca fotos ilegibles o carga dañada; no identifica personas.", font=10)
+    return d
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--out", required=True)
@@ -1050,7 +1160,9 @@ def main():
                      ("seguridad-10-p1-mapa-datos-personales", personal_data_map),
                      ("seguridad-10-p2-perimetro-deteccion", perimeter_detection),
                      ("observabilidad-16-p1-recoleccion-y-alertas", observability_collection),
-                     ("observabilidad-16-p2-transicion-zabbix", zabbix_transition)]:
+                     ("observabilidad-16-p2-transicion-zabbix", zabbix_transition),
+                     ("fabric-17-p1-espacios-y-caminos", fabric_workspaces_paths),
+                     ("fabric-17-p2-region-y-datos-personales", fabric_region_personal_data)]:
         (out / f"{name}.drawio").write_text(fn().xml(), encoding="utf-8")
         print(out / f"{name}.drawio")
 
