@@ -422,7 +422,7 @@ Cada subred tiene su NSG. Todas terminan en una regla que rechaza lo que no est�
 | `snet-data-pe` (Key Vault) | Torre, portal, Application Gateway y máquinas de operación | TCP 443 | Estable |
 | `snet-data-pe` (Event Hubs de la telemetría) | Torre | TCP 5671 y 443 | Estable |
 | `snet-data-pe` (event hub de alertas, cuenta de la función y Key Vault) | Función notificadora | TCP 5671 y 443 | Estable |
-| `snet-archive` | Torre, portal, gateway de Fabric, máquinas de operación y función notificadora | TCP 443 | Estable |
+| `snet-archive` | Torre, portal, máquinas de operación y función notificadora. Fabric lee el archivo por atajos con acceso de confianza, sin pasar por la red virtual | TCP 443 | Estable |
 | `snet-ingest` | Azure Firewall (`10.100.0.64/26`) | TCP 8883, 5671 y 443 | Estable |
 | `snet-admin` | Azure Bastion (`10.100.0.192/26`) | TCP 22 y 3389 | Estable |
 | `snet-archive` (producción) | Agente de copia continua en la red del archivo de Cali (`10.20.3.0/24`) | TCP 443 | Temporal: al terminar la copia continua |
@@ -509,7 +509,7 @@ El script hace doce comprobaciones. Entre ellas:
 - las reglas temporales tienen fecha de retiro y están en los grupos que se borran completos;
 - ningún endpoint privado queda en la lista sin traducción de origen.
 
-La tabla actual pasa las doce. Su hash SHA-256 es `774104e85eeca19a7724b199200584155ce3c0502216defef1d17e24f9b9a94b` y el reporte está en `verification/reporte-firewall-policy.md`. El código de infraestructura del módulo de seguridad se revisa regla por regla contra este mismo archivo.
+La tabla actual pasa las doce. Su hash SHA-256 es `58b85db69d1f8fe64029528d882a93f3e137ac7dded12259ce365de051cda87e` y el reporte está en `verification/reporte-firewall-policy.md`. El código de infraestructura del módulo de seguridad se revisa regla por regla contra este mismo archivo.
 
 Los valores entre `<>` se completan en la implementación: el nombre del registro de contenedores, los dominios de los proveedores externos, el nombre del recurso de Azure Communication Services y del DPS, las IP públicas de Cali, la IP del DNS de Cali y el rango pasivo del servidor FTP.
 

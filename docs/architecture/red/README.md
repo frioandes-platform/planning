@@ -28,7 +28,7 @@ Datos, herramientas y reportes que respaldan [`../red-topologia-subnetting.md`](
 ```bash
 python3 tools/verify_ip_plan.py --plan data/ip-plan.csv --out verification/reporte-ip-plan.md
 sha256sum data/ip-plan.csv
-# d55eabf7c7be8e5d0d751e01885f4794fed8b0efe54374c285825ad517f8660b
+# 2f629473e0412f3e4435d201ed5566a5cc9d68ffea6980267bb388bcc2ccf21a
 ```
 
 Si el hash cambia, el plan cambió: hay que volver a correr la verificación y actualizar el hash en el documento.
@@ -48,7 +48,7 @@ python3 tools/verify_ip_plan.py --plan tf-ip-plan.csv --out verification/reporte
 ```bash
 python3 tools/verify_firewall_policy.py --out verification/reporte-firewall-policy.md
 sha256sum data/firewall-policy.csv
-# 774104e85eeca19a7724b199200584155ce3c0502216defef1d17e24f9b9a94b
+# 58b85db69d1f8fe64029528d882a93f3e137ac7dded12259ce365de051cda87e
 ```
 
 El script lee `firewall-policy.csv`, `firewall-settings.csv`, `ip-plan.csv` y `onprem-inventory.csv`, y termina con código 0 solo si pasan las 12 comprobaciones. Si el hash cambia, la tabla cambió: hay que volver a correr la verificación y actualizar el hash en el documento del firewall.
