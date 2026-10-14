@@ -425,7 +425,7 @@ Cada subred tiene su NSG. Todas terminan en una regla que rechaza lo que no est�
 | `snet-archive` | Torre, portal, gateway de Fabric, máquinas de operación y función notificadora | TCP 443 | Estable |
 | `snet-ingest` | Azure Firewall (`10.100.0.64/26`) | TCP 8883, 5671 y 443 | Estable |
 | `snet-admin` | Azure Bastion (`10.100.0.192/26`) | TCP 22 y 3389 | Estable |
-| `snet-archive` (producción) | Servidor de archivo de Cali (`10.20.3.0/24`) | TCP 111, 2048 y 443 | Temporal: al terminar la copia continua |
+| `snet-archive` (producción) | Agente de copia continua en la red del archivo de Cali (`10.20.3.0/24`) | TCP 443 | Temporal: al terminar la copia continua |
 | `snet-data` (producción) | Servicio de migración (`10.101.2.160/27`) | TCP 3306 | Temporal: en el corte |
 | `snet-cali-integration` (producción) | Servidores de aplicación de Cali, pareja de FW-503 | TCP 443 | Temporal: al cerrar el plazo de vuelta atrás |
 | Resolver DNS, entrada (hub) | DNS de Cali y redes de los tres ambientes | UDP y TCP 53 | Estable |
@@ -509,7 +509,7 @@ El script hace doce comprobaciones. Entre ellas:
 - las reglas temporales tienen fecha de retiro y están en los grupos que se borran completos;
 - ningún endpoint privado queda en la lista sin traducción de origen.
 
-La tabla actual pasa las doce. Su hash SHA-256 es `8d298e5565e8025c450b92b0ec31ee8a4c9c7924eee9c7ec92c91d4f1267bf1c` y el reporte está en `verification/reporte-firewall-policy.md`. El código de infraestructura del módulo de seguridad se revisa regla por regla contra este mismo archivo.
+La tabla actual pasa las doce. Su hash SHA-256 es `774104e85eeca19a7724b199200584155ce3c0502216defef1d17e24f9b9a94b` y el reporte está en `verification/reporte-firewall-policy.md`. El código de infraestructura del módulo de seguridad se revisa regla por regla contra este mismo archivo.
 
 Los valores entre `<>` se completan en la implementación: el nombre del registro de contenedores, los dominios de los proveedores externos, el nombre del recurso de Azure Communication Services y del DPS, las IP públicas de Cali, la IP del DNS de Cali y el rango pasivo del servidor FTP.
 
@@ -577,7 +577,7 @@ Para que la convivencia funcione, el firewall de Cali también necesita reglas n
 | Resolver DNS del hub (`10.100.1.16/28`) | DNS de Cali | UDP y TCP 53 | Estable | NSG del resolver |
 | Servicio de migración (`10.101.2.160/27`) | Base de datos de Cali (`10.20.2.0/24`) | TCP 3306 | Temporal, hasta el corte | FW-501 |
 | Servidores de aplicación de Cali (`10.20.1.0/24`) | Integración con Cali (`10.101.2.160/27`), y en sentido contrario | TCP 443 | Temporal, hasta el cierre del plazo de vuelta atrás | FW-503 y FW-504 |
-| Servidor de archivo de Cali (`10.20.3.0/24`) | Archivo en Azure (`10.101.2.64/27`) | TCP 111, 2048 y 443 | Temporal, hasta terminar la copia continua | NSG de `snet-archive` |
+| Agente de copia continua en la red del archivo de Cali (`10.20.3.0/24`) | Archivo en Azure (`10.101.2.64/27`) | TCP 443 | Temporal, hasta terminar la copia continua | NSG de `snet-archive` |
 | Centros que todavía entran por Cali | Torre en Azure | TCP 443 | Temporal, hasta que cada centro pasa a la conexión directa | FW-201 |
 
 ### 5.5 Orden de apagado

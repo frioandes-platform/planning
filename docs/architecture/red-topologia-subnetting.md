@@ -544,7 +544,7 @@ La verificación no se hace a ojo. Un script, `verify_ip_plan.py`, lee el plan d
 ```bash
 python3 tools/verify_ip_plan.py --plan data/ip-plan.csv --out verification/reporte-ip-plan.md
 sha256sum data/ip-plan.csv
-# 2af88d980e4de7b6c83f0e5bf0f123c544d235a80017dc8e42fc109b5608be42
+# d55eabf7c7be8e5d0d751e01885f4794fed8b0efe54374c285825ad517f8660b
 ```
 
 El hash identifica el archivo verificado. Si alguien cambia una sola dirección, el hash cambia y hay que volver a correr el script.
@@ -716,7 +716,7 @@ Lista inicial de flujos para el diseño del firewall de nube:
 | DNS de Cali | DNS Private Resolver | 53 | Permanente, controlado por NSG |
 | Ambientes | Internet, por el Azure Firewall | Según reglas | Permanente |
 | Migración (`snet-cali-integration`), que abre la conexión hacia la base de Cali | Base de datos de Cali (`10.20.2.0/24`) | 3306 | Temporal |
-| Archivo de Cali (`10.20.3.0/24`) | Archivo en Azure (`snet-archive`) | 111, 2048 y 443 | Temporal, fuera del firewall (sección 6) |
+| Archivo de Cali (`10.20.3.0/24`) | Archivo en Azure (`snet-archive`) | 443 | Temporal, fuera del firewall (sección 6) |
 
 ---
 
@@ -774,10 +774,12 @@ El archivo histórico crece unos 12 TB al mes. Mantener la copia de la nube al d
 **La decisión: esa copia va directo de la VPN al endpoint privado del archivo, sin pasar por el Azure Firewall.**
 
 ```
-Archivo de Cali (10.20.3.0/24) → túnel IPsec → VPN Gateway → endpoint privado (snet-archive)
-                                                              ↑
-                                               NSG: solo 10.20.3.0/24, puertos 111, 2048 y 443
+Agente de copia en Cali (10.20.3.0/24) → túnel IPsec → VPN Gateway → endpoint privado de Blob (snet-archive)
+                                                                      ↑
+                                                       NSG: solo 10.20.3.0/24, puerto 443
 ```
+
+La copia la hace un agente con AzCopy en la red del archivo de Cali, que lee el NFS local en solo lectura y empuja los archivos por HTTPS con una identidad de Entra ID. El detalle está en el diseño de la siembra (`carga-c-siembra-1-2pb.md`, sección 6).
 
 **Por qué:**
 
@@ -786,9 +788,9 @@ Archivo de Cali (10.20.3.0/24) → túnel IPsec → VPN Gateway → endpoint pri
 
 **Cómo se controla sin el firewall:**
 
-- Un grupo de seguridad de red (NSG) en `snet-archive` solo deja entrar tráfico desde el servidor de archivo de Cali (`10.20.3.0/24`), y solo por los puertos de NFS (111 y 2048) y HTTPS (443). Todo lo demás se rechaza.
+- Un grupo de seguridad de red (NSG) en `snet-archive` solo deja entrar tráfico desde la red del archivo de Cali (`10.20.3.0/24`), y solo por HTTPS (443). Todo lo demás se rechaza.
 - Los registros de flujo de la red virtual del hub guardan cada conexión que atraviesa el VPN Gateway, así que la copia queda auditada. Microsoft ya no permite crear registros de flujo de NSG, que se retiran en septiembre de 2027.
-- El almacenamiento del archivo usa NFS 3.0, que no tiene usuario ni contraseña: lo único que lo protege es la red. Por eso el NSG tiene que ser estricto.
+- Las cuentas del archivo no usan NFS 3.0: Import/Export no lo admite y tampoco permitiría la inmutabilidad de las evidencias. Cada escritura se autentica con Entra ID, además del NSG.
 - La excepción dura lo que dure la copia y se retira al final de la convivencia.
 
 **Condición técnica:** las rutas tienen que ser simétricas. Ni la tabla de rutas de la `GatewaySubnet` ni la de `snet-archive` pueden mandar ese tráfico al firewall. Si una lo manda y la otra no, la ida y la vuelta toman caminos distintos y el firewall corta la conexión. Para lograrlo, `snet-archive` activa las políticas de red de los endpoints privados solo para el NSG y no para las rutas. Así, la ruta propia del endpoint privado se impone a la ruta del hub hacia el firewall.
@@ -809,7 +811,7 @@ Por eso la siembra tiene que hacerse con discos físicos enviados a Microsoft:
 - **Azure Data Box Heavy** está retirado, y los equipos Data Box no se envían a Colombia.
 - **Azure Import/Export** permite enviar discos propios a un datacenter de Microsoft, incluso desde otro país. East US 2 y Central US aceptan estos envíos.
 
-Antes de planear la migración hay que confirmar con Microsoft la capacidad para 1,2 PB, los tiempos de envío y carga, y los trámites de aduana. Si parte de la siembra terminara yendo por la red, habría que subir el VPN Gateway a VpnGw2AZ y ampliar las direcciones de `snet-cali-integration` (ya tiene espacio para hasta 11).
+El diseño de la siembra (`carga-c-siembra-1-2pb.md`) dimensiona 71 discos en 9 trabajos y su cronograma. Antes de empezar hay que confirmar con Microsoft la capacidad para 1,2 PB, los tiempos de envío y carga, y los trámites de aduana. Si parte de la siembra terminara yendo por la red, habría que subir el VPN Gateway a VpnGw2AZ y ampliar las direcciones de `snet-cali-integration` (ya tiene espacio para hasta 11).
 
 ### 6.5 Diagrama de la convivencia
 
@@ -818,7 +820,7 @@ El diagrama de convivencia de la sección 2.5 muestra estos movimientos:
 - La línea "Camino 1: sensores por la VPN y el firewall" sale del Azure Firewall y llega a la ingesta privada.
 - La línea "Camino 2: camiones (TLS)" baja desde internet directo a IoT Hub, en Central US.
 - La línea punteada del firewall a DMS es la migración de la base. De DMS sale la carga hacia MySQL.
-- La línea punteada "Copia del archivo, unos 37 Mbps, fuera del firewall" sale del VPN Gateway sin pasar por el Azure Firewall y llega a la máquina de copia y al archivo privado.
+- La línea punteada "Copia del archivo, unos 37 Mbps, fuera del firewall" sale del VPN Gateway sin pasar por el Azure Firewall y llega al endpoint privado del archivo. La copia la empuja un agente desde Cali, sin máquina de copia en Azure.
 
 ---
 
@@ -1008,7 +1010,7 @@ Las mismas subredes del diagrama de subredes, incluida `snet-telemetry-func`, co
 
 #### Verificación de la variante
 
-`ip-plan-aks.csv` parte de `ip-plan.csv` y suma las tres subredes de la API y las dos reservas de pods y servicios. Tiene 49 filas y pasa las 12 comprobaciones del script, sin solapamiento. Su hash es `78366ff375ce6c98056dd52145c3dffc6bc7e4ba8fa3b894a563f0be70b4912a`. Las filas que agrega están al final del Anexo A.
+`ip-plan-aks.csv` parte de `ip-plan.csv` y suma las tres subredes de la API y las dos reservas de pods y servicios. Tiene 49 filas y pasa las 12 comprobaciones del script, sin solapamiento. Su hash es `595273b6920ba93ff2757485bc4e8b1593dfd2b76c3332989568416c91fe56cc`. Las filas que agrega están al final del Anexo A.
 
 ### 7.4 Si se eligiera otra plataforma
 

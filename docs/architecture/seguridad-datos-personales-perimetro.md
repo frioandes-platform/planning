@@ -337,7 +337,7 @@ Defender for Cloud se activa por suscripción, sobre la estructura de la landing
 | Defender para MySQL | Fuerza bruta y accesos anómalos a la base | Sí | No | No | No |
 | Defender for Key Vault | Accesos inusuales a secretos y llaves | Sí | No | No | No |
 | Defender for Resource Manager | Operaciones sospechosas sobre los recursos (por ejemplo, cambios masivos de permisos) | Sí | Sí | Sí | No |
-| Defender for Servers, plan 1 | Las máquinas de administración de `snet-admin` y las de copia del archivo durante la migración | Sí | No | No | No |
+| Defender for Servers, plan 1 | Las máquinas de administración de `snet-admin` | Sí | No | No | No |
 | Defender for Containers | Protección de los contenedores en ejecución. Solo aplica con la variante de Kubernetes | Variante AKS | No | No | No |
 
 **Por qué pruebas y desarrollo quedan con el plan sin costo.** No tienen datos personales reales (sección 2.3). Las recomendaciones de configuración siguen activas para que los errores se vean antes de llegar a producción.
@@ -417,7 +417,7 @@ Precios de lista en East US 2, con 730 horas al mes. Solo incluye lo que agrega 
 **Lo que no está en la tabla:**
 
 - Los eventos de seguridad de la aplicación en Log Analytics. Cuestan USD 2,76 por GB, a partir de 5 GB gratuitos al mes, y su volumen depende del uso real del portal. Son los mismos eventos que necesita el diseño de auditoría, así que se cuentan una sola vez, en el costo de la plataforma.
-- Las máquinas de copia del archivo durante la migración: cada una suma USD 4,91 de Defender for Servers y 5,11 de Defender CSPM mientras exista.
+- La copia del archivo durante la migración no suma máquinas en Azure: la hace un agente en Cali (`carga-c-siembra-1-2pb.md`, sección 6).
 - El plan de Defender for Containers, que solo aplica con la variante de Kubernetes y se cobra por núcleo de los nodos.
 - Pruebas y desarrollo: usan el plan sin costo.
 
