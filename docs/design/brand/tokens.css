@@ -1,0 +1,34 @@
+:root{
+  --fa-navy-profundo: #0A1F2E;
+  --fa-navy-panel: #10304A;
+  --fa-teal-andino: #0D7894;
+  --fa-cian-glaciar: #1FB5D6;
+  --fa-hielo: #DDF3F8;
+  --fa-niebla: #F2F6F8;
+  --fa-gris-900: #0A1F2E;
+  --fa-gris-600: #52646F;
+  --fa-gris-400: #A0AAB0;
+  --fa-gris-200: #C9D4DA;
+  --fa-gris-100: #DDE3E6;
+  --fa-blanco: #FFFFFF;
+  --fa-estado-normal-relleno: #2BB673;
+  --fa-estado-normal-texto-sobre-relleno: #0A1F2E;
+  --fa-estado-normal-tinta-dia: #17794A;
+  --fa-estado-normal-fondo-dia: #E3F5EC;
+  --fa-estado-normal-tinta-noche: #2BB673;
+  --fa-estado-advertencia-relleno: #F5A524;
+  --fa-estado-advertencia-texto-sobre-relleno: #0A1F2E;
+  --fa-estado-advertencia-tinta-dia: #8A5300;
+  --fa-estado-advertencia-fondo-dia: #FFF1D6;
+  --fa-estado-advertencia-tinta-noche: #F5A524;
+  --fa-estado-excursion-relleno: #D93A2B;
+  --fa-estado-excursion-texto-sobre-relleno: #FFFFFF;
+  --fa-estado-excursion-tinta-dia: #B3261E;
+  --fa-estado-excursion-fondo-dia: #FDE6E3;
+  --fa-estado-excursion-tinta-noche: #FF6B57;
+  --fa-estado-sin-senal-relleno: #9374E7;
+  --fa-estado-sin-senal-texto-sobre-relleno: #0A1F2E;
+  --fa-estado-sin-senal-tinta-dia: #5B3FC4;
+  --fa-estado-sin-senal-fondo-dia: #EEE9FC;
+  --fa-estado-sin-senal-tinta-noche: #A58BF0;
+}
