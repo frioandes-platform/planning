@@ -65,7 +65,7 @@ El diseño se organiza en cuatro áreas, las mismas del diagrama de la sección 
 
 ### 1.3 Qué queda en otros diseños
 
-- La observabilidad de Fabric y el apagado de su capacidad: la estrategia de Fabric. Puede usar el mismo espacio y los mismos grupos de acción de este documento.
+- La observabilidad de Fabric y el apagado de su capacidad: `fabric-acceso-casos-uso-costo.md`. Puede usar el mismo espacio y los mismos grupos de acción de este documento.
 - La retención de los registros de auditoría y los eventos de acceso a datos de clientes, evidencias y temperatura: el diseño de auditoría.
 - Los montos de los presupuestos y el costo consolidado: el documento de costos. Este documento entrega el costo de la observabilidad (sección 9).
 
