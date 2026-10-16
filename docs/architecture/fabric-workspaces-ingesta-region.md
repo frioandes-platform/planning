@@ -158,7 +158,7 @@ El video, las posiciones de los camiones y los datos que identifican a la operac
 
 - Microsoft lo ofrece para Dataflow Gen2, canalizaciones, Copy Job, réplicas espejo, modelos semánticos y reportes paginados. Los atajos no lo usan. En este diseño sirve solo para el libro operativo.
 - Se inyecta en `snet-fabric-egress`, delegada a `Microsoft.PowerPlatform/vnetaccesslinks`, con el proveedor `Microsoft.PowerPlatform` registrado en la suscripción. Usa 5 direcciones para su funcionamiento más una por miembro; el `/27` alcanza para el máximo de 11 miembros.
-- Hay uno por ambiente, vinculado a la capacidad de ese ambiente, que es la que paga su consumo. El de producción tiene de 1 a 2 miembros y se apaga solo después de 60 minutos sin uso.
+- Hay uno por ambiente, vinculado a la capacidad de ese ambiente, que es la que paga su consumo. El de producción tiene de 1 a 2 miembros y se apaga solo después de 30 minutos sin uso.
 - Sus metadatos, incluida la credencial cifrada de la base, se guardan en la región principal del tenant (sección 7.2).
 - Llega a `snet-data` por el puerto 3306 con la regla que ya existe en el NSG. No necesita salida a internet ni pasa por el Azure Firewall.
 - Quién puede crear gateways se limita al grupo `grp-fa-fabric-admin`.
@@ -193,7 +193,7 @@ Vistas de solo lectura en un esquema `fabric` de la base, que proyectan solo lo 
 ### 4.4 Origen y frecuencia
 
 - Se lee el servidor principal en East US 2. Las consultas van por índice sobre la columna de marca de agua, así que cada ejecución lee pocas filas.
-- Cada 15 minutos de 04:00 a 22:00, mientras trabaja el despacho, y cada hora de noche. `fabric-acceso-casos-uso-costo.md` puede ajustar la frecuencia por uso.
+- Cada 15 minutos de 04:00 a 22:00, mientras trabaja el despacho, más una copia a las 22:15 y otra a las 03:45. De noche no hay copias: así el gateway se apaga y deja de consumir capacidad (`fabric-acceso-casos-uso-costo.md`, sección 8.4).
 - La copia arranca después del corte (día 34), cuando la base de Azure pasa a ser la principal. Antes del corte la base de Azure es el destino de la replicación desde Cali.
 - No se lee la réplica de Central US: sumaría tráfico entre regiones y haría depender a Fabric de la recuperación de la plataforma logística.
 
@@ -226,7 +226,7 @@ Un atajo de esquema `telemetria` en la carpeta Tables del lakehouse de `ws-fa-da
 | Detalle | Reclamos y análisis puntual, por el endpoint SQL, consultado por guía o por cuarto frío y fecha |
 | Alertas | Tableros de calidad y tiempos de respuesta |
 
-No hay Eventstream ni Eventhouse por defecto. El aviso temprano predictivo trabaja con minutos de frescura; la alerta de segundos ya está fuera de Fabric. Si un uso necesitara segundos, se agrega un Eventstream sobre el Event Hub del estado en vivo y se cuesta aparte.
+No hay Eventhouse. El aviso temprano no lee estas tablas: usa un Eventstream sobre el Event Hub del estado en vivo, con un endpoint privado administrado, y Activator (`fabric-acceso-casos-uso-costo.md`, sección 3).
 
 ### 5.2 Lo que exige Stream Analytics
 
@@ -258,8 +258,8 @@ El cuaderno se prueba primero en pruebas con Stream Analytics escribiendo al mis
 | Contenido | Cuenta y nivel | Lee Fabric | Cómo sabe qué leer |
 |---|---|---|---|
 | Fotos y comprobantes nuevos | Documentos, Cool | Sí, una vez al día | Vista `evidencias` |
-| Video de entregas con reclamo abierto | Video, Cold | Sí, solo esos clips | Vista `reclamos` |
-| Muestra pequeña de video para calidad | Video, Cold | Solo si `fabric-acceso-casos-uso-costo.md` la sustenta, con la misma lista | Misma vista |
+| Video de entregas con reclamo abierto | Video, Cold | Solo esos clips. En el primer release Fabric lista sus rutas para calidad; leerlos para analizarlos queda para el segundo | Vista `reclamos` |
+| Muestra pequeña de video para calidad | Video, Cold | No en el primer release: el análisis de video queda para el segundo (`fabric-acceso-casos-uso-costo.md`, sección 5.2) | |
 | Resto del video, PDF e históricos de temperatura | | No | |
 
 Cool y Cold son niveles en línea: un atajo los lee en milisegundos. Fabric no revisa de una vez las fotos históricas (110 TB): ningún uso lo pide y consumiría mucha capacidad.
@@ -348,7 +348,7 @@ Precios de lista de East US 2, consultados en la API pública de precios de Azur
 | Capacidad, gateway, Copy Job, Spark y Direct Lake | USD 0,18 por CU hora, dentro de la capacidad | La capacidad |
 | OneLake Hot | USD 0,023 por GB al mes | La capacidad |
 | Lectura de fotos y comprobantes nuevos (Cool) | USD 0,01 por GB y 0,01 por 10.000 lecturas: unos 1.100 GB y 1,1 millones de lecturas al mes, unos USD 12 | La cuenta de documentos |
-| Lectura de clips de reclamos (Cold) | USD 0,03 por GB y 0,10 por 10.000 lecturas | La cuenta de video |
+| Lectura de clips de reclamos (Cold), desde el segundo release | USD 0,03 por GB y 0,10 por 10.000 lecturas | La cuenta de video |
 
 Las lecturas las cobra la cuenta de almacenamiento, en la suscripción de producción. El documento de costo de Fabric las atribuye a la línea de Fabric.
 

@@ -271,7 +271,7 @@ def control_points():
     d.edge(fw[0], ingest[0], [(552, 410), (735, 410), (735, 396), (851, 396)])
     d.edge(fw[0], integ[0], [(552, 446), (710, 446), (710, 556), (851, 556)], color=C_TEMP, dashed=True)
     d.edge(fw[0], internet[0], [(552, 428), (725, 428), (725, 475), (1545, 475), (1545, 55), (1480, 55)],
-           "FW-301 a 321: salida a internet", label_pos=(1300, 466, 200))
+           "FW-301 a 330: salida a internet", label_pos=(1300, 466, 200))
     d.edge(vpngw[0], archive[0], [(456, 182), (560, 182), (560, 160), (1010, 160), (1010, 236), (1111, 236)],
            color=C_EXC, dashed=True)
     d.edge(internet[0], appgw[0], [(1445, 90), (1445, 236), (1419, 236)], "WAF: 443", label_pos=(1440, 120, 56))
@@ -1141,6 +1141,108 @@ def fabric_region_personal_data():
     return d
 
 
+def fabric_access_use_cases():
+    d = Diagram()
+    d.text(30, 10, 1500, 30, "Fabric: quién ve qué y cómo llegan los tres usos a la torre, a calidad y al cliente", font=14)
+    d.zone(30, 60, 290, 680, "Azure · East US 2", fill="#E3F2FD", stroke="#1565C0")
+    d.zone(350, 60, 740, 680, "Fabric · fcfaprod", fill="#F3E5F5", stroke="#6A1B9A")
+    d.zone(365, 95, 420, 630, "ws-fa-datos-prod", fill="#FFFFFF", stroke="#6A1B9A", font=11)
+    d.zone(1120, 60, 420, 680, "Quién lo usa", fill="#FFF8E1", stroke="#F9A825")
+
+    eh = d.icon(80, 125, "eventhub", "Event Hub del estado en vivo\ncon umbrales de aviso", size=48, font=10, label_w=200)
+    tel = d.icon(80, 255, "datalake", "Tabla de análisis\n(atajo)", size=48, font=10, label_w=200)
+    my = d.icon(80, 360, "mysql", "Libro operativo\n(vistas del esquema fabric)", size=48, font=10, label_w=200)
+    ar = d.icon(80, 560, "storage", "Fotos y comprobantes\n(atajo)", size=48, font=10, label_w=200)
+
+    es = d.box(380, 125, 180, 50, "Eventstream\n(endpoint privado)", "#E1BEE7", C_FABRIC, font=10)
+    act = d.box(590, 125, 180, 50, "Activator: cerca del límite,\npuerta abierta, sensor intermitente", "#E1BEE7", C_FABRIC, font=10)
+    d.edge(eh[0], es, [(128, 149), (380, 149)], color=C_FABRIC)
+    d.edge(es, act, [(560, 149), (590, 149)], color=C_FABRIC)
+
+    lh = d.box(600, 240, 170, 470, "Lakehouse\n\nOperación (copia)\nTelemetría (atajo)\neta_viaje\ncliente_guias\nResultados de evidencias\nFiles: fotos (atajo)\n\nRoles de OneLake:\ntorre_lectura\ncalidad_lectura\ncliente_vista", "#F3E5F5", C_FABRIC, font=10)
+    d.edge(tel[0], lh, [(128, 279), (600, 279)], "Atajo", label_pos=(420, 261, 60), color=C_FABRIC)
+    cj = d.box(380, 360, 180, 50, "Gateway y Copy Job\n04:00 a 22:00 cada 15 min", "#BBDEFB", C_TEMP, font=10)
+    d.edge(my[0], cj, [(128, 384), (380, 384)], color=C_TEMP)
+    d.edge(cj, lh, [(560, 384), (600, 384)], color=C_TEMP)
+    py = d.box(380, 460, 180, 50, "Cuaderno de Python\nhora estimada, cada 5 min", "#FFFFFF", C_FABRIC, font=10)
+    d.edge(py, lh, [(560, 485), (600, 485)], color=C_FABRIC, arrow_both=True)
+    d.edge(ar[0], lh, [(128, 584), (600, 584)], "Atajo", label_pos=(420, 566, 60), color=C_FABRIC)
+    nt = d.box(380, 640, 180, 60, "Cuaderno nocturno: calidad\nde imagen y funciones de IA", "#FFFFFF", C_FABRIC, font=10)
+    d.edge(nt, lh, [(560, 670), (600, 670)], color=C_FABRIC, arrow_both=True)
+
+    sql = d.box(820, 275, 250, 50, "Endpoint SQL: eta_viaje\n(rol torre_lectura)", "#FFFFFF", C_FABRIC, font=10)
+    d.edge(lh, sql, [(770, 300), (820, 300)], color=C_FABRIC)
+    d.zone(820, 410, 250, 90, "ws-fa-calidad-prod", fill="#FFFFFF", stroke="#6A1B9A", font=10)
+    d.text(830, 440, 230, 50, "Tableros con Direct Lake\n(rol calidad_lectura)", font=10, align="center")
+    d.edge(lh, "", [(770, 455), (820, 455)], color=C_FABRIC)
+    d.zone(820, 560, 250, 90, "ws-fa-cliente-prod", fill="#FFFFFF", stroke="#6A1B9A", font=10)
+    d.text(830, 590, 230, 50, "Modelo sobre cliente_guias con\nseguridad por filas (cliente_vista)", font=10, align="center")
+    d.edge(lh, "", [(770, 605), (820, 605)], color=C_FABRIC)
+
+    teams = d.icon(1150, 125, "users_az", "Teams: Avisos de cadena de frío.\nTorre de día, guardia de calidad de noche", size=44, font=10, label_w=280, side="right")
+    d.edge(act, teams[0], [(770, 147), (1150, 147)], "Aviso, sin SMS ni escalamiento", label_pos=(860, 129, 200), color=C_FABRIC)
+    torre = d.icon(1150, 278, "aca", "Consola de la torre: hora estimada\ncomo sugerencia; decide el despachador", size=44, font=10, label_w=280, side="right")
+    d.edge(sql, torre[0], [(1070, 300), (1150, 300)], "TDS 1433", label_pos=(1075, 282, 70), color=C_FABRIC)
+    evi = d.icon(1150, 433, "aca", "Aplicación de evidencias: calidad ve la\nimagen y confirma o descarta la marca", size=44, font=10, label_w=280, side="right")
+    d.edge("", evi[0], [(1070, 455), (1150, 455)], "Enlace", label_pos=(1080, 437, 60), color=C_FABRIC)
+    portal = d.icon(1150, 583, "browser", "Portal: token de inserción con el\ncliente_id; el cliente ve solo sus guías", size=44, font=10, label_w=280, side="right")
+    d.edge("", portal[0], [(1070, 605), (1150, 605)], color=C_FABRIC)
+
+    d.text(30, 755, 1510, 46,
+           "Morado: lo que ocurre en Fabric y sale de Fabric. Azul: copia del libro operativo. Ningún elemento de Fabric escribe en el libro operativo ni en la API de despacho; "
+           "la confirmación de calidad vuelve por la base (revision_evidencias) y Copy Job. Los despachadores y los clientes no necesitan licencia de Power BI.", font=10)
+    return d
+
+
+def fabric_observability_capacity():
+    d = Diagram()
+    d.text(30, 10, 1500, 30, "Fabric: cómo se observa el flujo y cuánto pesa cada componente en la capacidad", font=14)
+    d.zone(30, 60, 900, 560, "Señales por tramo y adónde llegan", fill="#ECEFF1", stroke="#455A64")
+    rows = [
+        ("monitor", "Fuentes en Azure: base, Event Hub,\nStream Analytics, cuentas", "Azure Monitor, espacio central", "Grupos de acción ya definidos"),
+        ("copyjob", "Trabajos de Fabric: Copy Job y cuadernos\n(fallido o atascado)", "Activator con eventos de trabajos", "Teams “Operación de datos” y correo\nal equipo de datos"),
+        ("appinsights", "Torre y portal: antigüedad de la hora\nestimada y errores del token", "Application Insights y alertas\nde Azure Monitor", "Operación y equipo de datos"),
+        ("pbi_embedded", "Modelos de calidad y del cliente:\nerrores y estrangulamiento", "Log Analytics, tabla\nPowerBIDatasetsWorkspace", "Equipo de datos"),
+        ("metrics", "Capacidad: uso suavizado por hora", "App de métricas y notificaciones\nde la capacidad", "Equipo de datos, revisión mensual"),
+    ]
+    for i, (k, a, b, c) in enumerate(rows):
+        y = 100 + i * 100
+        d.icon(50, y + 6, k, "", size=44)
+        d.box(110, y, 260, 56, a, "#FFFFFF", "#616161", font=10)
+        d.box(420, y, 230, 56, b, "#E3F2FD", "#1565C0", font=10)
+        d.box(700, y, 210, 56, c, "#FFF8E1", "#F9A825", font=10)
+        d.edge("", "", [(370, y + 28), (420, y + 28)], color=C_TEMP)
+        d.edge("", "", [(650, y + 28), (700, y + 28)], color=C_TEMP)
+
+    d.zone(970, 60, 670, 560, "Carga estimada de fcfaprod (CU promedio suavizado)", fill="#FFFFFF", stroke="#6A1B9A")
+    scale = 25
+    base_y = 590
+    parts = [("Gateway", 3.2, "#BBDEFB"), ("Eventstream", 1.0, "#E1BEE7"), ("Activator", 0.5, "#CE93D8"),
+             ("Copy Job y Python", 0.65, "#C5CAE9"), ("Reservas: reportes, IA, SQL", 2.6, "#FFE0B2")]
+    camp = [("Gateway", 3.2, "#BBDEFB"), ("Eventstream", 1.0, "#E1BEE7"), ("Activator", 0.7, "#CE93D8"),
+            ("Copy Job y Python", 0.65, "#C5CAE9"), ("Reservas: reportes, IA, SQL", 4.85, "#FFE0B2")]
+    for cu, txt, col in [(16, "F16 (16 CU)", C_EXC), (8, "F8 (8 CU)", C_DENY)]:
+        y = base_y - cu * scale
+        d.box(990, y - 1, 300, 2, "", col, col)
+        d.text(1295, y - 10, 90, 20, txt, font=10)
+    for x, label, items in [(1000, "Mes normal: 7,9", parts), (1150, "Campaña: 10,4", camp)]:
+        y = base_y
+        for name, v, fill in items:
+            h = v * scale
+            y -= h
+            d.box(x, y, 130, h, f"{name} {str(v).replace('.', ',')}" if h >= 18 else "", fill, "#757575", font=9)
+        d.text(x, base_y + 4, 130, 20, label, font=10, align="center")
+    d.text(1400, 120, 225, 470,
+           "Bloques, de abajo arriba: gateway, Eventstream, Activator, Copy Job y Python, reservas para reportes, funciones de IA y consultas SQL.\n\n"
+           "Arranque: F16 en mes normal y en campaña.\n\nSi el primer mes queda por debajo del 40 %, F8 fuera de campaña y F16 una semana antes de cada campaña, con el runbook.\n\n"
+           "fcfanoprod: F4, de lunes a viernes de 07:00 a 19:00.", font=10)
+
+    d.text(30, 635, 1610, 46,
+           "Azure Monitor no tiene métricas de plataforma para Fabric: la falla de Fabric se ve por la antigüedad que publican la torre y el portal, por los eventos de trabajos y por los registros de los modelos. "
+           "Casi toda la carga es de segundo plano y se suaviza en 24 horas, por eso no se cambia de tamaño entre el día y la noche.", font=10)
+    return d
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--out", required=True)
@@ -1162,7 +1264,9 @@ def main():
                      ("observabilidad-16-p1-recoleccion-y-alertas", observability_collection),
                      ("observabilidad-16-p2-transicion-zabbix", zabbix_transition),
                      ("fabric-17-p1-espacios-y-caminos", fabric_workspaces_paths),
-                     ("fabric-17-p2-region-y-datos-personales", fabric_region_personal_data)]:
+                     ("fabric-17-p2-region-y-datos-personales", fabric_region_personal_data),
+                     ("fabric-18-p1-acceso-y-usos", fabric_access_use_cases),
+                     ("fabric-18-p2-observabilidad-y-capacidad", fabric_observability_capacity)]:
         (out / f"{name}.drawio").write_text(fn().xml(), encoding="utf-8")
         print(out / f"{name}.drawio")
 

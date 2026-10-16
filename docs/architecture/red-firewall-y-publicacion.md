@@ -375,6 +375,8 @@ Los sensores reales solo llegan a producción. Pruebas y desarrollo trabajan con
 | FW-306, 312 y 318 | Agentes de despliegue y máquinas de operación (`10.10X.2.128/27`) | Azure Resource Manager, Entra ID, los dominios que GitHub publica para sus ejecutores autoalojados y los repositorios de actualizaciones de Ubuntu y Microsoft | HTTPS 443 y HTTP 80 | Permitir | Estable |
 | FW-319, 320 y 321 | Función notificadora de la telemetría (`10.10X.3.0/27`) | Canales de las alertas: webhook de Workflows de Teams (`*.api.powerplatform.com` y `*.logic.azure.com`), correo de Azure Communication Services (`<recurso>.communication.azure.com`) y el proveedor de SMS | HTTPS 443 | Permitir | Estable |
 | FW-322, 323 y 324 | Torre, portal y función notificadora | API de ingesta de registros de Azure Monitor (`*.ingest.monitor.azure.com`), para los eventos de auditoría de negocio y el registro de cada alerta de temperatura. La etiqueta `AzureMonitor` no cubre estos endpoints (`observabilidad-slo-zabbix.md`, sección 2.2) | HTTPS 443 | Permitir | Estable |
+| FW-325, 326 y 327 | Torre (`10.10X.1.0/25`) | Endpoint SQL de Fabric (etiquetas de servicio `PowerBI` y `Sql`), para leer la hora estimada de llegada con la identidad administrada de la torre. Microsoft pide las etiquetas: el nombre del endpoint solo no alcanza | TCP 1433 | Permitir | Estable |
+| FW-328, 329 y 330 | Servicios del portal (`10.10X.1.128/25`) | API de Power BI (`api.powerbi.com`), para pedir el token de inserción del reporte del cliente | HTTPS 443 | Permitir | Estable |
 
 El gateway de Fabric (`snet-fabric-egress`) no tiene ninguna regla de salida a internet. Microsoft devuelve sus resultados a Fabric por un canal interno que no pasa por internet ni por el firewall.
 
@@ -495,7 +497,7 @@ La tabla completa vive en tres archivos de `red/`, junto al plan de direcciones:
 
 | Archivo | Contenido |
 |---|---|
-| `data/firewall-policy.csv` | Las 94 reglas, ambiente por ambiente: 35 del Azure Firewall, 47 de NSG, 10 del WAF y 2 de IoT Hub y DPS. Cada una con su flujo, punto de control, origen, destino, puerto, acción, vigencia y momento de retiro |
+| `data/firewall-policy.csv` | Las 100 reglas, ambiente por ambiente: 41 del Azure Firewall, 47 de NSG, 10 del WAF y 2 de IoT Hub y DPS. Cada una con su flujo, punto de control, origen, destino, puerto, acción, vigencia y momento de retiro |
 | `data/firewall-settings.csv` | La configuración general: versión, inteligencia de amenazas, rangos sin traducción de origen, proxy DNS, IP públicas y grupos |
 | `tools/verify_firewall_policy.py` | Comprueba la tabla contra `ip-plan.csv` y el inventario on-premises |
 
@@ -509,7 +511,7 @@ El script hace doce comprobaciones. Entre ellas:
 - las reglas temporales tienen fecha de retiro y están en los grupos que se borran completos;
 - ningún endpoint privado queda en la lista sin traducción de origen.
 
-La tabla actual pasa las doce. Su hash SHA-256 es `58b85db69d1f8fe64029528d882a93f3e137ac7dded12259ce365de051cda87e` y el reporte está en `verification/reporte-firewall-policy.md`. El código de infraestructura del módulo de seguridad se revisa regla por regla contra este mismo archivo.
+La tabla actual pasa las doce. Su hash SHA-256 es `3f3e8359f220968fa873ee3fc050c44ac860f7cdb079db5858f9a3a489f7684a` y el reporte está en `verification/reporte-firewall-policy.md`. El código de infraestructura del módulo de seguridad se revisa regla por regla contra este mismo archivo.
 
 Los valores entre `<>` se completan en la implementación: el nombre del registro de contenedores, los dominios de los proveedores externos, el nombre del recurso de Azure Communication Services y del DPS, las IP públicas de Cali, la IP del DNS de Cali y el rango pasivo del servidor FTP.
 
