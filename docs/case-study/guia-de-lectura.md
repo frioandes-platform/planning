@@ -755,6 +755,8 @@ siendo de una persona en la torre**: la IA sugiere, no decide.
 - **"No se pide entrenar un modelo propio".** Hay que usar capacidades que ya vienen hechas: funciones de detección de
   anomalías, reglas de alerta, servicios de visión para las fotos. Todo por confirmar.
 
+  > **Decisión tomada (#18).** Aviso temprano con Eventstream y Activator sobre el estado en vivo (cerca del límite, puerta abierta de más, sensor intermitente), publicado en Teams. Hora estimada con estadística del propio historial por tramo, sin modelo entrenado, que la torre lee por el endpoint SQL. Fotos revisadas con funciones de IA multimodales de Fabric sobre una muestra; el video queda para un segundo release. Ver [`fabric-acceso-casos-uso-costo.md`](../architecture/fabric-acceso-casos-uso-costo.md), secciones 3 a 6.
+
 **Los números.** Fabric cobra por **unidades de capacidad (CU)** por hora. En East US 2 el precio de lista es
 **USD 0,18 por CU-hora** (consultado el 30-sep-2026 en la API pública de precios de Azure). Encendida todo el mes (730 horas):
 
@@ -777,9 +779,13 @@ monitoreo y costo; y #27 Costo de Fabric aparte. Todos **sin asignar**.
   - que **la alerta de menos de 1 minuto viva en la plataforma** (Reto 5, Parte B);
   - que Fabric sume el aviso *predictivo* con una capacidad chica siempre encendida, que **crece en campaña**;
   - que lo que se apague sean los trabajos pesados, como revisar el lote de fotos.
+
+  > **Decisión tomada (#18).** `fcfaprod` arranca en F16 todo el año: casi toda la carga es de segundo plano y Fabric la suaviza en 24 horas, así que bajar de noche no ahorra. Si el primer mes usa menos del 40 %, pasa a F8 fuera de campaña con un runbook. La capacidad de pruebas se pausa y los trabajos nocturnos van a Spark a demanda. Ver [`fabric-acceso-casos-uso-costo.md`](../architecture/fabric-acceso-casos-uso-costo.md), sección 8.
 - **2.000 clientes mirando tableros.** La forma de licenciar los reportes de Power BI cambia mucho el costo. Hay tres
   opciones: una licencia por usuario, una capacidad F64 o mayor (donde los lectores no necesitan licencia, por
   confirmar), o reportes embebidos en el portal. Es uno de los costos más grandes del caso.
+
+  > **Decisión tomada (#18).** Confirmado: por debajo de F64 cada usuario interno que ve reportes necesita Pro. Los clientes ven un reporte insertado sin licencia y los despachadores ven la IA en su consola; solo unas 40 personas necesitan Pro. Ver [`fabric-acceso-casos-uso-costo.md`](../architecture/fabric-acceso-casos-uso-costo.md), secciones 2 y 8.3.
 - **Los shortcuts no pueden leer archivos guardados en el nivel más barato de almacenamiento (Archive)** (por
   confirmar). Si el video está ahí, queda fuera de Fabric por diseño, que es justo lo que se pide. Lo que se vaya a
   analizar tiene que estar en un nivel "en línea".
@@ -787,6 +793,8 @@ monitoreo y costo; y #27 Costo de Fabric aparte. Todos **sin asignar**.
   > **Decisión tomada (#17).** Confirmado: Archive está fuera de línea y rehidratar tarda hasta 15 horas. Fabric solo exige en línea los clips de reclamos abiertos y las fotos del día; el resto del video puede pasar a Archive. Ver [`fabric-workspaces-ingesta-region.md`](../architecture/fabric-workspaces-ingesta-region.md), sección 6.4.
 - **Qué muestra entra.** Una propuesta: analizar el 100 % de las **fotos nuevas** de cada día y, del video, solo los
   clips de entregas con **reclamo abierto**, más una muestra pequeña y documentada.
+
+  > **Decisión tomada (#18).** Todas las fotos y comprobantes nuevos pasan por una revisión de calidad de imagen sin IA; la IA revisa las fotos de entregas con reclamo o excursión, las marcadas y un 10 % al azar. Calidad confirma cada marca en la aplicación de evidencias. Ver [`fabric-acceso-casos-uso-costo.md`](../architecture/fabric-acceso-casos-uso-costo.md), sección 5.
 - **Región y datos personales.** Si Fabric está en East US 2, los datos personales salen de Colombia (ver Reto 2).
 
   > **Decisión tomada (#17).** Las capacidades quedan en East US 2, junto a sus fuentes. La región principal del tenant se confirma antes de comprar la capacidad, porque ahí quedan permisos y metadatos. Ver [`fabric-workspaces-ingesta-region.md`](../architecture/fabric-workspaces-ingesta-region.md), sección 7.
