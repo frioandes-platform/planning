@@ -17,7 +17,7 @@ Datos, herramientas y reportes que respaldan [`../red-topologia-subnetting.md`](
 | `tools/` | `compare_tfplan.py` | Compara la salida de `terraform show -json` con el plan y la convierte al formato del plan |
 | `tools/` | `measure_latency.py` | Mide la latencia TCP hacia cada región |
 | `tools/` | `verify_firewall_policy.py` | Verifica la tabla de políticas contra el plan de direcciones y las reglas del diseño (12 comprobaciones) |
-| `tools/` | `build_drawio_diagrams.py` | Genera los diagramas de draw.io de la red híbrida, las subredes, el firewall, la publicación del portal, la telemetría y los datos personales |
+| `tools/` | `build_drawio_diagrams.py` | Genera los diagramas de draw.io de la red híbrida, las subredes, el firewall, la publicación del portal, la telemetría, los datos personales y la observabilidad |
 | `verification/` | `reporte-ip-plan.md` | Resultado de la verificación de `ip-plan.csv` |
 | `verification/` | `reporte-ip-plan-aks.md` | Resultado de la verificación de `ip-plan-aks.csv` |
 | `verification/` | `latencia-medida.md` | Resultados de la medición de latencia desde Cali |
@@ -48,7 +48,7 @@ python3 tools/verify_ip_plan.py --plan tf-ip-plan.csv --out verification/reporte
 ```bash
 python3 tools/verify_firewall_policy.py --out verification/reporte-firewall-policy.md
 sha256sum data/firewall-policy.csv
-# 97dd2a20a1aa160740b1773b74b86e4df92a177f2dd4d3ab46041d7bd105d07a
+# 774104e85eeca19a7724b199200584155ce3c0502216defef1d17e24f9b9a94b
 ```
 
 El script lee `firewall-policy.csv`, `firewall-settings.csv`, `ip-plan.csv` y `onprem-inventory.csv`, y termina con código 0 solo si pasan las 12 comprobaciones. Si el hash cambia, la tabla cambió: hay que volver a correr la verificación y actualizar el hash en el documento del firewall.

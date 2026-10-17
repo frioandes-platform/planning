@@ -462,14 +462,14 @@ El resumen queda muy por debajo del tope incluso en la capacidad más pequeña. 
 
 ### 6.1 Cómo se mide el objetivo de la alerta
 
-La plataforma tiene dos objetivos de servicio, y uno es la oportunidad de la alerta de temperatura. El diseño de observabilidad fija el objetivo; esta sección define cómo se mide.
+La plataforma tiene dos objetivos de servicio, y uno es la oportunidad de la alerta de temperatura. El diseño de observabilidad fija el objetivo (`observabilidad-slo-zabbix.md`, sección 5.3); esta sección define cómo se mide.
 
 | Elemento | Definición |
 |---|---|
 | Indicador | Porcentaje de alertas de excursión cuya diferencia entre la hora de la lectura del sensor y la hora en que la alerta queda visible es de 60 segundos o menos |
 | "Visible" | La API de la torre confirma que recibió la alerta (de día) o Teams acepta el mensaje (de noche). La función notificadora registra esa hora |
-| Exclusiones | Las alertas tardías: lecturas que llegaron atrasadas por falta de señal, porque el minuto aplica en condiciones normales de red. Se identifican por la diferencia entre la hora del sensor y la hora de llegada a IoT Hub |
-| Propuesta de objetivo | 99 % de las alertas en 28 días |
+| Exclusiones | Las alertas tardías: lecturas que llegaron atrasadas por falta de señal, porque el minuto aplica en condiciones normales de red. Se identifican por la diferencia entre la hora del sensor y la hora de llegada a IoT Hub: más de 25 segundos, porque el resto del camino tiene un presupuesto de 35 |
+| Objetivo | 99 % de las alertas en 28 días, contando las reales y las sintéticas |
 
 Cada alerta guarda cinco marcas de tiempo: lectura en el sensor, llegada a IoT Hub, salida de Stream Analytics, envío del notificador y confirmación del canal. Así, si el objetivo se incumple, se sabe en qué tramo del presupuesto (sección 3.1) se perdió el tiempo.
 
@@ -485,7 +485,7 @@ Cada alerta guarda cinco marcas de tiempo: lectura en el sensor, llegada a IoT H
 | Función notificadora | Ejecuciones fallidas y fallas de envío por canal | Una alerta que no sale por ningún canal es una alerta perdida |
 | Alerta sintética | Llegada en menos de un minuto | Mide el camino completo, de punta a punta |
 
-Estas señales se integran al diseño de observabilidad de la plataforma, que define dónde se ven y a quién avisan.
+Estas señales se integran al diseño de observabilidad de la plataforma (`observabilidad-slo-zabbix.md`, secciones 4.4 y 6), que define dónde se ven y a quién avisan.
 
 ### 6.3 Campaña
 
@@ -555,7 +555,7 @@ No incluye la capacidad de Fabric ni las licencias de Power BI, que van aparte e
 | Los camiones operan una jornada de 18 horas | Define el volumen de los camiones y el tiempo mínimo que el equipo guarda lecturas sin señal |
 | Un equipo por camión envía temperatura, posición y puerta | Una identidad por camión en IoT Hub. Si hubiera un equipo por sensor, aumenta la cantidad de identidades pero no el volumen |
 | La torre de control opera de 04:00 a 22:00, hora de Colombia (UTC-5, sin horario de verano), y de noche recibe la guardia de calidad | Es el horario de operación de la torre. La función calcula la hora en su código |
-| El objetivo de la alerta es el 99 % de las alertas visibles en 60 segundos o menos, medido en 28 días | Es la propuesta de la sección 6.1. El diseño de observabilidad fija el valor definitivo |
+| El objetivo de la alerta es el 99 % de las alertas visibles en 60 segundos o menos, medido en 28 días | Lo fija el diseño de observabilidad (`observabilidad-slo-zabbix.md`, sección 5.3). Se confirma con FríoAndes junto con la meta del portal |
 | Stream Analytics trabaja con 1/3 de unidad de streaming en producción | Lo confirma la prueba de carga de campaña en pruebas, que arranca con 1 unidad (sección 3.7) |
 | Las operaciones de la cuenta de la función se miden en pruebas | Dependen de cómo trabaja Durable Functions con el volumen real de alertas. Con el dato se completa el costo de la sección 6.4 |
 | Pruebas y desarrollo usan sensores simulados | No se llevan datos reales a ambientes con menos controles |
