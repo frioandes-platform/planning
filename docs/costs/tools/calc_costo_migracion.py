@@ -31,7 +31,7 @@ P = {
     "vpngw1az_h": 0.21,                  # 10 site-to-site tunnels included
     "fw_std_h": 1.25,
     "fw_gb": 0.016,
-    "bastion_basic_h": 0.19,
+    "bastion_std_h": 0.29,                # 2 instances included
     "pip_h": 0.005,
     "dns_resolver_endpoint_m": 180.0,    # inbound or outbound endpoint, per month
     "dns_ruleset_m": 2.5,
@@ -98,7 +98,7 @@ def monthly_platform():
     hub = [
         ("Azure Firewall Standard", "1,25 × 730", P["fw_std_h"] * H),
         ("VPN Gateway VpnGw1AZ (10 túneles incluidos)", "0,21 × 730", P["vpngw1az_h"] * H),
-        ("Azure Bastion Basic", "0,19 × 730", P["bastion_basic_h"] * H),
+        ("Azure Bastion Standard (2 instancias incluidas)", "0,29 × 730", P["bastion_std_h"] * H),
         ("DNS Private Resolver: entrada, salida y reglas", "180 + 180 + 2,50", 2 * P["dns_resolver_endpoint_m"] + P["dns_ruleset_m"]),
         ("IP públicas del hub (VPN Gateway activo-activo, firewall, Bastion)", "4 × 0,005 × 730", 4 * P["pip_h"] * H),
     ]

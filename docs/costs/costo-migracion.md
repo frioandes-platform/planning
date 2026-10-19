@@ -33,13 +33,13 @@ Por eso la plataforma de Azure entra aquí desde que se despliega hasta el corte
 |---|---|---|---|
 | Siembra del archivo | Discos, Import/Export, envíos, escrituras en Azure y estaciones de copia | 64.920,00 | 49 % |
 | Horas del equipo | Siembra, ventanas nocturnas, ensayo, corte y apagado | 38.352,16 | 29 % |
-| Azure y red antes del corte | La plataforma y el archivo en Azure mientras la operación sigue en Cali, y el segundo proveedor de Cali | 27.519,06 | 21 % |
+| Azure y red antes del corte | La plataforma y el archivo en Azure mientras la operación sigue en Cali, y el segundo proveedor de Cali | 27.667,86 | 21 % |
 | Servicios temporales de la migración | DMS, servidor del ensayo, copia continua y conciliación | 892,31 | 1 % |
 | Tránsito de los centros por Azure | Usuarios de los centros que llegan a la torre de Cali a través de Azure hasta el corte | 667,96 | 0,5 % |
 | Otros costos únicos | Instalación del segundo proveedor de Cali | 906,07 | 0,7 % |
-| **Subtotal** | | **133.257,56** | |
-| Contingencia (15 %) | Sección 7 | 19.988,63 | |
-| **Total del proyecto de migración** | | **153.246,20** | Unos COP 507 millones |
+| **Subtotal** | | **133.406,36** | |
+| Contingencia (15 %) | Sección 7 | 20.010,95 | |
+| **Total del proyecto de migración** | | **153.417,32** | Unos COP 508 millones |
 
 La siembra pesa casi la mitad del proyecto, y dentro de ella los discos y el envío son casi el 70 %. El costo de tener las dos plataformas a la vez queda en unos USD 27.500 porque Azure corre al mínimo hasta el corte y Cali se apaga el día 62, no el 90.
 
@@ -82,10 +82,10 @@ Hasta el corte la plataforma corre al mínimo, sin usuarios: la torre con 2 nodo
 |---|---|---|
 | Azure Firewall Standard | 1,25 × 730 | 912,50 |
 | VPN Gateway VpnGw1AZ, con 10 túneles incluidos (Cali 2 y los 8 centros) | 0,21 × 730 | 153,30 |
-| Azure Bastion Basic | 0,19 × 730 | 138,70 |
+| Azure Bastion Standard (2 instancias incluidas) | 0,29 × 730 | 211,70 |
 | DNS Private Resolver: entrada, salida y conjunto de reglas | 180 + 180 + 2,50 | 362,50 |
 | IP públicas del hub: VPN Gateway activo-activo, firewall y Bastion | 4 × 0,005 × 730 | 14,60 |
-| **Subtotal** | | **1.581,60** |
+| **Subtotal** | | **1.654,60** |
 
 **Producción**
 
@@ -129,14 +129,14 @@ El tamaño de la base sale de los supuestos de la plataforma: 4 vCores para 450 
 
 | Concepto | Cálculo | USD |
 |---|---|---|
-| Hub | 1.581,60 al mes × 62 días | 3.223,86 |
+| Hub | 1.654,60 al mes × 62 días | 3.372,66 |
 | Producción | 2.318,82 al mes × 62 días | 4.726,58 |
 | Pruebas y desarrollo | 1.089,57 al mes × 75 días | 2.686,62 |
 | Alta disponibilidad y réplica de la base | 657,22 al mes × 21 días | 453,75 |
 | Archivo: cuenta de documentos, Cool GRS a 0,02 por GB al mes | 150 TB desde el 26 de noviembre, el diferencial desde el 23 de enero y lo nuevo desde el día 0 | 7.939,06 |
 | Archivo: cuenta de video, Cold LRS a 0,0036 por GB al mes | Cada trabajo desde que queda cargado (3 de diciembre a 3 de enero), el diferencial y lo nuevo | 7.178,49 |
 | Segundo proveedor de internet en Cali | COP 3.000.000 al mes × 44 días | 1.310,70 |
-| **Subtotal** | | **27.519,06** |
+| **Subtotal** | | **27.667,86** |
 
 **Tránsito de los centros por Azure.** Entre el paso de cada centro a la conexión directa (en promedio el 19 de enero) y el corte, los usuarios de los centros llegan a la torre, que sigue en Cali, a través del hub de Azure (FW-401). Ese tráfico sale de Azure por la VPN y paga transferencia de salida:
 
@@ -185,7 +185,7 @@ Las 8 personas del ensayo y del corte son las del guion (#14, sección 5.3): el 
 
 ## 7. Contingencia
 
-Se agrega un 15 % sobre el subtotal, **USD 19.988,63**, por las cifras que todavía no tienen cotización ni medición:
+Se agrega un 15 % sobre el subtotal, **USD 20.010,95**, por las cifras que todavía no tienen cotización ni medición:
 
 - el precio de los discos y del envío con aduana, que suman USD 44.100;
 - la velocidad de lectura del servidor de archivo, que alarga o acorta la siembra y sus horas;
@@ -250,7 +250,7 @@ Si cambia un precio, una fecha del plan o un supuesto, se cambia en el script, s
 | Es costo de la migración todo lo que se paga antes del corte, más los costos únicos de la migración | Separa con una fecha lo que cuenta #25 y lo que cuenta #26, sin contar dos veces |
 | Pruebas y desarrollo se despliegan el 1 de diciembre de 2026, y el hub y producción el 14 de diciembre | Dejan tiempo para probar las adaptaciones y la carga de campaña antes del día 0 |
 | La base de producción es MySQL Flexible General Purpose de 4 vCores con 512 GB | Alcanza para 450 usuarios y 33 solicitudes por segundo; se confirma con la prueba de carga |
-| Bastion es Basic | El diseño de red no fija el nivel; Basic cubre el acceso por navegador a las máquinas de administración |
+| Bastion es Standard | Lo decide el diseño del acceso remoto (#11), por el escalado y el cliente nativo |
 | Log Analytics recibe unos 60 GB al mes antes del corte | No hay tráfico real; el diseño del firewall mide el volumen el primer mes |
 | 180 de los 450 usuarios internos están en los centros | El enunciado no reparte los usuarios entre Cali y los centros |
 | El equipo cuesta COP 120.000 por hora, con los recargos de la Ley 2466 de 2025 | Tarifa promedio de referencia, sin cotización |
