@@ -234,11 +234,12 @@ La falla de Fabric aparece donde la operación ya mira (la antigüedad en la con
 | Gateway de red virtual | 4 CU mientras está encendido, unas 19 horas al día | 3,2 |
 | Copy Job | 72 ejecuciones de 1 minuto a 3 CU hora | 0,15 |
 | Cuaderno de Python de hora estimada | 240 ejecuciones de 3 minutos × 2 vCores × 0,5 CU | 0,5 |
+| Spark nocturno (mantenimiento de tablas y etapa 1 de evidencias) | 365 horas de vCore al mes × 0,5 CU, suavizadas en 24 horas | 0,25 |
 | Reservas sin tasa publicada | Reportes 1,5; funciones de IA 1,0; consultas SQL de la torre 0,1 | 2,6 |
-| **Mes normal** | | **unos 7,9** |
-| **Mes de campaña** | Eventos +40 % y reportes ×2,5 | **unos 10,4** |
+| **Mes normal** | | **unos 8,2** |
+| **Mes de campaña** | Eventos y fotos +40 %, reportes ×2,5 | **unos 10,7** |
 
-El mantenimiento nocturno de las tablas y la etapa 1 de evidencias corren en Spark con facturación a demanda, fuera de la capacidad.
+El mantenimiento nocturno de las tablas y la etapa 1 de evidencias corren en Spark dentro de la capacidad: suman unos 182 CU hora al mes, que suavizados en 24 horas casi no se notan. La facturación a demanda de Spark costaría unos USD 33 al mes sin bajar el tamaño; queda como opción si la medición muestra estrangulamiento.
 
 Casi toda la carga es de segundo plano, que Fabric suaviza en 24 horas. Por eso bajar de tamaño de noche no sirve: el uso de noche arrastra el del día. Real-Time Intelligence, además, no aplica la demora de 20 segundos y solo rechaza cuando la capacidad agota una hora completa.
 
@@ -246,8 +247,8 @@ Casi toda la carga es de segundo plano, que Fabric suaviza en 24 horas. Por eso 
 
 | Capacidad | Tamaño | Horas | Precio de lista mensual |
 |---|---|---|---|
-| `fcfaprod` | F16 en mes normal y en campaña al arranque (49 % y 65 % del estimado) | 730 | USD 2.102,40 |
-| `fcfanoprod` | F4: el gateway de pruebas consume 4 CU mientras está encendido | Lunes a viernes de 07:00 a 19:00, unas 260 horas | USD 187,20 |
+| `fcfaprod` | F16 en mes normal y en campaña al arranque (51 % y 67 % del estimado) | 730 | USD 2.102,40 |
+| `fcfanoprod` | F4: el gateway de pruebas consume 4 CU mientras está encendido | Lunes a viernes de 07:00 a 19:00, unas 261 horas | USD 187,71 |
 
 Después del primer mes de operación, el equipo de datos mide el uso suavizado con la app de métricas. Si queda por debajo del 40 % de F16, `fcfaprod` pasa a F8 (USD 1.051,20) fuera de campaña y vuelve a F16 una semana antes de cada campaña.
 
@@ -258,9 +259,12 @@ Licencias Pro para quien crea o ve reportes internos: equipo de datos, líderes 
 ### 8.4 Cómo se reduce fuera de campaña
 
 1. **Runbook de Azure Automation**, con identidad administrada y el rol personalizado "Operador de capacidad Fabric" (read, write, suspend y resume sobre cada capacidad). Pausa y reanuda `fcfanoprod` según el horario y cambia el tamaño de `fcfaprod` con el calendario de campañas. El calendario se aprueba antes de cada campaña, y el cambio se hace en la ventana de 22:00 a 04:00: durante la campaña no se toca nada.
-2. **Facturación a demanda de Spark** en `fcfaprod`, con un máximo de CU, para los trabajos nocturnos: no exigen una capacidad más grande.
-3. **Gateway con apagado a los 30 minutos sin uso** y copias del libro operativo solo de 04:00 a 22:00, más una a las 22:15 y otra a las 03:45.
-4. **Sin F64**: licencias Pro para los pocos usuarios que ven reportes.
+2. **Reserva de 8 CU por un año**, el piso que `fcfaprod` no baja nunca (F8 o F16).
+3. **Sobreconsumo de la capacidad con umbral del 10 %**, en vez del 25 % que Microsoft activa por defecto, como red de seguridad con tope.
+4. **Gateway con apagado a los 30 minutos sin uso** y copias del libro operativo solo de 04:00 a 22:00, más una a las 22:15 y otra a las 03:45.
+5. **Sin F64**: licencias Pro para los pocos usuarios que ven reportes.
+
+Las cifras de cada mes y de cada decisión están en `docs/costs/costo-fabric.md`.
 
 `fcfaprod` no se pausa nunca: el aviso de noche, la hora estimada y la vista del cliente la necesitan encendida. Al pausar una capacidad, Fabric cobra el consumo suavizado pendiente, así que la pausa de `fcfanoprod` se programa después de los trabajos de prueba.
 

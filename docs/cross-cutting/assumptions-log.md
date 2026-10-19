@@ -93,7 +93,12 @@ Supuestos que no están en el enunciado y que tomó el equipo al diseñar la pla
 | Los administradores de Fabric son dos personas del equipo de datos e IA, con PIM | Azure solo acepta usuarios del tenant como administradores de una capacidad | #17 | Por confirmar con el cliente |
 | Unas 40 personas crean o ven reportes internos de Fabric y necesitan licencia Pro | Calidad, guardia, líderes de torre y calidad y equipo de datos; los despachadores ven la IA en la consola y los clientes en el reporte insertado | #18 | Por confirmar con el cliente |
 | La base registra la hora real de llegada a cada parada | La hora estimada de llegada se calcula con los tiempos reales por tramo | #18 | Por confirmar con el cliente |
-| `fcfaprod` usa unos 7,9 CU en mes normal y 10,4 en campaña, y arranca en F16 | Estimado con las tasas publicadas de Eventstream, Activator, Copy Job y gateway, más reservas para reportes y funciones de IA; se mide el primer mes | #18 | Asumido en el diseño |
+| `fcfaprod` usa unos 8,2 CU en mes normal y 10,7 en campaña, con Spark nocturno dentro, y arranca en F16 | Estimado con las tasas publicadas de Eventstream, Activator, Copy Job y gateway, más reservas para reportes y funciones de IA; se mide el primer mes | #18 | Asumido en el diseño |
 | El gateway de red virtual consume 4 CU mientras está encendido | Blog oficial de Fabric; Learn no publica la tasa; se confirma con la app de métricas | #18 | Asumido en el diseño |
 | El cuaderno de Python consume a la tasa de Spark por vCore | Microsoft no publica una tasa propia | #18 | Asumido en el diseño |
 | Calidad fija un margen de aviso por tipo de carga y por cuarto frío | Activator compara la temperatura con el umbral de aviso de cada sensor | #18 | Por confirmar con el cliente |
+| Unos 102 días de campaña al año, con una semana previa en F16 | Calendario supuesto del plan de migración; define cuántos meses puede estar `fcfaprod` en F8 | #27 | Por confirmar con el cliente |
+| OneLake guarda unos 90 GB | Vistas del libro operativo hasta 80 GB, eventos de Activator de 30 días y tablas curadas | #27 | Asumido en el diseño |
+| Los registros de los modelos son unos 10 GB al mes (25 en campaña) | Sin dato de uso; se mide con la tabla de uso de Log Analytics | #27 | Asumido en el diseño |
+| Se reservan 8 CU de Fabric por un año | Es el piso de `fcfaprod`; uno y tres años cuestan lo mismo por mes | #27 | Decidido en el diseño |
+| El sobreconsumo de la capacidad queda activo con umbral del 10 % | Red de seguridad con tope de unos USD 631 al mes; Microsoft lo activa por defecto al 25 % | #27 | Decidido en el diseño |

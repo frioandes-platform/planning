@@ -780,7 +780,9 @@ monitoreo y costo; y #27 Costo de Fabric aparte. Todos **sin asignar**.
   - que Fabric sume el aviso *predictivo* con una capacidad chica siempre encendida, que **crece en campaña**;
   - que lo que se apague sean los trabajos pesados, como revisar el lote de fotos.
 
-  > **Decisión tomada (#18).** `fcfaprod` arranca en F16 todo el año: casi toda la carga es de segundo plano y Fabric la suaviza en 24 horas, así que bajar de noche no ahorra. Si el primer mes usa menos del 40 %, pasa a F8 fuera de campaña con un runbook. La capacidad de pruebas se pausa y los trabajos nocturnos van a Spark a demanda. Ver [`fabric-acceso-casos-uso-costo.md`](../architecture/fabric-acceso-casos-uso-costo.md), sección 8.
+  > **Decisión tomada (#18).** `fcfaprod` arranca en F16 todo el año: casi toda la carga es de segundo plano y Fabric la suaviza en 24 horas, así que bajar de noche no ahorra. Si el primer mes usa menos del 40 %, pasa a F8 fuera de campaña con un runbook. La capacidad de pruebas se pausa fuera del horario. Ver [`fabric-acceso-casos-uso-costo.md`](../architecture/fabric-acceso-casos-uso-costo.md), sección 8.
+
+  > **Decisión tomada (#27).** Fabric cuesta unos USD 2.892 al mes en mes normal y 2.938 en campaña (precios de lista, con 40 licencias Pro), o 1.841 en mes normal si la medición permite F8. Una reserva de 8 CU resta 426 al mes. No copiar el archivo ahorra al menos USD 4.788 al mes y 38.224 de costo único. Ver [`costo-fabric.md`](../costs/costo-fabric.md).
 - **2.000 clientes mirando tableros.** La forma de licenciar los reportes de Power BI cambia mucho el costo. Hay tres
   opciones: una licencia por usuario, una capacidad F64 o mayor (donde los lectores no necesitan licencia, por
   confirmar), o reportes embebidos en el portal. Es uno de los costos más grandes del caso.

@@ -1218,14 +1218,14 @@ def fabric_observability_capacity():
     scale = 25
     base_y = 590
     parts = [("Gateway", 3.2, "#BBDEFB"), ("Eventstream", 1.0, "#E1BEE7"), ("Activator", 0.5, "#CE93D8"),
-             ("Copy Job y Python", 0.65, "#C5CAE9"), ("Reservas: reportes, IA, SQL", 2.6, "#FFE0B2")]
+             ("Copy Job, Python y Spark", 0.9, "#C5CAE9"), ("Reservas: reportes, IA, SQL", 2.6, "#FFE0B2")]
     camp = [("Gateway", 3.2, "#BBDEFB"), ("Eventstream", 1.0, "#E1BEE7"), ("Activator", 0.7, "#CE93D8"),
-            ("Copy Job y Python", 0.65, "#C5CAE9"), ("Reservas: reportes, IA, SQL", 4.85, "#FFE0B2")]
+            ("Copy Job, Python y Spark", 1.0, "#C5CAE9"), ("Reservas: reportes, IA, SQL", 4.85, "#FFE0B2")]
     for cu, txt, col in [(16, "F16 (16 CU)", C_EXC), (8, "F8 (8 CU)", C_DENY)]:
         y = base_y - cu * scale
         d.box(990, y - 1, 300, 2, "", col, col)
         d.text(1295, y - 10, 90, 20, txt, font=10)
-    for x, label, items in [(1000, "Mes normal: 7,9", parts), (1150, "Campaña: 10,4", camp)]:
+    for x, label, items in [(1000, "Mes normal: 8,2", parts), (1150, "Campaña: 10,7", camp)]:
         y = base_y
         for name, v, fill in items:
             h = v * scale
@@ -1233,7 +1233,7 @@ def fabric_observability_capacity():
             d.box(x, y, 130, h, f"{name} {str(v).replace('.', ',')}" if h >= 18 else "", fill, "#757575", font=9)
         d.text(x, base_y + 4, 130, 20, label, font=10, align="center")
     d.text(1400, 120, 225, 470,
-           "Bloques, de abajo arriba: gateway, Eventstream, Activator, Copy Job y Python, reservas para reportes, funciones de IA y consultas SQL.\n\n"
+           "Bloques, de abajo arriba: gateway, Eventstream, Activator, Copy Job, Python y Spark nocturno, reservas para reportes, funciones de IA y consultas SQL.\n\n"
            "Arranque: F16 en mes normal y en campaña.\n\nSi el primer mes queda por debajo del 40 %, F8 fuera de campaña y F16 una semana antes de cada campaña, con el runbook.\n\n"
            "fcfanoprod: F4, de lunes a viernes de 07:00 a 19:00.", font=10)
 
