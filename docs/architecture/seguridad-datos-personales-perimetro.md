@@ -386,7 +386,7 @@ El volumen de registros se mide en el primer mes, como ya dejó dicho el diseño
 
 ### 5.6 Qué pasa cuando hay una alerta
 
-1. La alerta llega al equipo de operación por el canal que define el diseño de observabilidad.
+1. La alerta llega al equipo de operación por el canal que define el diseño de observabilidad (`observabilidad-slo-zabbix.md`, sección 6).
 2. Si es abuso del portal, operación bloquea la IP con una regla del WAF o deshabilita la cuenta, y avisa al cliente corporativo dueño de la cuenta.
 3. Si hay indicios de que alguien accedió a datos personales sin autorización, se conservan los registros, se activa el procedimiento de incidentes de FríoAndes y se evalúa el aviso a la SIC que exige la Ley 1581 (artículo 17). Si los datos afectados son de clientes de alimentos, el contrato con ellos también puede exigir avisarles.
 4. Cada incidente deja su registro para la auditoría.
@@ -425,7 +425,7 @@ Precios de lista en East US 2, con 730 horas al mes. Solo incluye lo que agrega 
 
 | Tarea | Frecuencia | Quién |
 |---|---|---|
-| Revisar las alertas de Defender for Cloud y las del portal | Cuando llegan, por el canal del diseño de observabilidad | Operación |
+| Revisar las alertas de Defender for Cloud y las del portal | Cuando llegan, por el canal del diseño de observabilidad (`observabilidad-slo-zabbix.md`, sección 6) | Operación |
 | Revisar las recomendaciones de Defender for Cloud y la puntuación de seguridad | Semanal | Operación |
 | Revisar la IP con más tráfico de cada día frente a los límites del WAF | Diaria el primer mes, después mensual | Operación |
 | Ajustar umbrales de límites y alertas | Fuera de campaña y en la ventana de 22:00 a 04:00 | Operación, con un cambio aprobado |
