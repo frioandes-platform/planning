@@ -744,10 +744,14 @@ siendo de una persona en la torre**: la IA sugiere, no decide.
 **Lo que hay que entender.**
 - **Los datos de la operación** (el enunciado los llama "libro operativo") son la base de guías, despachos e
   inventario. Hay que definir cómo llegan a Fabric. Está por confirmar qué opciones ofrece Fabric para MySQL.
+
+  > **Decisión tomada (#17).** La réplica espejo de Fabric no admite MySQL 8.4, alta disponibilidad ni servidores en red virtual. El libro operativo llega con Copy Job incremental por el gateway de red virtual de `snet-fabric-egress`, solo con vistas que dejan fuera nombres, teléfonos, documentos y direcciones escritas. Ver [`fabric-workspaces-ingesta-region.md`](../architecture/fabric-workspaces-ingesta-region.md), sección 4.
 - **La telemetría** puede entrar directo a los componentes de tiempo real de Fabric.
 
   > **Decisión tomada (#13).** La alerta no pasa por Fabric, para no depender de que una capacidad esté encendida de noche. Fabric lee la tabla de análisis del lago, y los tableros usan un resumen de 5 minutos para quedar bajo los topes de Direct Lake. Ver [`carga-b-telemetria.md`](../architecture/carga-b-telemetria.md), secciones 3.2 y 5.3.
 - **El archivo** se lee con **shortcuts de OneLake**: accesos directos que apuntan a donde ya están los archivos, sin copiarlos.
+
+  > **Decisión tomada (#17).** Fabric lee con atajos y acceso de confianza (sin pasar por la red virtual) solo las fotos y comprobantes nuevos y los clips de reclamos abiertos. Del archivo no se copia nada: copiar el video a OneLake costaría unos USD 24.150 al mes. Hay un espacio de datos y tres de consumo (torre, calidad y cliente) por ambiente, en dos capacidades de East US 2. Ver [`fabric-workspaces-ingesta-region.md`](../architecture/fabric-workspaces-ingesta-region.md), secciones 2, 3, 6 y 8.
 - **"No se pide entrenar un modelo propio".** Hay que usar capacidades que ya vienen hechas: funciones de detección de
   anomalías, reglas de alerta, servicios de visión para las fotos. Todo por confirmar.
 
@@ -779,9 +783,13 @@ monitoreo y costo; y #27 Costo de Fabric aparte. Todos **sin asignar**.
 - **Los shortcuts no pueden leer archivos guardados en el nivel más barato de almacenamiento (Archive)** (por
   confirmar). Si el video está ahí, queda fuera de Fabric por diseño, que es justo lo que se pide. Lo que se vaya a
   analizar tiene que estar en un nivel "en línea".
+
+  > **Decisión tomada (#17).** Confirmado: Archive está fuera de línea y rehidratar tarda hasta 15 horas. Fabric solo exige en línea los clips de reclamos abiertos y las fotos del día; el resto del video puede pasar a Archive. Ver [`fabric-workspaces-ingesta-region.md`](../architecture/fabric-workspaces-ingesta-region.md), sección 6.4.
 - **Qué muestra entra.** Una propuesta: analizar el 100 % de las **fotos nuevas** de cada día y, del video, solo los
   clips de entregas con **reclamo abierto**, más una muestra pequeña y documentada.
 - **Región y datos personales.** Si Fabric está en East US 2, los datos personales salen de Colombia (ver Reto 2).
+
+  > **Decisión tomada (#17).** Las capacidades quedan en East US 2, junto a sus fuentes. La región principal del tenant se confirma antes de comprar la capacidad, porque ahí quedan permisos y metadatos. Ver [`fabric-workspaces-ingesta-region.md`](../architecture/fabric-workspaces-ingesta-region.md), sección 7.
 
 ---
 

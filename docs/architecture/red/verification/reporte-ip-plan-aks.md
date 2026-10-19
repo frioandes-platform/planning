@@ -1,7 +1,7 @@
 # Verificación del plan de direcciones de nube
 
-- Fecha: 2026-10-13
-- Plan verificado: `ip-plan-aks.csv` (sha256 `595273b6920b`)
+- Fecha: 2026-10-14
+- Plan verificado: `ip-plan-aks.csv` (sha256 `a45789605c12`)
 - Inventario on-premises: `onprem-inventory.csv` (23 subredes del enunciado)
 
 ## Resumen

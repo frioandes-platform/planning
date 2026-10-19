@@ -327,7 +327,7 @@ El mismo trabajo de Stream Analytics y la misma función se despliegan en prueba
 |---|---|---|
 | Reclamo de un cliente | Todas las lecturas de la carga o del cuarto frío en el período del reclamo, las alertas que se generaron y quién las reconoció, sin posibilidad de alteración | Cinco años, por contrato con los clientes de alimentos |
 | Reportes a clientes y tableros de calidad | Lecturas con el contexto de negocio: cuarto frío, camión, guía y cliente | Cinco años |
-| Aviso temprano y estimación de llegada en Fabric | Historial de lecturas y posiciones para los modelos | Lo que defina la estrategia de Fabric |
+| Aviso temprano y estimación de llegada en Fabric | Historial de lecturas y posiciones para los modelos | Los mismos cinco años: Fabric los lee con un atajo, sin copiarlos (`fabric-workspaces-ingesta-region.md`, sección 5) |
 
 Con unos 15 GB al mes, el historial completo de cinco años es de unos 900 GB. El tamaño es pequeño. Lo que importa es que la evidencia no se pueda alterar, que no se pague dos veces por guardarla y analizarla, y que Fabric la lea sin copiarla.
 
@@ -352,7 +352,7 @@ Con unos 15 GB al mes, el historial completo de cinco años es de unos 900 GB. E
 | | Evidencia cruda | Tabla de análisis |
 |---|---|---|
 | Qué contiene | Cada mensaje de temperatura y de puerta tal como llegó a IoT Hub, con la identidad del dispositivo y la hora de llegada. Además, cada alerta y cada acuse con quién y cuándo. Las posiciones de los camiones no van aquí | Cada lectura con su contexto: cuarto frío o camión, guía, cliente, rango aplicado y si generó alerta. También las posiciones de los camiones, ligadas a la guía y al viaje |
-| Quién la escribe | IoT Hub, con su enrutamiento a almacenamiento, en JSON. La ruta filtra por el tipo de mensaje (`$body.tipo`), que IoT Hub puede leer porque cada mensaje va marcado como JSON. La función notificadora agrega las alertas y los acuses | Stream Analytics, con su salida nativa a tablas Delta |
+| Quién la escribe | IoT Hub, con su enrutamiento a almacenamiento, en JSON. La ruta filtra por el tipo de mensaje (`$body.tipo`), que IoT Hub puede leer porque cada mensaje va marcado como JSON. La función notificadora agrega las alertas y los acuses | Stream Analytics, con su salida nativa a tablas Delta. Las tablas se crean antes de arrancar el trabajo, sin la propiedad de solo agregar y sin deletion vectors: si las crea Stream Analytics quedan de solo agregar y no se podrían borrar las posiciones |
 | Formato | Archivos JSON por lote, con la ruta de IoT Hub (hub, partición, año, mes, día, hora y minuto) | Tabla Delta (archivos Parquet con su registro de transacciones), que Fabric reconoce como tabla |
 | Protección | Contenedor con política de retención por tiempo, bloqueada, de cinco años: nadie puede modificar ni borrar los archivos, ni siquiera un administrador | Contenedor normal: la tabla necesita mantenimiento periódico (compactar archivos y limpiar los viejos), que no se puede hacer en un contenedor inmutable |
 | Región | Central US, junto a IoT Hub. Con redundancia geográfica, la copia secundaria queda en East US 2 | East US 2, junto al resto de la plataforma |
@@ -375,7 +375,7 @@ Con unos 15 GB al mes, el historial completo de cinco años es de unos 900 GB. E
 - **Solo dos servicios escriben por el endpoint público.** El acceso público de las dos cuentas queda "habilitado desde redes seleccionadas", sin redes ni direcciones IP permitidas, con una regla de instancia para el IoT Hub (cuenta de evidencia) y otra para el trabajo de Stream Analytics (cuenta de análisis). Los dos escriben con su identidad administrada: Microsoft los incluye entre los servicios que pueden entrar así. Azure no admite estas reglas si el acceso público se desactiva del todo: en ese caso solo entra tráfico por endpoint privado, y ni IoT Hub ni Stream Analytics podrían escribir.
 - **Todo lo demás entra por endpoints privados** (blob y dfs) en `snet-archive` de producción: la función notificadora, que agrega alertas y acuses a la evidencia, y los equipos de operación. Son 4 endpoints que se suman a los del archivo y las evidencias, dentro de los 10 de la subred. Azure permite que el endpoint privado esté en otra región que la cuenta, como ocurre con la evidencia en Central US.
 - La tabla de rangos que lee Stream Analytics (sección 3.3) vive en la cuenta de análisis, con el mismo acceso.
-- Microsoft Fabric también puede recibir una regla de instancia. Cómo llega Fabric a estas cuentas lo define la estrategia de Fabric.
+- Microsoft Fabric entra a la cuenta de análisis con una regla de instancia que nombra solo su espacio de datos, con acceso de confianza (`fabric-workspaces-ingesta-region.md`, sección 3). La cuenta de evidencia no tiene regla para Fabric: Fabric no la lee.
 
 ### 4.6 Los 40 TB de históricos de temperatura
 
@@ -416,7 +416,7 @@ La consola de la torre es parte de la plataforma logística. La telemetría le e
 - **Las alertas**, por la API interna de la torre, desde la función notificadora (sección 3.5).
 - **El estado en vivo de la flota y de los cuartos fríos** (última posición, última temperatura y estado de cada sensor), por un Event Hub que alimenta Stream Analytics y que el servicio de la torre lee para actualizar el mapa. Un Event Hub Standard con una unidad de rendimiento cuesta USD 21,90 al mes, más unos USD 0,40 por los unos 14,6 millones de eventos mensuales. El namespace tiene el acceso público desactivado: Stream Analytics escribe como servicio de confianza, con su identidad administrada, y la torre y la función notificadora leen por un endpoint privado en `snet-data-pe`. El mismo namespace tiene el event hub de alertas (sección 3.2).
 
-El mapa de la torre no se construye sobre un reporte de Fabric: necesita frescura de segundos y no debe depender de que una capacidad de Fabric esté encendida. La estimación de hora de llegada que la torre muestre la define la estrategia de Fabric.
+El mapa de la torre no se construye sobre un reporte de Fabric: necesita frescura de segundos y no debe depender de que una capacidad de Fabric esté encendida. La estimación de hora de llegada que la torre muestre la define `fabric-acceso-casos-uso-costo.md`.
 
 ### 5.3 Los datos de los tableros: una tabla resumida
 
@@ -435,7 +435,7 @@ Cinco años de lecturas son unos 890 millones de filas, por encima del tope de l
 | Resumen de 5 minutos | Por sensor y por intervalo de 5 minutos: temperatura mínima, máxima y promedio, minutos fuera de rango, puertas abiertas y lecturas recibidas | Unos 64 millones | Todos los tableros |
 | Alertas | Cada alerta con su ciclo: cuándo se abrió, quién la reconoció, cuándo se cerró | Miles | Tableros de calidad y reportes de tiempos de respuesta |
 
-El resumen queda muy por debajo del tope incluso en la capacidad más pequeña. Stream Analytics escribe archivos pequeños con frecuencia, así que las tablas necesitan una compactación diaria para no pasar el tope de archivos. Esa tarea la programa la estrategia de Fabric.
+El resumen queda muy por debajo del tope incluso en la capacidad más pequeña. Stream Analytics escribe archivos pequeños con frecuencia, así que las tablas necesitan una compactación diaria para no pasar el tope de archivos. Esa tarea, con el VACUUM y el borrado a los cinco años, la hace cada noche un cuaderno de Fabric a través del atajo (`fabric-workspaces-ingesta-region.md`, sección 5.3).
 
 ### 5.4 Tableros de calidad
 
@@ -447,14 +447,14 @@ El resumen queda muy por debajo del tope incluso en la capacidad más pequeña. 
 | Salud de los sensores | Sensores sin señal, lecturas perdidas por número de secuencia y lecturas tardías por falta de señal |
 | Reportes por cliente | El historial de temperatura de las guías de un cliente en un período, listo para enviar o para un reclamo |
 
-**Licencias.** Los usuarios internos que ven reportes de Power BI necesitan licencia Pro si la capacidad de Fabric es menor que F64; con F64 o más, basta la licencia gratuita con rol de lector. El tamaño de la capacidad lo decide la estrategia de Fabric con esta regla a la vista.
+**Licencias.** Los usuarios internos que ven reportes de Power BI necesitan licencia Pro si la capacidad de Fabric es menor que F64; con F64 o más, basta la licencia gratuita con rol de lector. El tamaño de la capacidad lo decide `fabric-acceso-casos-uso-costo.md` con esta regla a la vista.
 
 ### 5.5 Vista del cliente corporativo
 
-- **Qué ve.** Solo sus guías: estado, temperatura a lo largo del viaje o de la permanencia en bodega, excursiones y cuándo se resolvieron. No ve la flota, otros clientes, ni la posición exacta del camión; el avance del viaje se muestra con la hora estimada de llegada que calcula la estrategia de Fabric.
+- **Qué ve.** Solo sus guías: estado, temperatura a lo largo del viaje o de la permanencia en bodega, excursiones y cuándo se resolvieron. No ve la flota, otros clientes, ni la posición exacta del camión; el avance del viaje se muestra con la hora estimada de llegada que calcula Fabric (`fabric-acceso-casos-uso-costo.md`).
 - **Dónde lo ve.** Dentro del portal de rastreo, con un reporte de Power BI insertado en modo "la aplicación es dueña de los datos": el portal autentica al cliente con su propio inicio de sesión y pide a Power BI un token de inserción. Los clientes no necesitan licencia de Power BI.
 - **Cómo se limita a sus datos.** El modelo semántico tiene seguridad por filas por cliente, y el portal pone la identidad del cliente en el token de inserción. Así, aunque los 2.000 clientes usan el mismo reporte, cada uno solo ve sus filas. Con Direct Lake, Microsoft pide un token de inserción V2 y una conexión con identidad fija.
-- **Disponibilidad.** Los reportes insertados funcionan mientras la capacidad de Fabric está encendida. Si la estrategia de Fabric apaga o reduce la capacidad de noche, la vista del cliente se ve afectada en esas horas; esa decisión se toma allí con este efecto a la vista.
+- **Disponibilidad.** Los reportes insertados funcionan mientras la capacidad de Fabric está encendida. Si `fabric-acceso-casos-uso-costo.md` apaga o reduce la capacidad de noche, la vista del cliente se ve afectada en esas horas; esa decisión se toma allí con este efecto a la vista.
 
 ---
 

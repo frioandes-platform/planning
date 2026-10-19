@@ -40,7 +40,7 @@ Este documento responde dos necesidades de seguridad de FríoAndes:
 
 Las cifras para dimensionar el portal: unos 2.000 clientes corporativos habilitados, un pico ordinario de cerca de 800 solicitudes por minuto y, en campaña, 2.000 solicitudes por minuto durante unas cuatro horas.
 
-La estrategia de Fabric también tiene que definir la residencia de los datos personales de conductores y destinatarios. Ese diseño toma de aquí el inventario y la posición sobre la ubicación de los datos (sección 3).
+La residencia de los datos personales que toca Microsoft Fabric la define `fabric-workspaces-ingesta-region.md` (sección 7), con el inventario y la posición sobre la ubicación de los datos de este documento (sección 3).
 
 ### 1.2 Quién usa el portal
 
@@ -66,7 +66,8 @@ Los destinatarios son titulares de datos y no tienen acceso al portal, y no hay 
 | Qué eventos de acceso se auditan (datos de clientes, evidencias y lecturas de temperatura) y cuánto tiempo se guardan los registros | Auditoría, retención y facturación interna |
 | Roles, MFA, identidades de los clientes en el portal y cifrado con Key Vault | Identidades, accesos y cifrado |
 | Cómo opera el equipo las alertas de seguridad y los tableros de operación | Observabilidad |
-| Región de Fabric y acceso de calidad, torre y clientes a Fabric | Estrategia de Fabric |
+| Región de Fabric, espacios de trabajo y qué datos lee o copia | `fabric-workspaces-ingesta-region.md` |
+| Acceso de calidad, torre y clientes a Fabric | `fabric-acceso-casos-uso-costo.md` |
 
 ---
 
@@ -101,7 +102,7 @@ La Ley 1581 define dato personal como cualquier información vinculada o que pue
 | Fotos de entregas y comprobantes con la firma de quien recibe | Sí | Igual que el video, salvo que el cliente pueda ver el comprobante de sus propias entregas, si FríoAndes lo confirma (sección 7) |
 | Posición del camión durante la jornada | Sí: se asocia al conductor del viaje | Dato personal no sensible según el artículo 5, pero revela dónde está una persona. Solo la torre ve la posición exacta |
 
-**Ningún componente hace reconocimiento facial ni identifica personas por su imagen.** El apoyo de Fabric al archivo de evidencias que prevé la estrategia de Fabric se limita a marcar fotos ilegibles o con carga visiblemente dañada. Si un uso futuro identificara personas por su rostro, los datos pasarían a ser biométricos y necesitarían la autorización especial del artículo 6.
+**Ningún componente hace reconocimiento facial ni identifica personas por su imagen.** El apoyo de Fabric al archivo de evidencias se limita a marcar fotos ilegibles o con carga visiblemente dañada. Si un uso futuro identificara personas por su rostro, los datos pasarían a ser biométricos y necesitarían la autorización especial del artículo 6.
 
 ### 2.3 Dónde vive cada dato
 
@@ -111,13 +112,13 @@ La Ley 1581 define dato personal como cualquier información vinculada o que pue
 |---|---|---|---|---|
 | Base transaccional (MySQL Flexible) | `snet-data`, East US 2 | Conductores, destinatarios, guías, usuarios de clientes | Torre, portal (solo las guías del cliente), calidad, operación con permisos temporales | Lo que dure la finalidad (sección 3). Copias automáticas de 1 a 35 días, 7 por defecto |
 | Caché del rastreo (Azure Managed Redis) | `snet-data-pe`, East US 2 | Respuestas recientes del rastreo, con el destinatario de la guía | Solo los servicios del portal y de la torre | Minutos, con vencimiento automático de cada entrada |
-| Archivo de evidencias (Blob) | `snet-archive`, East US 2 | Video, fotos, comprobantes y PDF | Calidad, quien atiende un reclamo, el gateway de Fabric | Cinco años por contrato |
+| Archivo de evidencias (Blob) | `snet-archive`, East US 2 | Video, fotos, comprobantes y PDF | Calidad, quien atiende un reclamo y Fabric, por atajo con la identidad de su espacio de datos (solo fotos y comprobantes nuevos y clips de reclamos) | Cinco años por contrato |
 | Evidencia cruda de telemetría | Central US, copia secundaria en East US 2 | Temperatura y puertas de cada camión con su hora, alertas y acuses con la identidad de quien respondió. No guarda posiciones (sección 3.5) | Calidad y quien atiende un reclamo; nadie puede modificarla | Cinco años, inmutable |
 | Tabla de análisis de telemetría | East US 2 | Lecturas con guía y cliente, y las posiciones de los camiones | Tableros de calidad y Fabric | Cinco años |
 | Event Hub del estado en vivo | `snet-data-pe`, East US 2 | Última posición y estado de cada camión | Torre | Hasta 7 días |
 | IoT Hub | Central US | Mensajes de los camiones en tránsito | Stream Analytics | 1 día por defecto, hasta 7 |
 | Cuenta de la función notificadora | `snet-data-pe`, East US 2 | Estado de cada alerta y quién la reconoció | La función notificadora | Mientras la alerta está abierta; el registro final va a la evidencia |
-| Fabric | Región que fija la estrategia de Fabric | Lo que lee de la base, del archivo y de la telemetría sin copiarlo, y los modelos de los tableros | Torre, calidad y, en la vista insertada, cada cliente sobre sus guías | Lo que define la estrategia de Fabric |
+| Fabric | East US 2 (capacidad y OneLake); permisos y metadatos en la región principal del tenant | Lee en su lugar las posiciones y las evidencias. Copia solo vistas del libro operativo, con la ubicación del punto de entrega como único dato personal, y guarda el resultado de la revisión de evidencias sin imágenes | Torre, calidad y, en la vista insertada, cada cliente sobre sus guías | Lo copiado y los resultados, cinco años con la misma regla de borrado |
 | Registros (Log Analytics) | Suscripción de seguridad, en la región principal | IP y actividad de los usuarios del portal, rutas consultadas, identidad de los empleados | Seguridad y operación | Lo que fija el diseño de auditoría |
 | Identidades (Entra ID) | Tenant de FríoAndes | Empleados y, si así lo define el diseño de identidades, usuarios de clientes | Administración de identidades | Mientras la cuenta esté activa |
 | Canales de alerta (Teams, correo, SMS) | Microsoft 365 de FríoAndes, Azure Communication Services y el proveedor de SMS | Teléfonos y correos de la guardia. Las alertas llevan solo camión, guía y temperatura | Torre y guardia de calidad | Lo que conserve cada servicio |
@@ -133,7 +134,7 @@ La Ley 1581 define dato personal como cualquier información vinculada o que pue
 | Calidad | Lecturas, alertas y acuses, evidencias y comprobantes, posición histórica para reclamos | Datos que no tengan que ver con la cadena de frío o con un reclamo |
 | Cliente corporativo | Sus guías: estado, temperatura, hora estimada de llegada, el destinatario que él mismo registró y, si se confirma, el comprobante de su entrega | La flota, la posición exacta del camión, el video, los datos del conductor y las guías de otros clientes |
 | Operación y administración | La configuración de los servicios. Los datos solo con un permiso temporal y registrado | Datos de negocio por defecto |
-| Analítica en Fabric | Lo que la estrategia de Fabric autorice para cada espacio de trabajo | Lo que no autorice |
+| Analítica en Fabric | Lo que la matriz de acceso de Fabric autorice para cada espacio de trabajo (`fabric-acceso-casos-uso-costo.md`) | Lo que no autorice. Nombres, teléfonos, documentos y direcciones escritas no entran a Fabric |
 | Microsoft, como proveedor de nube | Ningún acceso de rutina: trata los datos por cuenta de FríoAndes (sección 3) | |
 
 La vista del cliente es acotada, su acceso sigue el mínimo privilegio y no incluye la flota completa ni el video. Con ese criterio, el cliente tampoco ve los datos del conductor ni la posición exacta del camión: para seguir su carga le bastan el estado, la temperatura y la hora estimada de llegada. Un camión puede llevar carga de varios clientes, así que su posición revela rutas de otros clientes y dónde está el conductor. La torre solo se usa desde la red corporativa justamente porque muestra la ubicación de la carga. El rol de cada persona y su MFA los define el diseño de identidades.
@@ -142,10 +143,10 @@ La vista del cliente es acotada, su acceso sigue el mínimo privilegio y no incl
 
 | Lugar | Qué datos |
 |---|---|
-| Estados Unidos, East US 2 | La base, la caché, el archivo de evidencias, la tabla de análisis de telemetría, el Event Hub del estado en vivo, los registros y la copia secundaria de la evidencia de telemetría |
+| Estados Unidos, East US 2 | La base, la caché, el archivo de evidencias, la tabla de análisis de telemetría, el Event Hub del estado en vivo, los registros, la copia secundaria de la evidencia de telemetría y la capacidad de Fabric con su OneLake |
 | Estados Unidos, Central US | IoT Hub y la evidencia cruda de telemetría |
 | Colombia, datacenter de Cali | Todo, hasta el apagado del día 90 a más tardar |
-| Por definir | Fabric (lo decide la estrategia de Fabric), el proveedor de SMS y el tenant de Microsoft 365 |
+| Por definir | El proveedor de SMS, el tenant de Microsoft 365 y la región principal del tenant de Fabric, donde quedan permisos y metadatos de reportes |
 
 Con esta arquitectura, los datos personales de conductores y destinatarios salen de Colombia hacia Estados Unidos. La sección 3 explica qué exige la ley para eso.
 
@@ -186,7 +187,7 @@ La transmisión queda cubierta por dos vías:
 
 **Lo que falta definir fuera de este documento:**
 
-- La región de Fabric, que define la estrategia de Fabric. Tiene que quedar en un país de la lista de la SIC. En la lista que publica la SIC (versión de 2022) están Estados Unidos y México; Brasil y Chile no están.
+- La región principal del tenant de Fabric, donde quedan permisos y metadatos aunque la capacidad esté en East US 2 (`fabric-workspaces-ingesta-region.md`, sección 7.2). Tiene que quedar en un país de la lista de la SIC. En la lista que publica la SIC (versión de 2022) están Estados Unidos y México; Brasil y Chile no están.
 - La ubicación del proveedor de SMS y la del tenant de Microsoft 365 de FríoAndes.
 
 **Si FríoAndes no acepta Estados Unidos** (pregunta 4 de la sesión de aclaraciones), la alternativa es una región de Azure en otro país de la lista, como México. Eso obliga a revisar la latencia medida desde Cali, la disponibilidad de los servicios y la redundancia de IoT Hub en esa región.
@@ -225,7 +226,7 @@ El Decreto 1377 obliga a borrar los datos cuando se cumple su finalidad, pero ta
 | Tabla de análisis de telemetría | Una tarea programada borra las filas de más de cinco años y limpia los archivos viejos de la tabla Delta |
 | Base transaccional | Una tarea programada anonimiza los campos personales de las guías de más de cinco años (nombre, dirección, teléfono, documento del destinatario) y deja los datos de la operación para estadísticas. Los conductores sin viajes dentro de los cinco años se anonimizan igual |
 | Copias de la base | Vencen solas en máximo 35 días |
-| Fabric | Lee los mismos archivos sin copiarlos, así que el borrado se refleja solo. Lo que la estrategia de Fabric copie debe seguir la misma regla |
+| Fabric | Lo que lee por atajo se borra en el origen. Las vistas copiadas del libro operativo reciben la anonimización de la base. Los resultados de la revisión de evidencias de más de cinco años los borra un cuaderno mensual |
 | Registros | Los borra la retención que fije el diseño de auditoría |
 
 ### 3.6 Lo que FríoAndes tiene que tener listo
