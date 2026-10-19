@@ -102,3 +102,11 @@ Supuestos que no están en el enunciado y que tomó el equipo al diseñar la pla
 | Los registros de los modelos son unos 10 GB al mes (25 en campaña) | Sin dato de uso; se mide con la tabla de uso de Log Analytics | #27 | Asumido en el diseño |
 | Se reservan 8 CU de Fabric por un año | Es el piso de `fcfaprod`; uno y tres años cuestan lo mismo por mes | #27 | Decidido en el diseño |
 | El sobreconsumo de la capacidad queda activo con umbral del 10 % | Red de seguridad con tope de unos USD 631 al mes; Microsoft lo activa por defecto al 25 % | #27 | Decidido en el diseño |
+| Es costo de la migración todo lo que se paga antes del corte del 14 de febrero de 2027, más los costos únicos de la migración; desde el corte el costo es recurrente | Separa con una fecha el costo de la migración y el mensual, sin contar dos veces | #25 | Asumido en el diseño |
+| Pruebas y desarrollo se despliegan el 1 de diciembre de 2026, y el hub y producción el 14 de diciembre | Dejan tiempo para probar adaptaciones y carga de campaña antes del día 0 | #25 | Asumido en el diseño |
+| La base de producción es MySQL Flexible General Purpose de 4 vCores con 512 GB, y pruebas y desarrollo usan Burstable B2s con 64 GB | Alcanza para 450 usuarios internos y 33 solicitudes por segundo en campaña; se confirma con la prueba de carga | #25 | Asumido en el diseño |
+| Azure Bastion es Standard, con las 2 instancias incluidas | Lo decide el diseño del acceso remoto (#11) | #25 | Decidido en el diseño |
+| 180 de los 450 usuarios internos trabajan en los centros | Define el tránsito por Azure hacia la torre de Cali antes del corte | #25 | Por confirmar con el cliente |
+| El equipo cuesta COP 120.000 por hora, con recargo nocturno del 35 % y dominical del 90 % (Ley 2466 de 2025) | Tarifa promedio de referencia; los recargos son los vigentes desde julio de 2026 | #25 | Por confirmar con el cliente |
+| Los pesos se convierten a 3.311 por dólar | Es la tasa implícita del diseño de red (COP 3.000.000 = USD 906) | #25 | Asumido en el diseño |
+| La migración lleva una contingencia del 15 % | Cubre discos y envío sin cotizar, la velocidad real de la siembra y un posible segundo ensayo | #25 | Asumido en el diseño |
