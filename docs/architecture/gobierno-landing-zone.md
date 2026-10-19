@@ -1,11 +1,11 @@
 # FríoAndes — Gobierno y landing zone de Azure
 
 Estado: propuesta de arquitectura para revisión del equipo. Fecha: 4 de octubre de 2026.
-Historia cubierta: tarea 2 del listado del backlog (F1-01 según la referencia de la tarea de auditoría; confirmar el número real de issue).
+Historia cubierta: #5 (F1-01).
 
 ## 1. Objetivo y alcance
 
-Establecer una estructura común para gobernar recursos, accesos y costos en Azure, separando seguridad, red compartida, producción y ambientes no productivos. El diagrama de jerarquía se entrega como PNG por separado; este documento describe y justifica su contenido. La jerarquía no representa la topología de red ni un despliegue realizado.
+Establecer una estructura común para gobernar recursos, accesos y costos en Azure, separando seguridad, red compartida, producción y ambientes no productivos. El diagrama de jerarquía está en la sección 2; este documento describe y justifica su contenido. La jerarquía no representa la topología de red ni un despliegue realizado.
 
 El contexto proporcionado indica que desarrollo, pruebas y producción comparten actualmente el clúster de aplicación del datacenter. Esto dificulta delimitar permisos, cambios y consumo por ambiente. La propuesta crea ámbitos distintos y conserva una administración corporativa común.
 
@@ -19,6 +19,8 @@ Azure es la nube principal definida en esta historia. Los nombres, cinco suscrip
 - **Resource Group (RG):** conjunto de recursos con un ciclo de vida relacionado dentro de una suscripción.
 
 En el PNG, las líneas indican pertenencia e herencia de gobierno. No indican conexiones de red ni flujos de datos. Las políticas asignadas a un grupo se aplican a sus descendientes; el acceso de una persona se concede mediante RBAC en el ámbito que necesita.
+
+![Jerarquía de gobierno: tenant de Entra ID, grupos de administración y las cinco suscripciones](diagramas/gobierno-landing-zone.png)
 
 ## 3. Jerarquía de gobierno
 
@@ -125,7 +127,7 @@ Este documento permite revisar el diseño sin contratar ni desplegar servicios. 
 
 | Criterio de aceptación | Evidencia en este documento |
 |---|---|
-| Jerarquía con seguridad, red, prod y no-prod | PNG entregado por separado y descripción y tabla de cinco suscripciones en la sección 3 |
+| Jerarquía con seguridad, red, prod y no-prod | Diagrama de la sección 2 y descripción y tabla de cinco suscripciones en la sección 3 |
 | Cuatro dimensiones de etiquetas y tres políticas concretas | Cinco dimensiones en sección 5 y cinco políticas en sección 6 |
 | Explicar cómo se resuelve la mezcla de clústeres e identidades | Modelo de accesos en sección 4 y comparación en sección 8 |
 
