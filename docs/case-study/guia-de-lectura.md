@@ -869,6 +869,8 @@ se califica (Criterios) y qué se entrega (Entrega). Esta tabla las une:
 **Lo que hay que entender.**
 - **Seis entregas, cinco tareas.** La lista de *Entrega* tiene seis cosas y la de *Tareas* cinco: el sistema de diseño
   solo aparece dentro de la Tarea 1, y el **informe** está en la Tarea 5 pero no en *Entrega*. Lo más seguro es entregar todo.
+
+  > **Decisión tomada (#36).** El informe abre el paquete de entrega y se escribió aparte, para el arquitecto cloud: no es la unión de los Markdown. Son 18 secciones y tres anexos, con una carta de presentación y unas 20 páginas de cuerpo, y cubre los once temas que pide el issue. Los PDF de arquitectura y de costos se recompilan con la misma plantilla (portada, ficha del documento, índice y numeración), que vive en `docs/presentation/tools/frioandes.typ`. Las secciones de IaC y de sistema de diseño dicen su estado al 20 de octubre y se completan cuando cierren #24 y #35. Ver [`informe-estrategia.md`](../presentation/informe-estrategia.md) y el PDF [`report.pdf`](../presentation/report.pdf).
 - **El criterio 5 pide al menos tres decisiones que bajen o eviten gasto.** Hay candidatas claras:
   - copiar el archivo con dispositivos en vez de por red;
   - usar shortcuts en Fabric en vez de copiar el archivo;

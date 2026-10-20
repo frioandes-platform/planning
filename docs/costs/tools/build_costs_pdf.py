@@ -37,15 +37,14 @@ CHAPTERS = [
 ]
 COST_ISSUES = ("#25", "#26", "#27", "#28")
 
-PREAMBLE = (arch.PREAMBLE
-            .replace("[Arquitectura de la plataforma cloud de FríoAndes]", "[Costos de la plataforma cloud de FríoAndes]")
-            .replace("[DOCUMENTO DE ARQUITECTURA]", "[DOCUMENTO DE COSTOS]")
-            .replace("[Plataforma cloud para la operación de cadena de frío]",
-                     "[Costo total del proyecto, de la migración y de la operación]")
-            .replace("[Gobierno, seguridad, red híbrida, automatización, cargas de trabajo, migración, observabilidad, "
-                     "Microsoft Fabric y sistema de diseño]",
-                     "[Migración con la siembra de 1,2 PB, mes estable y campaña, Microsoft Fabric aparte, "
-                     "costo total de propiedad y decisiones que bajan el costo]"))
+COVER = {
+    "kind": "Documento de costos",
+    "title": "Costo total del proyecto, de la migración y de la operación",
+    "subtitle": "Migración con la siembra de 1,2 PB, mes estable y campaña, Microsoft Fabric aparte, costo total de "
+                "propiedad y decisiones que bajan el costo",
+    "header": "Costos de la plataforma cloud de FríoAndes",
+    "footer": "Documento de costos",
+}
 
 
 def promote(text, title):
@@ -89,7 +88,7 @@ def main():
     today = arch.dt.date.today()
     date = f"{today.day} de {months[today.month - 1]} de {today.year}"
 
-    parts = []
+    parts = [arch.BODY_START]
     for title, files in CHAPTERS:
         # One document per chapter: its own title becomes the chapter and its sections go back up one level,
         # so the contents list them.
@@ -100,13 +99,11 @@ def main():
     with tempfile.TemporaryDirectory() as tmp:
         tmp = Path(tmp)
         (tmp / "doc.md").write_text("\n".join(parts), encoding="utf-8")
-        (tmp / "before.typ").write_text(PREAMBLE.replace("$DATE$", date).replace("$COMMIT$", f"versión {commit}"),
-                                        encoding="utf-8")
+        (tmp / "before.typ").write_text(arch.preamble(COVER, date, commit), encoding="utf-8")
         typ = tmp / "doc.typ"
         subprocess.run(["pandoc", str(tmp / "doc.md"), "-f", "gfm+raw_attribute", "-t", "typst", "-s", "-o", str(typ),
                         "--toc", "--toc-depth=2", "-B", str(tmp / "before.typ"),
-                        "-V", "papersize=a4", "-V", "margin.x=2cm", "-V", "margin.y=2.2cm",
-                        "-V", "fontsize=9.5pt", "-V", "mainfont=Helvetica Neue", "-V", "codefont=Menlo",
+                        "-V", "papersize=a4", "-V", "fontsize=9.8pt", "-V", "mainfont=Helvetica Neue", "-V", "codefont=Menlo",
                         "-M", "lang=es"], check=True)
         text = typ.read_text(encoding="utf-8").replace("title: auto,", "title: [Contenido],", 1)
         if args.keep:
