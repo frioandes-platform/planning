@@ -88,6 +88,14 @@ def prepare_report(path):
     return "\n".join(out) + "\n"
 
 
+def assumption_counts():
+    """Entries of the assumptions log, and how many wait for FríoAndes, so the report never quotes stale counts."""
+    rows = [l for l in (ROOT / "docs/cross-cutting/assumptions-log.md").read_text(encoding="utf-8").splitlines()
+            if l.startswith("| ") and not l.startswith("| Supuesto |")]
+    pending = [l for l in rows if l.rstrip(" |").split("|")[-1].strip().startswith("Por confirmar con el cliente")]
+    return len(rows), len(pending)
+
+
 def to_typst(markdown):
     """Pandoc fragment (no template) for content that goes inside a Typst function."""
     return subprocess.run(["pandoc", "-f", "gfm", "-t", "typst"], input=markdown, capture_output=True, text=True,
@@ -129,8 +137,9 @@ def main():
 #counter(page).update(1)
 #doc-info(fields: ({typst_rows(fields)},), history: ({typst_rows(HISTORY)},), package: ({typst_rows(PACKAGE)},))
 """
+    total, pending = assumption_counts()
     body = ("```{=typst}\n#pagebreak(weak: true)\n#set page(numbering: \"1\")\n#start-body()\n```\n\n"
-            + prepare_report(REPORT))
+            + prepare_report(REPORT).replace("{{supuestos}}", str(total)).replace("{{por_confirmar}}", str(pending)))
     with tempfile.TemporaryDirectory() as tmp:
         tmp = Path(tmp)
         (tmp / "doc.md").write_text(body, encoding="utf-8")
