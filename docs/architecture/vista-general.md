@@ -98,15 +98,17 @@ El enunciado pide alinear la estrategia con los cinco pilares de un marco Well-A
 
 ## 6. Costo
 
-El costo va en su propio documento (`docs/costs/`), con cada cifra trazable a su supuesto. Las cifras ya calculadas:
+El costo va en su propio documento (`docs/costs/costs-frioandes.pdf`), con cada cifra trazable a su supuesto:
 
 | Concepto | USD | Fuente |
 |---|---|---|
-| Proyecto de migración, con la siembra del archivo y 15 % de contingencia | 153.417,32 | `docs/costs/costo-migracion.md` |
-| Fabric, mes normal | 2.891,89 | `docs/costs/costo-fabric.md` |
-| Fabric, mes de campaña | 2.938,13 | `docs/costs/costo-fabric.md` |
+| Costos únicos del proyecto: equipo por rol y fase, capacitación, consultoría, migración y 15 % de contingencia | 419.354,89 | `docs/costs/costo-total-proyecto.md` |
+| De ellos, la migración con la siembra del archivo | 153.417,32 | `docs/costs/costo-migracion.md` |
+| Mes estable de la nube, con el archivo (mes 1) | 17.239,76 | `docs/costs/costo-mes-estable-y-campana.md` |
+| Fabric, mes normal y mes de campaña | 2.891,89 y 2.938,13 | `docs/costs/costo-fabric.md` |
+| Costo total de propiedad a 1, 3 y 5 años | 864.359,86, 1.748.583,59 y 2.625.095,25 | `docs/costs/costo-total-proyecto.md` |
 
-El costo mensual de la plataforma en estado estable y en campaña (#26), el costo total del proyecto y las decisiones que bajan el gasto (#28) se suman en el documento de costos consolidado.
+Las 25 decisiones de diseño que bajan el costo, con su costo evitado, están en `docs/costs/decisiones-ahorro.md`.
 
 ---
 
