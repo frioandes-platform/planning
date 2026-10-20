@@ -29,7 +29,7 @@ Ejemplo real de `plantilla-release-notes-infraestructura.md`: el corte de la mig
 | Base: DMS y MySQL Flexible Server 8.4 | DMS termina la replicación desde Cali y Flexible Server pasa a ser la base principal, con escrituras | **No.** Una actividad de DMS terminada no se reanuda: otro intento exige una actividad nueva desde el principio. Después de las 02:30, las escrituras en Azure no vuelven a Cali |
 | Base de Cali | Pasa a `read_only` y `super_read_only` a la 01:00 | Sí, manualmente, durante la ventana |
 | `modules/compute`: 6 aplicaciones del entorno de la torre y 2 del portal (Plan A) | Del mínimo sin usuarios a su número normal de réplicas: 13 en la torre y 4 en el portal | Sí: se revierte el commit y se aplica |
-| DNS público del portal | De la IP de Cali (NAT y Nginx) a la IP del Application Gateway. El TTL se bajó a 5 minutos el martes 9 de febrero | Sí: el registro vuelve a la IP de Cali, que sigue configurada 21 días |
+| DNS público del portal | De la IP de Cali (NAT y Nginx) a la IP del Application Gateway. El TTL se bajó a 5 minutos el martes 9 de febrero, a las 22:00 | Sí: el registro vuelve a la IP de Cali, que sigue configurada 21 días |
 | DNS interno de la torre, en el DNS de Cali | De los servidores de aplicación de Cali al entorno de la torre en Azure, con TTL de 5 minutos | Sí, ídem |
 | `modules/security`: FW-501, FW-502 y su pareja en el NSG de `snet-data`; cuenta de almacenamiento de la migración y su token (Plan B) | Se retiran | **No del todo.** Las reglas se pueden recrear con un `apply`, pero la cuenta de la migración se borra con su contenido, que ya no se necesita |
 
@@ -64,7 +64,7 @@ Ejemplo real de `plantilla-release-notes-infraestructura.md`: el corte de la mig
 | ¿Excepción por incidente? | No |
 | Fechas de reserva si se suspende | Domingos 21 y 28 de febrero, a la misma hora. El corte no puede pasar del domingo 7 de marzo (`carga-c-migracion-y-campana.md`, sección 4.4) |
 
-La hora de 03:00 a 04:00 queda libre para resolver cualquier problema antes de que empiece el despacho.
+La hora de 03:00 a 04:00 queda libre para resolver cualquier problema antes de que empiece el despacho. El monitoreo reforzado de 04:00 a 06:00 solo observa: después de las 04:00, cualquier corrección es una excepción por incidente (sección 7).
 
 ### 3. Impacto
 
@@ -94,7 +94,7 @@ Los dos `plan` quedaron aprobados en el Environment de producción de GitHub. En
 
 | Hora | Paso | Responsable | Cómo se comprueba |
 |---|---|---|---|
-| Martes 9 de febrero | TTL del DNS público del portal y del DNS interno de la torre a 5 minutos | Red | Consulta del TTL desde Cali y desde internet |
+| Martes 9 de febrero, 22:00 | TTL del DNS público del portal y del DNS interno de la torre a 5 minutos | Red | Consulta del TTL desde Cali y desde internet |
 | Sábado 22:00 | Congelamiento de cambios en Cali y en Azure | Líder del corte | Pipeline sin despliegues pendientes; ningún cambio en curso en Cali |
 | Sábado 22:00 | Revisión del retraso de DMS y de la réplica de Central US | Base de datos | Retraso de DMS cercano a cero; réplica de Central US al día |
 | 00:30 | Volcado completo de la base de Cali, el respaldo de vuelta atrás | Base de datos | Volcado terminado y con su suma de verificación |
@@ -142,6 +142,7 @@ La vuelta atrás depende de la hora. La nota lo dice así porque no es lo mismo 
 | Cuánto tarda | Menos de 30 minutos hasta las 02:30 |
 | Criterios para volver atrás | Que falle cualquiera de los criterios de la sección 8.4. No se discute: si uno falla, se vuelve atrás |
 | Quién decide | El líder del corte, con despacho y calidad, a las 02:25. Después de las 02:30, el comité de cambios decide si se vuelve a Cali |
+| Fuera de la ventana | Después de las 04:00, cualquiera de las tres salidas es una excepción por incidente, con etiqueta de incidente y aprobación de seguridad en el pull request. Pasar a Central US es el runbook de continuidad, que ya parte de un incidente declarado |
 | Hasta cuándo es limpio | Hasta las **02:30**. Si a las 02:30 no hay decisión, se vuelve atrás |
 | ¿Se pierde algún dato? | Hasta las 02:30, no. Después, depende de la salida (tabla anterior) |
 | ¿Cuánto tarda en volver el servicio? | Hasta las 02:30, antes de las 03:00. Después, hasta 4 horas con Central US |
@@ -184,5 +185,5 @@ La vuelta atrás depende de la hora. La nota lo dice así porque no es lo mismo 
 | Resultado | Ejecutada, sin volver atrás |
 | Hora real de inicio y fin | Mantenimiento de 01:00 a 02:41 del domingo 14 de febrero de 2027. Segunda decisión a las 02:22 |
 | Incidentes o desviaciones | La validación tomó 19 minutos, 2 más que en el ensayo, dentro de los 20 previstos. Ningún criterio falló |
-| Pendientes | RN-INF-2027-008: eliminar DMS, cerrar la copia continua y retirar la regla temporal de `snet-archive` (lunes 15 de febrero). Cierre del plazo de vuelta atrás y retiro de FW-503, FW-504 y los grupos 400 y 500 (lunes 8 de marzo) |
+| Pendientes | RN-INF-2027-008: eliminar DMS, cerrar la copia continua y retirar la regla temporal de `snet-archive` (lunes 15 de febrero, 22:00). Cierre del plazo de vuelta atrás y retiro de FW-503, FW-504 y los grupos 400 y 500 (lunes 8 de marzo, 22:00) |
 | Cerrada por | Líder del corte, el lunes 15 de febrero de 2027, con la validación firmada |
