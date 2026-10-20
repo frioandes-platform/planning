@@ -61,75 +61,39 @@ ALONE = re.compile(r"^\s*!\[([^\]]*)\]\(([^)\s]+)\)\s*$")
 # so that their labels stay readable.
 LANDSCAPE = 1.45
 
-PREAMBLE = r"""
-#let navy = rgb("#0A1F2E")
-#let teal = rgb("#0D7894")
-#let ice = rgb("#DDF3F8")
-#let mist = rgb("#F2F6F8")
-#let grey = rgb("#52646F")
-
-#set text(lang: "es", region: "co")
-#set par(justify: false, leading: 0.62em)
-#set heading(numbering: none)
-#show link: set text(fill: teal)
-
-#show heading.where(level: 1): it => {
-  pagebreak(weak: true)
-  block(width: 100%, fill: navy, inset: (x: 14pt, y: 18pt), radius: 3pt,
-        text(fill: white, size: 20pt, weight: "bold", it.body))
-  v(10pt)
+# Cover and document information, laid out with the shared template of the delivery package
+# (docs/presentation/tools/frioandes.typ). build_costs_pdf.py calls preamble() with its own texts.
+COVER = {
+    "kind": "Documento de arquitectura",
+    "title": "Plataforma cloud para la operación de cadena de frío",
+    "subtitle": "Gobierno, seguridad, red híbrida, automatización, cargas de trabajo, migración, observabilidad, "
+                "Microsoft Fabric y sistema de diseño",
+    "header": "Arquitectura de la plataforma cloud de FríoAndes",
+    "footer": "Documento de arquitectura",
 }
-#show heading.where(level: 2): it => {
-  v(14pt)
-  block(width: 100%, stroke: (bottom: 1.5pt + teal), inset: (bottom: 6pt),
-        text(fill: navy, size: 15pt, weight: "bold", it.body))
-  v(4pt)
-}
-#show heading.where(level: 3): set text(fill: navy, size: 12pt)
-#show heading.where(level: 4): set text(fill: teal, size: 10.5pt)
-#show heading.where(level: 5): set text(fill: grey, size: 10pt)
+PREPARED_FOR = "Arquitecto cloud de FríoAndes"
+PREPARED_BY = "Equipo de arquitectura cloud del proyecto"
+BODY_START = "```{=typst}\n#pagebreak(weak: true)\n#set page(numbering: \"1\")\n#start-body()\n```\n"
 
-#show figure.where(kind: table): set block(breakable: true)
-#show table: set text(size: 7.8pt)
-#show table: set align(left)
-#show table: set par(justify: false)
-#set table(inset: 4pt, fill: (_, y) => if y == 0 { ice })
-#show raw.where(block: true): it => block(width: 100%, fill: mist, inset: 8pt, radius: 3pt, text(size: 7.8pt, it))
 
-#set page(
-  header: context {
-    if counter(page).get().first() > 1 {
-      set text(size: 8pt, fill: grey)
-      grid(columns: (1fr, auto), align: (left, right),
-           [Arquitectura de la plataforma cloud de FríoAndes], image("/docs/design/brand/logo/logo-principal.png", height: 12pt))
-      line(length: 100%, stroke: 0.4pt + rgb("#C9D4DA"))
-    }
-  },
-  footer: context {
-    if counter(page).get().first() > 1 {
-      set text(size: 8pt, fill: grey)
-      align(center, counter(page).display("1"))
-    }
-  },
-)
+def preamble(cover, date, commit):
+    """Typst that goes before the contents: template, cover, document information and front-matter numbering."""
+    def q(text):
+        return "[#" + '"' + text.replace("\\", "\\\\").replace('"', '\\"') + '"' + "]"
+    fields = [("Documento", cover["title"]), ("Versión", f"Generada desde el commit {commit}"), ("Fecha", date),
+              ("Preparado para", PREPARED_FOR), ("Preparado por", PREPARED_BY),
+              ("Clasificación", "Uso interno de FríoAndes"),
+              ("Fuente", "Repositorio frioandes-platform/planning, carpeta docs/")]
+    rows = ", ".join(f"({q(k)}, {q(v)})" for k, v in fields)
+    return f"""#import "/docs/presentation/tools/frioandes.typ": *
+#show: frioandes.with(header-title: {q(cover["header"])}, footer-label: {q(cover["footer"])})
 
-#page(header: none, footer: none, margin: 0pt)[
-  #block(width: 100%, height: 100%, fill: navy, inset: (x: 2.4cm, y: 2.6cm))[
-    #image("/docs/design/brand/logo/logo-negativo.png", width: 7cm)
-    #v(5cm)
-    #text(fill: rgb("#1FB5D6"), size: 13pt, weight: "bold")[DOCUMENTO DE ARQUITECTURA]
-    #v(4pt)
-    #text(fill: white, size: 30pt, weight: "bold")[Plataforma cloud para la operación de cadena de frío]
-    #v(10pt)
-    #text(fill: rgb("#DDF3F8"), size: 13pt)[Gobierno, seguridad, red híbrida, automatización, cargas de trabajo, migración, observabilidad, Microsoft Fabric y sistema de diseño]
-    #v(1fr)
-    #line(length: 100%, stroke: 0.6pt + rgb("#1FB5D6"))
-    #v(6pt)
-    #text(fill: white, size: 10pt)[FríoAndes · Azure, East US 2 y Central US · $DATE$ · $COMMIT$]
-    #linebreak()
-    #text(fill: rgb("#A0AAB0"), size: 9pt)[Caso de estudio académico · Universidad Icesi]
-  ]
-]
+#cover(kind: {q(cover["kind"])}, title: {q(cover["title"])}, subtitle: {q(cover["subtitle"])},
+       prepared-for: {q(PREPARED_FOR)}, prepared-by: {q(PREPARED_BY)}, date: {q(date)}, version: {q(commit)})
+
+#set page(numbering: "i")
+#counter(page).update(1)
+#doc-info(fields: ({rows},), history: (({q(commit)}, {q(date)}, {q("Versión generada desde el repositorio")}),))
 """
 
 
@@ -215,20 +179,18 @@ def main():
     today = dt.date.today()
     date = f"{today.day} de {months[today.month - 1]} de {today.year}"
 
-    parts = []
+    parts = [BODY_START]
     for title, files in CHAPTERS:
         parts.append(f"# {title}\n")
         parts.extend(prepare(f) for f in files)
     with tempfile.TemporaryDirectory() as tmp:
         tmp = Path(tmp)
         (tmp / "doc.md").write_text("\n".join(parts), encoding="utf-8")
-        (tmp / "before.typ").write_text(PREAMBLE.replace("$DATE$", date).replace("$COMMIT$", f"versión {commit}"),
-                                        encoding="utf-8")
+        (tmp / "before.typ").write_text(preamble(COVER, date, commit), encoding="utf-8")
         typ = tmp / "doc.typ"
         subprocess.run(["pandoc", str(tmp / "doc.md"), "-f", "gfm+raw_attribute", "-t", "typst", "-s", "-o", str(typ),
                         "--toc", "--toc-depth=2", "-B", str(tmp / "before.typ"),
-                        "-V", "papersize=a4", "-V", "margin.x=2cm", "-V", "margin.y=2.2cm",
-                        "-V", "fontsize=9.5pt", "-V", "mainfont=Helvetica Neue", "-V", "codefont=Menlo",
+                        "-V", "papersize=a4", "-V", "fontsize=9.8pt", "-V", "mainfont=Helvetica Neue", "-V", "codefont=Menlo",
                         "-M", "lang=es"], check=True)
         text = typ.read_text(encoding="utf-8").replace("title: auto,", "title: [Contenido],", 1)
         typ.write_text(text, encoding="utf-8")
