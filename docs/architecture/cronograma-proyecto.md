@@ -80,7 +80,7 @@ Las fases que no tenían fecha (diseño, código de infraestructura, landing zon
 | Observabilidad | 14 de diciembre al 14 de marzo | Equipo de plataforma | Azure Monitor, alertas y tableros desde el despliegue; Zabbix sigue vigilando Cali hasta el día 61 | Despliegue de producción |
 | Adaptaciones de la aplicación | 2 de noviembre al 18 de diciembre (desarrollo) y 19 de diciembre al 8 de enero (pruebas) | Equipo de aplicación | Evidencias en Blob sin NFS, compatibilidad con MySQL 8.4, contenedores, columnas y borrado lógico para Fabric | Diseño de la plataforma (#12) y de Fabric (#17) |
 | Pruebas de carga, seguridad y continuidad | 28 de diciembre al 8 de enero | QA | 2.000 solicitudes por minuto en el portal, WAF en modo detección y luego prevención, prueba de la réplica en Central US | Adaptaciones en pruebas y producción desplegada |
-| Siembra del archivo | 13 de octubre al 29 de enero | Base de datos y migración | Preparación, nueve trabajos de discos, diferencial y conciliación (#15) | Compra de discos aprobada |
+| Siembra del archivo | 13 de octubre al 29 de enero | Base de datos y migración | Preparación, nueve trabajos de discos (una prueba, siete principales y el diferencial) y conciliación (#15) | Compra de discos aprobada |
 | Convivencia: centros y telemetría | 11 al 30 de enero | Equipo de plataforma | Túneles, centros uno por uno, sensores y camiones en IoT Hub, fin de la carga por lote | Día 0 |
 | Replicación de la base | 16 de enero al 14 de febrero | Base de datos y migración | Carga inicial con DMS, réplica, alta disponibilidad y réplica en Central US | Día 0 |
 | Ensayo y corte | 31 de enero y 14 de febrero | Líder del corte | Corte completo sobre un servidor temporal, y luego el corte real | Siembra conciliada y réplica al día |

@@ -276,7 +276,7 @@ Domingo 14 de febrero de 2027. Hora de Colombia. El servicio queda en mantenimie
 | 01:05 | Se espera a que DMS marque cero segundos de retraso. Se anota la posición final del binlog | Base de datos | 5 min |
 | 01:10 | Se inicia el corte en DMS y se confirma que terminó | Base de datos | 10 min |
 | 01:20 | Validación de datos: conteo de filas de todas las tablas y una suma de verificación por columnas clave de guías, inventario y facturas, con la misma consulta en Cali y en Azure. En paralelo, última sincronización del archivo (sección 5.1) | Base de datos, archivo | 20 min |
-| 01:40 | Los cinco contenedores de producción pasan a su número normal de réplicas y abren escrituras contra Flexible Server | Aplicación | 10 min |
+| 01:40 | Las ocho aplicaciones de producción (los cinco contenedores de hoy: seis aplicaciones en el entorno de la torre y dos en el del portal, sección 7) pasan a su número normal de réplicas y abren escrituras contra Flexible Server | Aplicación | 10 min |
 | 01:50 | DNS: el registro público del portal pasa a la IP del Application Gateway y el registro interno de la torre al entorno de la torre en Azure | Red | 5 min |
 | 01:55 | Pruebas de humo con un cliente de prueba: inicio de sesión en la torre con Entra ID y MFA desde Cali y desde un centro; creación de una guía de prueba; consulta de esa guía en el portal; carga y consulta de una evidencia; consulta de una factura | Usuarios clave, pruebas | 30 min |
 | 02:25 | **Segunda decisión: seguir o volver atrás** (sección 5.4) | Líder del corte con despacho y calidad | 5 min |
@@ -293,7 +293,7 @@ Se sigue si se cumplen todos estos criterios. Si falla uno, se vuelve atrás sin
 | DMS terminó el corte sin errores | Estado de la actividad en DMS |
 | Conteos y sumas de verificación iguales en Cali y en Azure | El reporte de la validación de las 01:20 |
 | Las pruebas de humo pasan completas | La lista firmada por los usuarios clave |
-| Los cinco contenedores responden sus chequeos de salud y no hay errores 5xx en el Application Gateway | Azure Monitor (#16) |
+| Las ocho aplicaciones responden sus chequeos de salud y no hay errores 5xx en el Application Gateway | Azure Monitor (#16) |
 | La réplica de Central US está al día | Métrica de retraso de la réplica |
 | Son las 02:30 o antes | Reloj. Si a las 02:30 no hay decisión, se vuelve atrás |
 

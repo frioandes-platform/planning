@@ -37,7 +37,7 @@ Ejemplo real de `plantilla-release-notes-infraestructura.md`: el corte de la mig
 
 - **La telemetría.** IoT Hub, Stream Analytics y la función notificadora ya funcionan en Azure desde antes del día 0, y la alerta a la guardia de calidad sigue llegando durante toda la madrugada.
 - **El archivo de 1,2 PB.** Ya está sembrado y conciliado desde el 29 de enero. En el corte solo se copian unos 17 GB de la última hora, en paralelo con la validación.
-- **Las reglas temporales FW-503 y FW-504 y la VPN de los centros hacia Cali.** Siguen hasta el cierre del plazo de vuelta atrás, el 8 de marzo.
+- **Las reglas temporales FW-401, FW-503, FW-504 y NSG-prod-14, y la VPN de los centros hacia Cali.** Siguen hasta el cierre del plazo de vuelta atrás, el 8 de marzo. FW-402 ya se retiró en enero, centro por centro, al terminar la carga por lote de temperatura.
 - **Fabric.** Empieza a copiar la base de Azure después del corte.
 
 **Pruebas hechas.**
@@ -173,7 +173,7 @@ La vuelta atrás depende de la hora. La nota lo dice así porque no es lo mismo 
 
 **Red y firewall (sección 8.1), lo que aplica al corte:**
 
-- **Reglas que se retiran:** FW-501, FW-502 y su pareja en el NSG de `snet-data`, todas temporales de la migración. FW-503, FW-504 y los grupos 400 y 500 siguen hasta el 8 de marzo.
+- **Reglas que se retiran:** FW-501, FW-502 y su pareja en el NSG de `snet-data`, todas temporales de la migración. FW-401, FW-503, FW-504 y NSG-prod-14 siguen hasta el 8 de marzo; FW-402 salió en enero.
 - **DNS:** los dos registros, con TTL de 5 minutos desde el martes 9.
 - **Verificador:** `verify_firewall_policy.py` sin errores en el pull request del Plan B.
 - **Telemetría de los cuartos fríos:** no se afecta, porque entra por la VPN de cada centro hacia Azure, que no cambia.
@@ -185,5 +185,5 @@ La vuelta atrás depende de la hora. La nota lo dice así porque no es lo mismo 
 | Resultado | Ejecutada, sin volver atrás |
 | Hora real de inicio y fin | Mantenimiento de 01:00 a 02:41 del domingo 14 de febrero de 2027. Segunda decisión a las 02:22 |
 | Incidentes o desviaciones | La validación tomó 19 minutos, 2 más que en el ensayo, dentro de los 20 previstos. Ningún criterio falló |
-| Pendientes | RN-INF-2027-008: eliminar DMS, cerrar la copia continua y retirar la regla temporal de `snet-archive` (lunes 15 de febrero, 22:00). Cierre del plazo de vuelta atrás y retiro de FW-503, FW-504 y los grupos 400 y 500 (lunes 8 de marzo, 22:00) |
+| Pendientes | RN-INF-2027-008: eliminar DMS, cerrar la copia continua y retirar la regla temporal de `snet-archive` (lunes 15 de febrero, 22:00). Cierre del plazo de vuelta atrás y retiro de lo que queda de los grupos 400 y 500 (FW-401, FW-503 y FW-504) y de NSG-prod-14 (lunes 8 de marzo, 22:00) |
 | Cerrada por | Líder del corte, el lunes 15 de febrero de 2027, con la validación firmada |
