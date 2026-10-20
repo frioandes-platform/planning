@@ -605,6 +605,8 @@ Los costos están en #25 Costo de la migración y #26 Costo mensual y de campañ
 
 > **Decisión tomada (#25).** El proyecto de migración cuesta unos USD 133.000, más un 15 % de contingencia: unos USD 153.000 (COP 508 millones). La siembra es casi la mitad (USD 64.920), las horas del equipo el 29 % y Azure antes del corte el 21 %. Es costo de la migración todo lo que se paga antes del corte del 14 de febrero; desde ahí cuenta #26. Ver [`costo-migracion.md`](../costs/costo-migracion.md).
 
+> **Decisión tomada (#26).** Con la plataforma ya en Azure, el mes estable cuesta unos USD 17.240 (COP 57 millones) y baja a 16.449 en el año 5. El archivo es el 45 % del mes y no crece: el borrado a los cinco años saca lo mismo que entra, y sin él la capacidad pasaría de USD 6.780 a 10.454 al mes. La campaña agrega USD 7,39 por día en las horas del pico (222 un mes completo), o 16,02 con la regla de la torre de 04:00 a 22:00. Un 40 % plano sumaría 6.533 al mes. Ver [`costo-mes-estable-y-campana.md`](../costs/costo-mes-estable-y-campana.md).
+
 **Cuidado con.**
 - **Las tres reglas de campaña no se mezclan.** El 40 % extra se aplica **solo** a la capa de aplicación. El portal se
   calcula directo con 2.000 solicitudes por minuto y la telemetría con 180 camiones. El issue #14 lo exige así.
