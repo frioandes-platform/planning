@@ -544,7 +544,7 @@ La verificación no se hace a ojo. Un script, `verify_ip_plan.py`, lee el plan d
 ```bash
 python3 tools/verify_ip_plan.py --plan data/ip-plan.csv --out verification/reporte-ip-plan.md
 sha256sum data/ip-plan.csv
-# 2f629473e0412f3e4435d201ed5566a5cc9d68ffea6980267bb388bcc2ccf21a
+# a520eba842e6d7781705613d539fcfd018bfd00481f3842814d07d97036b91a0
 ```
 
 El hash identifica el archivo verificado. Si alguien cambia una sola dirección, el hash cambia y hay que volver a correr el script.
@@ -1010,7 +1010,7 @@ Las mismas subredes del diagrama de subredes, incluida `snet-telemetry-func`, co
 
 #### Verificación de la variante
 
-`ip-plan-aks.csv` parte de `ip-plan.csv` y suma las tres subredes de la API y las dos reservas de pods y servicios. Tiene 49 filas y pasa las 12 comprobaciones del script, sin solapamiento. Su hash es `595273b6920ba93ff2757485bc4e8b1593dfd2b76c3332989568416c91fe56cc`. Las filas que agrega están al final del Anexo A.
+`ip-plan-aks.csv` parte de `ip-plan.csv` y suma las tres subredes de la API y las dos reservas de pods y servicios. Tiene 49 filas y pasa las 12 comprobaciones del script, sin solapamiento. Su hash es `06507247ae9683716e832dc2c278535ac16bdeab39a8592fe0f1d4e3c6abe1e3`. Las filas que agrega están al final del Anexo A.
 
 ### 7.4 Si se eligiera otra plataforma
 
