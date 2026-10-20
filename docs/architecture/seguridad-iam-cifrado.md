@@ -6,6 +6,8 @@ Los 450 usuarios internos y los aproximadamente 2.000 usuarios de clientes corpo
 
 Se utiliza el **tenant corporativo de Microsoft Entra ID** de #5, con grupos distintos y permisos explícitos en aplicaciones y Azure. Para los clientes se propone colaboración B2B: usuarios externos invitados como *guest* a la aplicación del portal en el mismo tenant. El alta y baja las aprueba un administrador de cada cliente y FríoAndes; no se conceden roles Azure RBAC a esos invitados. Antes del despliegue se validan licencias, experiencia de acceso y el sistema de identidad real de los clientes. Si se escogiera un servicio de identidad para consumidores en otro tenant, habría que actualizar este diseño, las políticas y la integración con Fabric.
 
+![Identidades y permisos: operación interna, clientes corporativos y administración, sobre Microsoft Entra ID](diagramas/seguridad-iam-cifrado.drawio.png)
+
 ## 2. Matriz de roles y autorizaciones
 
 grp-fa-governance, grp-fa-security, grp-fa-network, grp-fa-dev, grp-fa-qa, grp-fa-ops-prod y grp-fa-finops gobiernan Azure por suscripción o grupo de recursos. Los siguientes roles funcionales se asignan a grupos de Entra ID y se traducen a permisos dentro de cada servicio. La aplicación siempre verifica `cliente_id`, guía y acción en el servidor; nunca confía solo en lo que muestra la interfaz.

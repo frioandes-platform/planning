@@ -939,7 +939,7 @@ número en vez del número de GitHub. Esta tabla los traduce (F1-04 se deduce po
 | Firewall de nube con tabla de reglas y firewall web | Reto 3 | #9, #21 | `red-firewall-y-publicacion.md` | ✅ |
 | Código de infraestructura reutilizable | Reto 4 | #20, #21, #22 | repo `iac`: módulos de red, seguridad y cómputo o telemetría | ✅ |
 | Pipeline para infraestructura y contenedores | Reto 4 | #23 | `iac/.github/workflows/` | ✅ |
-| Ambientes con promoción controlada | Reto 4 | #23, #20 | `environments/dev`, `test`, `prod` | ✅ (sin diagrama de ambientes) |
+| Ambientes con promoción controlada | Reto 4 | #23, #20, #19 | `environments/dev`, `test`, `prod`; diseño y diagrama en `automatizacion-devops.md` | ✅ |
 | Secretos fuera del pipeline | Reto 4 | #23 | — | ✅ |
 | Cambios que respetan el horario | Reto 4 | #23, #31 | `docs/change/verificacion-ventana-cambio.md` | ✅ |
 | Dos plantillas de cambio con ejemplo | Reto 4 | #29, #30 | `docs/change/plantilla-…` y `ejemplo-…` | ✅ |
@@ -957,12 +957,12 @@ número en vez del número de GitHub. Esta tabla los traduce (F1-04 se deduce po
 | Accesos y apagado fuera de campaña | Reto 7 | #18 | ídem que #18 | ✅ |
 | Costo de Fabric aparte | Reto 7 | #27 | `docs/costs/costo-fabric.md` | ✅ |
 | Sistema de diseño completo | Reto 8 | #32 a #35 | `docs/design/…` | ✅ (falta que se vea aplicado) |
-| Documento de arquitectura que recorre todo | Tarea 1 | #19 | `docs/architecture/arquitectura-frioandes.md` | ✅ |
+| Documento de arquitectura que recorre todo | Tarea 1 | #19 | `docs/architecture/architecture-frioandes.pdf` (fuentes: `vista-general.md`, `automatizacion-devops.md`, `cronograma-proyecto.md` y los demás de la Fase 1) | ✅ |
 | Documento de costos con tres decisiones de ahorro | Tarea 3 y criterio 5 | #28 | `docs/costs/costos-frioandes.md` | ✅ |
 | Informe, presentación y ensayo | Tarea 5 | #36, #37, #38 | `docs/presentation/…` | ✅ |
 | Todo supuesto por escrito | Qué se evalúa | #40 (al final) | `docs/cross-cutting/assumptions-log.md` | 🟡 se arma muy tarde |
 | Preparar la sesión de aclaraciones | Detalle técnico | — | `sesion-aclaraciones-preguntas.md` (lo menciona el briefing) | ❌ |
-| Alinear con los cinco pilares Well-Architected | Visión | — | — | ❌ |
+| Alinear con los cinco pilares Well-Architected | Visión | #19 | `docs/architecture/vista-general.md`, sección 5 | ✅ |
 | Que el código coincida con el dibujo | Criterio 3 | #21, #39 | `docs/iac/verificacion-iac-vs-firewall.md`, `docs/cross-cutting/revision-final-…` | ✅ |
 
 > **Decisión tomada (#10).** La transferencia a EE. UU. quedó tratada: es una transmisión a Microsoft como encargado, con contrato (Decreto 1377, artículos 24 y 25), a un país de la lista de la SIC. Ver [`seguridad-datos-personales-perimetro.md`](../architecture/seguridad-datos-personales-perimetro.md), sección 3.3.
@@ -1122,6 +1122,10 @@ Puntos del tablero que conviene corregir o decidir en equipo.
 > **Decisión tomada (#13).** Sobre los dos lugares para guardar los datos analíticos: guarda el lago de datos de Azure y Fabric solo lee, con un acceso directo de OneLake. Synapse Data Explorer ya no existe (Microsoft lo retiró el 7 de octubre de 2025) y Data Explorer se descartó por costo. Ver [`carga-b-telemetria.md`](../architecture/carga-b-telemetria.md), sección 4.2.
 
 > **Decisión tomada (#15).** Sobre Data Box Heavy: está retirado, y Data Box no se puede pedir desde Colombia. El medio es Azure Import/Export con discos propios, dimensionado en [`carga-c-siembra-1-2pb.md`](../architecture/carga-c-siembra-1-2pb.md), sección 5. El texto de #15 y #25 todavía nombra Data Box Heavy.
+
+> **Decisión tomada (#19).** El diagrama de ambientes y la alineación con los cinco pilares Well-Architected quedaron en el documento de arquitectura: el diagrama en [`automatizacion-devops.md`](../architecture/automatizacion-devops.md), sección 1, y los pilares en [`vista-general.md`](../architecture/vista-general.md), sección 5. El documento se compila a un solo PDF, `docs/architecture/architecture-frioandes.pdf`, con `docs/architecture/tools/build_architecture_pdf.py` (Pandoc y Typst).
+
+> **Decisión tomada (#19).** Sobre la vista *Roadmap* vacía: el cronograma general del proyecto, del 28 de septiembre de 2026 al 30 de abril de 2027, está en [`cronograma-proyecto.md`](../architecture/cronograma-proyecto.md), con hitos, fases, responsables por rol, ruta crítica y campañas. La ruta crítica es la siembra del archivo: la conciliación termina el 29 de enero, dos días antes del ensayo, y por eso la compra de discos se aprueba por separado el 13 de octubre.
 
 ---
 
