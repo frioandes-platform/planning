@@ -10,7 +10,7 @@ Un ejemplo diligenciado, el corte de la migración, está en `ejemplo-release-no
 
 1. Quien pide el cambio copia este archivo como `RN-INF-AAAA-NNN.md`, marca el tipo de cambio y llena las secciones comunes y la sección de su tipo. Ningún campo queda vacío: si algo no aplica, se escribe "No aplica" con el porqué.
 2. La nota va en el pull request del repositorio `frioandes-platform/iac`, junto con el `plan` de producción que publica el pipeline. Sin la nota y sin la aprobación del Environment, el pipeline no aplica en producción (`automatizacion-devops.md`, sección 3).
-3. El comité de cambios la aprueba al menos dos días hábiles antes de la ventana. Un corte o un cambio que no se puede deshacer con un `apply` se aprueba con una semana de anticipación.
+3. El comité de cambios la aprueba al menos dos días hábiles antes de la ventana. Un corte o un cambio que no se puede deshacer con un `apply` se aprueba con al menos cinco días de anticipación; un corte, además, después de su ensayo.
 4. Los avisos de la sección 6 salen con el texto de la nota, en los plazos que ella misma fija.
 5. Después de la ventana se completa la sección 9 y la nota queda cerrada en el repositorio.
 
@@ -24,6 +24,7 @@ Un ejemplo diligenciado, el corte de la migración, está en `ejemplo-release-no
 | La aprueban dos personas del comité de cambios, distintas de quien escribió el cambio. Un cambio en el hub lo aprueba también el equipo de redes | `automatizacion-devops.md`, secciones 1 y 3 |
 | El mismo código pasó por desarrollo y pruebas, y el `plan` de producción está publicado en el pull request | `automatizacion-devops.md`, sección 3 |
 | Lo que no se puede deshacer con un `apply` se marca así y lleva una aprobación adicional | `automatizacion-devops.md`, sección 5 |
+| Volver atrás fuera de la ventana también es un cambio en producción: entre las 04:00 y las 22:00 solo se hace como excepción por incidente. Si puede esperar, va en la ventana siguiente | `automatizacion-devops.md`, secciones 3 y 5 |
 | Se avisa siempre a despacho y a calidad: de noche la guardia de calidad recibe las alertas de temperatura, y un cambio de red puede cortarlas | Guía de lectura, Reto 4 |
 
 ---
@@ -111,6 +112,7 @@ Un ejemplo diligenciado, el corte de la migración, está en `ejemplo-release-no
 | Cuánto tarda | |
 | Criterios para volver atrás | *Señales y umbrales concretos* |
 | Quién decide | *Rol* |
+| Fuera de la ventana | *Qué pasa si hay que volver atrás o corregir entre las 04:00 y las 22:00: excepción por incidente o espera a la ventana siguiente* |
 | Hasta cuándo es limpio | *El momento después del cual volver atrás pierde datos o exige otro procedimiento* |
 | ¿Se pierde algún dato? | *Cuánto, comparado con el RPO de 15 minutos* |
 | ¿Cuánto tarda en volver el servicio? | *Comparado con el RTO de 4 horas* |

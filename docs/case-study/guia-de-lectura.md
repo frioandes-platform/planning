@@ -399,6 +399,8 @@ que haya un incidente. Queda una ventana de **6 horas cada noche** (de 22:00 a 0
 
   > **Decisión tomada (#29).** La nota de aplicación tiene los seis campos y exige ventana en UTC, campaña más cercana y excepción por incidente explícita. El ejemplo es una mejora del portal de rastreo (búsqueda por orden de compra y descarga en CSV) el martes 25 de mayo de 2027, de 22:30 a 23:45, sin interrupción: revisión nueva sin tráfico, pruebas de humo y vuelta atrás moviendo el tráfico a la revisión anterior en menos de 5 minutos. El índice va antes, en otra ventana, como pide el cambio de esquema en dos pasos. Ver [`ejemplo-release-notes-aplicacion.md`](../change/ejemplo-release-notes-aplicacion.md).
 
+  > **Decisión tomada (#31).** Los dos ejemplos respetan la ventana de 22:00 a 04:00, fuera de campaña, y ninguno usa la excepción por incidente. La revisión miró cada hora, no solo la ventana declarada, y corrigió siete puntos de horario: cambios sin hora (el TTL del DNS, el índice, los pendientes del corte), el monitoreo hasta las 06:00 que parecía extender la ventana, y vueltas atrás sin límite de horario. Desde ahora, volver atrás o corregir entre las 04:00 y las 22:00 es una excepción por incidente, y las dos plantillas lo piden en un campo propio. También se ajustó la anticipación de la aprobación de un corte a cinco días, porque el comité del 14 de febrero aprueba el lunes 8. Ver [`verificacion-ventana-cambio.md`](../change/verificacion-ventana-cambio.md).
+
 Todos están en *Backlog* y sin asignar.
 
 **Cuidado con.**

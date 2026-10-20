@@ -27,7 +27,7 @@ Ejemplo real de `plantilla-release-notes-aplicacion.md`, ya cerrado: una mejora 
 
 | Componente | Imagen (digest) | Cambio de configuración o secretos | Cambio de esquema |
 |---|---|---|---|
-| `rastreo` | `sha256:3b8686ce918ca398e52214bb73604cf825137ff5bd2803d9d25ec3e914e467b7` | Variable nueva `EXPORT_MAX_ROWS=5000` y límite de 10 descargas por hora por cuenta. Sin secretos nuevos | Ninguno en esta nota. Usa el índice `ix_guias_cliente_oc` sobre `(cliente_id, orden_compra)`, creado en el paso 1 (RN-APP-2027-014, martes 18 de mayo, sin bloqueo de la tabla) |
+| `rastreo` | `sha256:3b8686ce918ca398e52214bb73604cf825137ff5bd2803d9d25ec3e914e467b7` | Variable nueva `EXPORT_MAX_ROWS=5000` y límite de 10 descargas por hora por cuenta. Sin secretos nuevos | Ninguno en esta nota. Usa el índice `ix_guias_cliente_oc` sobre `(cliente_id, orden_compra)`, creado en el paso 1 (RN-APP-2027-014, martes 18 de mayo de 22:30 a 22:50, sin bloqueo de la tabla) |
 | `front-portal` | `sha256:4a4464d883d183b86652b4a1fbc350cb12c35c2e3cd6f2804ec9c582bb169987` | Ninguno | Ninguno |
 
 - La búsqueda y la descarga usan el mismo filtro por cliente que ya aplica `rastreo`: un cliente solo ve sus guías (`seguridad-datos-personales-perimetro.md`).
@@ -110,6 +110,7 @@ Como no hay interrupción, a los clientes no se les avisa antes de la ventana: s
 | Cuánto tarda | Menos de 5 minutos |
 | Criterios para volver atrás | Una prueba de humo falla; los errores 5xx del portal pasan del 1 % durante 10 minutos; la latencia p95 pasa de 1,5 s durante 10 minutos; o aparece una guía de otro cliente en cualquier prueba (en ese caso, de inmediato y con aviso a seguridad) |
 | Quién decide | El responsable técnico de la ventana. Si es después de las 23:45, el ingeniero de plataforma de turno |
+| Fuera de la ventana | Mover el tráfico también es un cambio en producción. Hasta las 04:00 lo decide quien está en la ventana. Entre las 04:00 y las 22:00 solo se hace como excepción por incidente, con etiqueta de incidente y aprobación de seguridad, porque el pipeline lo bloquea sin ellas. Si el problema puede esperar, se vuelve atrás en la ventana siguiente |
 | Hasta cuándo se puede | Siete días, hasta el martes 1 de junio, cuando se desactivan las revisiones anteriores (sección 8). Después, se vuelve atrás desplegando la versión 3.1.4 por el pipeline, en otra ventana |
 | ¿Se pierde algún dato? | No. La versión nueva solo lee: no escribe datos nuevos en la base |
 | Lo que no se deshace moviendo el tráfico | El índice `ix_guias_cliente_oc`, creado en el paso 1. Es compatible con la versión 3.1.4, que no lo usa, así que se deja |

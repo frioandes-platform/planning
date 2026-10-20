@@ -24,6 +24,7 @@ Un ejemplo diligenciado está en `ejemplo-release-notes-aplicacion.md`.
 | La aprueban dos personas del comité de cambios, distintas de quien escribió el cambio | Ídem |
 | La misma imagen, por su digest, pasó por desarrollo y pruebas antes de producción | Ídem |
 | Los cambios de esquema son compatibles hacia atrás, en dos pasos: primero se agrega lo nuevo y lo viejo se quita en una ventana posterior | `automatizacion-devops.md`, sección 5 |
+| Volver atrás fuera de la ventana también es un cambio en producción: entre las 04:00 y las 22:00 solo se hace como excepción por incidente. Si puede esperar, va en la ventana siguiente | `automatizacion-devops.md`, secciones 3 y 5 |
 | Se avisa siempre a despacho y a calidad, aunque el cambio no los toque: de noche la guardia de calidad recibe las alertas de temperatura | Guía de lectura, Reto 4 |
 
 ---
@@ -116,6 +117,7 @@ La aprobación queda registrada en el Environment de producción de GitHub, con 
 | Cuánto tarda | *Minutos* |
 | Criterios para volver atrás | *Señales y umbrales concretos* |
 | Quién decide | *Rol* |
+| Fuera de la ventana | *Qué pasa si hay que volver atrás entre las 04:00 y las 22:00: excepción por incidente o espera a la ventana siguiente* |
 | Hasta cuándo se puede | *Por ejemplo, mientras la revisión anterior siga activa* |
 | ¿Se pierde algún dato? | *Sí o no, y por qué* |
 | Lo que no se deshace moviendo el tráfico | *Esquema, datos o configuración que quedan, y por qué son compatibles con la versión anterior* |
