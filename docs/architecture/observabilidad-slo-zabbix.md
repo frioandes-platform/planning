@@ -234,7 +234,7 @@ La función notificadora escribe una fila por alerta, real o sintética, en una 
 
 ### 4.6 Durante el corte
 
-Live Metrics muestra en vivo las solicitudes y fallas de los servicios. Lo usa el monitoreo reforzado del corte, hasta las 06:00 del domingo, junto con el criterio "los cinco contenedores responden sus chequeos de salud y no hay errores 5xx en el Application Gateway" (`carga-c-migracion-y-campana.md`, sección 5.4). Sus endpoints entran en la etiqueta `AzureMonitor`.
+Live Metrics muestra en vivo las solicitudes y fallas de los servicios. Lo usa el monitoreo reforzado del corte, hasta las 06:00 del domingo, junto con el criterio "las ocho aplicaciones responden sus chequeos de salud y no hay errores 5xx en el Application Gateway" (`carga-c-migracion-y-campana.md`, sección 5.4). Sus endpoints entran en la etiqueta `AzureMonitor`.
 
 ---
 

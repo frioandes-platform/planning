@@ -138,7 +138,7 @@ Los camiones envían por la red móvil y los cuartos fríos por la VPN de su cen
 
 **Lo que el corte no puede deshacer.** MySQL no replica de 8.4 hacia 5.7. Hasta las 02:30, volver atrás es limpio: no se pierde ningún dato y el servicio vuelve antes de las 03:00. Después, la base de Azure ya recibió escrituras reales. Las salidas, en este orden, son: corregir en Azure; pasar a Central US con el runbook de continuidad (hasta 15 minutos de datos y 4 horas de recuperación), o volver a Cali recargando lo creado en Azure con una exportación de la aplicación. El corte tiene seis criterios cerrados para seguir: si uno falla a las 02:25, se vuelve atrás sin discusión.
 
-**Siembra del archivo de 1,2 PB.** Data Box no sirve: Data Box Heavy está retirado y los equipos Data Box no cruzan fronteras comerciales. El archivo se siembra con **Azure Import/Export: 71 discos de 20 TB en nueve trabajos**, copiados del 2 de noviembre al 16 de diciembre de 2026. Un segundo envío de discos lleva lo creado hasta el 4 de enero, y lo posterior viaja por la red desde el día 0. El archivo queda conciliado el 29 de enero, dos días antes del ensayo. El video, que es el 88 % del volumen, queda en el nivel Cold con LRS, y los documentos y los históricos de temperatura en GRS.
+**Siembra del archivo de 1,2 PB.** Data Box no sirve: Data Box Heavy está retirado y los equipos Data Box no cruzan fronteras comerciales. El archivo se siembra con **Azure Import/Export: 71 discos de 20 TB en nueve trabajos**: una prueba de un disco, siete trabajos principales copiados del 2 de noviembre al 16 de diciembre de 2026 y un último envío, el 6 de enero, con lo creado hasta el 4 de enero. Lo posterior viaja por la red desde el día 0. El archivo queda conciliado el 29 de enero, dos días antes del ensayo. El video, que es el 88 % del volumen, queda en el nivel Cold con LRS, y los documentos y los históricos de temperatura en GRS.
 
 **Campaña.** El 40 % adicional de cómputo va solo al entorno de la torre: de 13 a 20 vCPU, de 04:00 a 22:00, con una regla de escalado por calendario. El portal pasa de dos a cuatro réplicas de rastreo, el Application Gateway ya tiene reservada su capacidad y la telemetría no cambia con 180 camiones. La convivencia empieza después de la campaña de fin de año y todo cambio termina antes de Semana Santa (15 al 28 de marzo de 2027).
 
@@ -264,7 +264,7 @@ Todas las cifras salen de scripts que consultan la API de precios de Azure, en U
 
 # 17. Lo que FríoAndes tiene que confirmar
 
-El registro de supuestos tiene 148 entradas, y 61 de ellas esperan una confirmación de FríoAndes. Estas son las que cambian el diseño, el costo o las fechas:
+El registro de supuestos tiene {{supuestos}} entradas, y {{por_confirmar}} de ellas esperan una confirmación de FríoAndes. Estas son las que cambian el diseño, el costo o las fechas:
 
 | Tema | Pregunta | Qué cambia si la respuesta es otra |
 |---|---|---|

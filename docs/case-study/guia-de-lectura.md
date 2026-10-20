@@ -580,7 +580,7 @@ Si cada mensaje pesa 1 KB (supuesto), son unos 0,5 GB por día, unos 15 GB al me
 | Dispositivos necesarios para 1,2 PB | Data Box Heavy (unos 770 TB útiles): **2**. Data Box nuevo de 525 TB: **3**. Data Box de 120 TB: **10**. Data Box clásico (80 TB): **15**. Todo **por confirmar**: qué modelos siguen vigentes y si **se pueden pedir desde Colombia** |
 | Cantidad de archivos pequeños | 110 TB, casi todos de menos de 2 MB. Si promedian 1 MB son **≈ 110 millones de archivos**, lo que hace más lenta la copia y suma costo por operación |
 
-> **Decisión tomada (#15).** Data Box no sirve: Data Box Heavy está retirado y los equipos Data Box no cruzan fronteras comerciales, y Colombia no tiene región de Azure. Se siembra con Azure Import/Export: 71 discos HDD de 20 TB en 9 trabajos, copiados del 2 de noviembre al 16 de diciembre de 2026, más un envío del diferencial el 6 de enero, con el archivo conciliado antes del ensayo del 31 de enero. Ver [`carga-c-siembra-1-2pb.md`](../architecture/carga-c-siembra-1-2pb.md), secciones 3 y 5.
+> **Decisión tomada (#15).** Data Box no sirve: Data Box Heavy está retirado y los equipos Data Box no cruzan fronteras comerciales, y Colombia no tiene región de Azure. Se siembra con Azure Import/Export: 71 discos HDD de 20 TB en 9 trabajos: una prueba, siete principales copiados del 2 de noviembre al 16 de diciembre de 2026 y el diferencial, enviado el 6 de enero, con el archivo conciliado antes del ensayo del 31 de enero. Ver [`carga-c-siembra-1-2pb.md`](../architecture/carga-c-siembra-1-2pb.md), secciones 3 y 5.
 
 
 **La idea clave.** Si después de la copia con dispositivos queda corriendo una **copia continua** de lo nuevo (unos
