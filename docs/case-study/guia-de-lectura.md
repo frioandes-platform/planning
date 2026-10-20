@@ -397,6 +397,8 @@ que haya un incidente. Queda una ventana de **6 horas cada noche** (de 22:00 a 0
 - Fase 4: #29 Plantilla de aplicación, #30 Plantilla de infraestructura (con el corte del domingo como ejemplo) y
   #31 Revisión del horario.
 
+  > **Decisión tomada (#29).** La nota de aplicación tiene los seis campos y exige ventana en UTC, campaña más cercana y excepción por incidente explícita. El ejemplo es una mejora del portal de rastreo (búsqueda por orden de compra y descarga en CSV) el martes 25 de mayo de 2027, de 22:30 a 23:45, sin interrupción: revisión nueva sin tráfico, pruebas de humo y vuelta atrás moviendo el tráfico a la revisión anterior en menos de 5 minutos. El índice va antes, en otra ventana, como pide el cambio de esquema en dos pasos. Ver [`ejemplo-release-notes-aplicacion.md`](../change/ejemplo-release-notes-aplicacion.md).
+
 Todos están en *Backlog* y sin asignar.
 
 **Cuidado con.**
@@ -627,6 +629,8 @@ Los costos están en #25 Costo de la migración y #26 Costo mensual y de campañ
   infraestructura (#30) tiene que decirlo con honestidad.
 
   > **Decisión tomada (#14).** Confirmado: MySQL no replica de 8.4 hacia 5.7, así que volver atrás limpio solo es posible hasta las 02:30 del corte. FW-505 y su pareja en el NSG se retiraron de la tabla de políticas. Después, la salida es corregir en Azure o pasar a Central US; volver a Cali exige recargar lo creado en Azure con una exportación de la aplicación. Además, DMS no replica cambios de esquema hacia 8.4, así que el esquema de Cali queda congelado desde el arranque de DMS hasta el corte. Ver [`carga-c-migracion-y-campana.md`](../architecture/carga-c-migracion-y-campana.md), secciones 3.3, 3.5 y 6.2.
+
+  > **Decisión tomada (#30).** La nota de infraestructura agrega el `plan`, lo que un `apply` no deshace y una sección por tipo de cambio (red y firewall, cómputo, datos y corte). El ejemplo es el corte del 14 de febrero y separa la vuelta atrás en tres momentos: antes de la 01:00 se suspende; de 01:00 a 02:30 es limpia, sin pérdida de datos y con el servicio de vuelta antes de las 03:00; después de las 02:30 no es limpia, y las salidas son corregir en Azure, pasar a Central US (RPO de 15 minutos y RTO de 4 horas) o volver a Cali con la exportación. Ver [`ejemplo-release-notes-infraestructura.md`](../change/ejemplo-release-notes-infraestructura.md).
 
 - **Los nombres no coinciden.** El issue #14 habla de "torre, inventario, facturación, portal, evidencias" y el
   enunciado llama a los contenedores "despacho, inventario, facturación corporativa, rastreo, evidencias". Conviene
