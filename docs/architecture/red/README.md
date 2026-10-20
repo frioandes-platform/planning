@@ -28,7 +28,7 @@ Datos, herramientas y reportes que respaldan [`../red-topologia-subnetting.md`](
 ```bash
 python3 tools/verify_ip_plan.py --plan data/ip-plan.csv --out verification/reporte-ip-plan.md
 sha256sum data/ip-plan.csv
-# 2f629473e0412f3e4435d201ed5566a5cc9d68ffea6980267bb388bcc2ccf21a
+# a520eba842e6d7781705613d539fcfd018bfd00481f3842814d07d97036b91a0
 ```
 
 Si el hash cambia, el plan cambió: hay que volver a correr la verificación y actualizar el hash en el documento.
