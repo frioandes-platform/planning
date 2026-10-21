@@ -1,0 +1,89 @@
+PASS: snapshot hashes; 3 application VNets, 33 subnets; no overlap with 23 on-premises subnets, hub or reservations.
+No Terraform plan supplied; this checks source data, not deployed resources or a Terraform evaluation.
+test_action_change_is_rejected (test_security_verifier.SecurityVerifierTests.test_action_change_is_rejected) ... ok
+test_destination_change_is_rejected (test_security_verifier.SecurityVerifierTests.test_destination_change_is_rejected) ... ok
+test_http_https_cross_product_is_rejected (test_security_verifier.SecurityVerifierTests.test_http_https_cross_product_is_rejected) ... ok
+test_lifespan_change_is_rejected (test_security_verifier.SecurityVerifierTests.test_lifespan_change_is_rejected) ... ok
+test_matching_fixture_and_source_counts (test_security_verifier.SecurityVerifierTests.test_matching_fixture_and_source_counts) ... ok
+test_missing_rule_is_rejected (test_security_verifier.SecurityVerifierTests.test_missing_rule_is_rejected) ... ok
+test_modified_source_is_rejected (test_security_verifier.SecurityVerifierTests.test_modified_source_is_rejected) ... ok
+test_network_snapshot_drift_is_rejected (test_security_verifier.SecurityVerifierTests.test_network_snapshot_drift_is_rejected) ... ok
+test_snat_change_is_rejected (test_security_verifier.SecurityVerifierTests.test_snat_change_is_rejected) ... ok
+test_source_broadening_is_rejected (test_security_verifier.SecurityVerifierTests.test_source_broadening_is_rejected) ... ok
+test_approved_snapshot (test_verify_network.NetworkVerificationTests.test_approved_snapshot) ... ok
+test_malformed_derived_csv_is_rejected (test_verify_network.NetworkVerificationTests.test_malformed_derived_csv_is_rejected) ... ok
+test_modified_snapshot_is_rejected (test_verify_network.NetworkVerificationTests.test_modified_snapshot_is_rejected) ... ok
+test_onprem_overlap_is_rejected (test_verify_network.NetworkVerificationTests.test_onprem_overlap_is_rejected) ... ok
+test_overlapping_subnets_are_rejected (test_verify_network.NetworkVerificationTests.test_overlapping_subnets_are_rejected) ... ok
+test_plan_must_match_the_entire_environment (test_verify_network.NetworkVerificationTests.test_plan_must_match_the_entire_environment) ... ok
+test_strict_csv_preserves_all_network_fields (test_verify_network.NetworkVerificationTests.test_strict_csv_preserves_all_network_fields) ... ok
+
+----------------------------------------------------------------------
+Ran 17 tests in 0.038s
+
+OK
+[0m[1mInitializing modules...[0m
+- security in ../../modules/security
+
+[0m[1mInitializing provider plugins...[0m
+- Reusing previous version of hashicorp/azurerm from the dependency lock file
+- Installing hashicorp/azurerm v4.62.0...
+- Installed hashicorp/azurerm v4.62.0 (signed by HashiCorp)
+
+[0m[1m[32mTerraform has been successfully initialized![0m[32m[0m
+[32m[1mSuccess![0m The configuration is valid.
+[0m
+Mocked Terraform tests passed: connectivity
+[0m[1mInitializing modules...[0m
+- network in ../../modules/network
+- ingest in ../../modules/ingest
+- subnet_security in ../../modules/security/subnet-controls
+- test.tests.ingest-contract.approved_alert_contract in ../../modules/ingest
+- test.tests.ingest-contract.reject_sensor_subnet in ../../modules/ingest
+- test.tests.ingest-contract.reject_disabled_nsg_enforcement in ../../modules/ingest
+- test.tests.ingest-contract.reject_missing_notifier_rule in ../../modules/ingest
+
+[0m[1mInitializing provider plugins...[0m
+- Reusing previous version of hashicorp/azurerm from the dependency lock file
+- Installing hashicorp/azurerm v4.62.0...
+- Installed hashicorp/azurerm v4.62.0 (signed by HashiCorp)
+
+[0m[1m[32mTerraform has been successfully initialized![0m[32m[0m
+[32m[1mSuccess![0m The configuration is valid.
+[0m
+Mocked Terraform tests passed: dev
+[0m[1mInitializing modules...[0m
+- network in ../../modules/network
+- subnet_security in ../../modules/security/subnet-controls
+
+[0m[1mInitializing provider plugins...[0m
+- Reusing previous version of hashicorp/azurerm from the dependency lock file
+- Installing hashicorp/azurerm v4.62.0...
+- Installed hashicorp/azurerm v4.62.0 (signed by HashiCorp)
+
+[0m[1m[32mTerraform has been successfully initialized![0m[32m[0m
+[32m[1mSuccess![0m The configuration is valid.
+[0m
+Mocked Terraform tests passed: test
+[0m[1mInitializing modules...[0m
+- network in ../../modules/network
+- subnet_security in ../../modules/security/subnet-controls
+
+[0m[1mInitializing provider plugins...[0m
+- Reusing previous version of hashicorp/azurerm from the dependency lock file
+- Installing hashicorp/azurerm v4.62.0...
+- Installed hashicorp/azurerm v4.62.0 (signed by HashiCorp)
+
+[0m[1m[32mTerraform has been successfully initialized![0m[32m[0m
+[32m[1mSuccess![0m The configuration is valid.
+[0m
+Mocked Terraform tests passed: prod
+PASS: 11 explicit source rule IDs checked against actual planned resources; sin discrepancias (development_stable_policy).
+PASS: 34 explicit source rule IDs checked against actual planned resources; sin discrepancias (all_environments_stable_policy).
+PASS: 40 explicit source rule IDs checked against actual planned resources; sin discrepancias (migration_explicitly_selected).
+PASS: 14 explicit source rule IDs checked against actual planned resources; sin discrepancias (subnet_policy_matches_table).
+PASS: 14 explicit source rule IDs checked against actual planned resources; sin discrepancias (subnet_policy_matches_table).
+PASS: 14 explicit source rule IDs checked against actual planned resources; sin discrepancias (subnet_policy_matches_table).
+PASS: 17 explicit source rule IDs checked against actual planned resources; sin discrepancias (subnet_migration_explicitly_selected).
+Security verification completed; evidence hashes recorded.
+Ingest checks completed, including mocked integration and rejection cases. No live Azure deployment was performed.

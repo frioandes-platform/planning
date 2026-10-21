@@ -1,0 +1,27 @@
+{
+  "iac_commit": "c0944a395c8c3acd6cbdcaee6bd97a244c6f05aa",
+  "started_utc": "2026-10-21T22:32:26+00:00",
+  "mode": "terraform-test-mock-provider",
+  "authenticated_plan": false,
+  "azure_deployment": false,
+  "collector_sha256": "31233835db9ca0af289b8a071ae846a5fbf221a1c1ca9c5700fcbed579978ae4",
+  "terraform_version": "1.16.6",
+  "command": "bash scripts/check-ingest.sh",
+  "exit_code": 0,
+  "ended_utc": "2026-10-21T22:33:12+00:00",
+  "complete_mock_validation": true,
+  "provider_lock_sha256": {
+    "connectivity": "1fcd89adcbe6c6420abfaeadf137ea45bf6b7765cf7c7c2a7f93ec03770ed0e8",
+    "dev": "1fcd89adcbe6c6420abfaeadf137ea45bf6b7765cf7c7c2a7f93ec03770ed0e8",
+    "test": "1fcd89adcbe6c6420abfaeadf137ea45bf6b7765cf7c7c2a7f93ec03770ed0e8",
+    "prod": "1fcd89adcbe6c6420abfaeadf137ea45bf6b7765cf7c7c2a7f93ec03770ed0e8"
+  },
+  "failure_reason": "",
+  "evidence_sha256": {
+    "connectivity.jsonl": "e72365e468090495925d358537a8462bb1df91a88bad916a48cebcb33ecf0f30",
+    "dev.jsonl": "79a4c86d72fb51ac8b2776ae8456ddfe151ddc23502e8c0554198a7e9cfc6f7e",
+    "ejecucion.log": "f2b588a5cc35842999cdf500311313cf2db1ef7df1bf382ce3412a5757c38251",
+    "prod.jsonl": "ef1005c81693d4c0f515220130f5768f645c7edfd2e2224843307c76a1d152b5",
+    "test.jsonl": "cf8a67f55fe80364bd08dc607c85701d46071e6aa103fb0bf9a08c8a6c419a7d"
+  }
+}
