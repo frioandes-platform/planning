@@ -14,7 +14,7 @@ Datos, herramientas y reportes que respaldan [`../red-topologia-subnetting.md`](
 | `data/` | `firewall-policy.csv` | Tabla de políticas del firewall de nube, los NSG, el WAF e IoT Hub, regla por regla y ambiente por ambiente. Es la única fuente para el módulo de seguridad de Terraform |
 | `data/` | `firewall-settings.csv` | Configuración general del Azure Firewall: versión, inteligencia de amenazas, rangos sin traducción de origen, proxy DNS, IP públicas y grupos |
 | `tools/` | `verify_ip_plan.py` | Verifica un plan contra el inventario on-premises y las reglas de Azure (12 comprobaciones) |
-| `tools/` | `compare_tfplan.py` | Compara la salida de `terraform show -json` con el plan y la convierte al formato del plan |
+| `tools/` | `compare_tfplan.py` | Compara un `plan` de Terraform con el plan de direcciones y lo convierte al formato del plan. Lee la salida de `terraform show -json` o los planes simulados de `terraform test -json -verbose` |
 | `tools/` | `measure_latency.py` | Mide la latencia TCP hacia cada región |
 | `tools/` | `verify_firewall_policy.py` | Verifica la tabla de políticas contra el plan de direcciones y las reglas del diseño (12 comprobaciones) |
 | `tools/` | `build_drawio_diagrams.py` | Genera los diagramas de draw.io de la red híbrida, las subredes, el firewall, la publicación del portal, la telemetría, los datos personales y la observabilidad |
@@ -22,6 +22,8 @@ Datos, herramientas y reportes que respaldan [`../red-topologia-subnetting.md`](
 | `verification/` | `reporte-ip-plan-aks.md` | Resultado de la verificación de `ip-plan-aks.csv` |
 | `verification/` | `latencia-medida.md` | Resultados de la medición de latencia desde Cali |
 | `verification/` | `reporte-firewall-policy.md` | Resultado de la verificación de `firewall-policy.csv` |
+| `verification/` | `tf-ip-plan.csv` | Las subredes que crea el código de Terraform en los tres ambientes, en el formato del plan (#39) |
+| `verification/` | `reporte-ip-plan-terraform.md` | Resultado de la verificación de `tf-ip-plan.csv`: el no solapamiento comprobado sobre el código (#39) |
 
 ## Verificar el plan
 

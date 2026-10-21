@@ -5,12 +5,21 @@ Usage:
     terraform show -json plan.tfplan > plan.json
     python3 compare_tfplan.py --tfplan plan.json [--plan ../data/ip-plan.csv] [--out-csv tf-ip-plan.csv]
 
-It reads every azurerm_virtual_network and azurerm_subnet in planned_values (root and child modules) and reports:
+    # Without an Azure subscription: the mocked plans of `terraform test`, one file per environment root
+    terraform test -json -verbose > dev.jsonl
+    python3 compare_tfplan.py --tfplan dev.jsonl test.jsonl prod.jsonl --vnets vnet-dev vnet-test vnet-prod
+
+--tfplan takes one or more files: the JSON of `terraform show -json` (planned_values, or resource_changes when the
+plan has unknown values) or the JSON lines of `terraform test -json -verbose` (each test_plan's resource_changes).
+--vnets limits the comparison to those virtual networks, for code that does not build the whole plan yet.
+
+It reads every azurerm_virtual_network and azurerm_subnet in the plan (root and child modules) and reports:
 - virtual networks or subnets that are in ip-plan.csv but not in Terraform, and the reverse;
 - CIDRs that differ.
 With --out-csv it writes the Terraform CIDRs in the ip-plan.csv schema (category, zone, service and internet are taken
 from ip-plan.csv by vnet and subnet name), so verify_ip_plan.py can check the code itself against the 23 on-premises
-subnets. Exit code 0 only when Terraform and ip-plan.csv match exactly.
+subnets; with --vnets, the virtual networks outside the scope keep their ip-plan.csv rows. Exit code 0 only when
+Terraform and ip-plan.csv match exactly.
 """
 import argparse
 import csv
@@ -27,28 +36,50 @@ def modules(module):
         yield from modules(child)
 
 
-def read_tfplan(path):
-    root = json.loads(Path(path).read_text(encoding="utf-8"))["planned_values"]["root_module"]
+def planned_resources(path):
+    """(type, values) of every planned resource, from `terraform show -json` or `terraform test -json -verbose`."""
+    text = Path(path).read_text(encoding="utf-8")
+    try:
+        documents = [json.loads(text)]
+    except json.JSONDecodeError:
+        documents = [json.loads(line)["test_plan"] for line in text.splitlines()
+                     if line.strip() and json.loads(line).get("type") == "test_plan"]
+    for doc in documents:
+        if "planned_values" in doc:
+            for mod in modules(doc["planned_values"]["root_module"]):
+                for res in mod.get("resources", []):
+                    yield res["type"], res.get("values", {})
+        else:
+            for res in doc.get("resource_changes", []):
+                yield res["type"], (res.get("change", {}).get("after") or {})
+
+
+def read_tfplan(paths):
     vnets, subnets = {}, {}
-    for mod in modules(root):
-        for res in mod.get("resources", []):
-            v = res.get("values", {})
-            if res["type"] == "azurerm_virtual_network":
+    for path in paths:
+        for kind, v in planned_resources(path):
+            if kind == "azurerm_virtual_network":
                 vnets[v["name"]] = v.get("address_space", [])
-            elif res["type"] == "azurerm_subnet":
+            elif kind == "azurerm_subnet":
                 subnets[(v["virtual_network_name"], v["name"])] = v.get("address_prefixes", [])
     return vnets, subnets
 
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("--tfplan", required=True)
+    ap.add_argument("--tfplan", required=True, nargs="+")
+    ap.add_argument("--vnets", nargs="+", help="compare only these virtual networks")
     ap.add_argument("--plan", default=str(DATA / "ip-plan.csv"))
     ap.add_argument("--out-csv")
     args = ap.parse_args()
 
     rows = [r for r in csv.DictReader(open(args.plan, encoding="utf-8")) if r["category"] != "reserva"]
     tf_vnets, tf_subnets = read_tfplan(args.tfplan)
+    outside = [r for r in rows if args.vnets and r["vnet"] not in args.vnets]
+    if args.vnets:
+        rows = [r for r in rows if r["vnet"] in args.vnets]
+        tf_vnets = {k: v for k, v in tf_vnets.items() if k in args.vnets}
+        tf_subnets = {k: v for k, v in tf_subnets.items() if k[0] in args.vnets}
     plan_vnets = {r["vnet"]: r["vnet_cidr"] for r in rows}
     plan_subnets = {(r["vnet"], r["subnet"]): r["cidr"] for r in rows}
 
@@ -80,6 +111,7 @@ def main():
                 for prefix in prefixes:
                     w.writerow({**base, "vnet": vnet, "subnet": subnet, "cidr": prefix,
                                 "vnet_cidr": (tf_vnets.get(vnet) or [""])[0]})
+            w.writerows(outside)
             reserves = [r for r in csv.DictReader(open(args.plan, encoding="utf-8")) if r["category"] == "reserva"]
             w.writerows(reserves)
         print(f"CSV con los CIDR de Terraform escrito en {args.out_csv}", file=sys.stderr)
