@@ -1,0 +1,31 @@
+:root{
+  --fa-espacio-0: 0px;
+  --fa-espacio-1: 4px;
+  --fa-espacio-2: 8px;
+  --fa-espacio-3: 12px;
+  --fa-espacio-4: 16px;
+  --fa-espacio-5: 24px;
+  --fa-espacio-6: 32px;
+  --fa-espacio-7: 48px;
+  --fa-espacio-8: 64px;
+  --fa-radio-s: 4px;
+  --fa-radio-m: 8px;
+  --fa-radio-l: 12px;
+  --fa-radio-xl: 16px;
+  --fa-radio-pill: 999px;
+  --fa-fuente-texto: 'Inter', system-ui, sans-serif;
+  --fa-fuente-titulo: 'Inter Tight', 'Inter', system-ui, sans-serif;
+}
+
+.fa-dato-xl { font-family: var(--fa-fuente-texto); font-weight: 700; font-size: 48px; line-height: 56px; letter-spacing: -0.01em; font-variant-numeric: tabular-nums; }
+.fa-dato-l { font-family: var(--fa-fuente-texto); font-weight: 700; font-size: 32px; line-height: 40px; letter-spacing: -0.01em; font-variant-numeric: tabular-nums; }
+.fa-dato-m { font-family: var(--fa-fuente-texto); font-weight: 600; font-size: 20px; line-height: 28px; letter-spacing: 0; font-variant-numeric: tabular-nums; }
+.fa-dato-s { font-family: var(--fa-fuente-texto); font-weight: 600; font-size: 14px; line-height: 20px; letter-spacing: 0; font-variant-numeric: tabular-nums; }
+.fa-titulo-1 { font-family: var(--fa-fuente-titulo); font-weight: 700; font-size: 28px; line-height: 36px; letter-spacing: -0.01em; }
+.fa-titulo-2 { font-family: var(--fa-fuente-titulo); font-weight: 700; font-size: 20px; line-height: 28px; letter-spacing: -0.005em; }
+.fa-texto { font-family: var(--fa-fuente-texto); font-weight: 400; font-size: 16px; line-height: 24px; letter-spacing: 0; }
+.fa-texto-s { font-family: var(--fa-fuente-texto); font-weight: 400; font-size: 14px; line-height: 20px; letter-spacing: 0; }
+.fa-etiqueta { font-family: var(--fa-fuente-texto); font-weight: 600; font-size: 12px; line-height: 16px; letter-spacing: 0.04em; }
+
+/* unidad junto a la cifra: 50 % del tamaño (mín. 12 px), peso 600, color secundario */
+.fa-unidad { font-weight: 600; font-size: 0.5em; font-variant-numeric: normal; }
