@@ -33,9 +33,10 @@ Los tres ambientes de aplicación tienen la misma estructura (las once subredes 
 
 | Pieza | Qué hace | Fuente que no se copia a mano |
 |---|---|---|
-| `modules/network` | Red virtual, subredes, NSG y tablas de rutas de un ambiente | `ip-plan.csv`, leído con `csvdecode` (`red-topologia-subnetting.md`, sección 4.9) |
-| `modules/security` | Azure Firewall, su política y los grupos de reglas, marcando las temporales de la migración | `firewall-policy.csv` (`red-firewall-y-publicacion.md`, sección 4) |
-| `modules/compute` o `modules/ingest` | Un componente de cómputo (Container Apps) o de ingesta (IoT Hub), conectado a la red y la seguridad por referencia | — |
+| `modules/network` | Red virtual y subredes de un ambiente, con sus delegaciones | `ip-plan.csv`, leído con `csvdecode` (`red-topologia-subnetting.md`, sección 4.9) |
+| `modules/security` | Azure Firewall, su política y los grupos de reglas, marcando las temporales de la migración; y, en `subnet-controls`, un NSG por subred con sus reglas | `firewall-policy.csv` (`red-firewall-y-publicacion.md`, sección 4): las reglas del firewall y las de los NSG salen de la misma tabla |
+| `modules/ingest` | El Event Hub de alertas de la telemetría, con endpoint privado, conectado a la red y la seguridad por referencia | `carga-b-telemetria.md`, sección 3.2 |
+| Tablas de rutas | Las rutas que mandan el tráfico de las subredes al Azure Firewall | Pendiente: ningún módulo las crea todavía (`docs/cross-cutting/revision-final-consistencia-y-subnetting.md`, riesgo R-3) |
 | `environments/dev`, `test` y `prod` | Llaman a los módulos con los valores de cada ambiente | — |
 
 - **Estado remoto, uno por ambiente,** en una cuenta de almacenamiento de su suscripción, con bloqueo y versiones. Un error en el estado de desarrollo no toca producción, y la identidad de desarrollo no puede leer el estado de producción.
