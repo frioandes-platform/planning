@@ -3,7 +3,7 @@
 HU F5-02 · Fase 5 (Diseño) · Estado: propuesta v1 para revisión del equipo.
 Depende de F5-01 (logo y paleta): los colores que se mencionan aquí salen de [`logo-y-paleta.md`](logo-y-paleta.md).
 
-Las pantallas de operación se miran bajo presión: lo que más importa (la temperatura y la hora estimada de llegada, ETA) tiene que leerse de un vistazo y sin errores. Este documento fija la tipografía, el espaciado, la grilla y los radios para que la torre de control (de noche) y el portal público (de día) compartan el mismo sistema.
+Las pantallas de operación se miran bajo presión: lo que más importa (la temperatura y la hora estimada de llegada, ETA) tiene que leerse de un vistazo y sin errores. Este documento fija la tipografía, el espaciado, la grilla y los radios para que la torre de control (de noche) y el portal público (de día) compartan el mismo sistema. La sección 7 fija las reglas de los documentos de entrega en PDF, la tercera superficie.
 
 ![Jerarquía tipográfica](tipografia/muestra-jerarquia.png)
 
@@ -133,14 +133,78 @@ Regla para elementos anidados: el radio interior es el exterior menos el relleno
 
 Tarjeta de 2 columnas (292 px): radio 12, relleno 16 px, 4 px entre la etiqueta y la cifra (`dato-l`), 12 px entre la cifra y la insignia. Fondo navy-panel `#10304A`, borde 1 px `#1d4a6b`. La ficha grande usa relleno 24 px, radio 16 y `dato-xl`.
 
-## 7. Criterios de aceptación
+## 7. Documentos de entrega
+
+Los documentos que recibe FríoAndes (el informe de la estrategia, el documento de arquitectura y el documento de costos) son la tercera superficie del sistema: se leen impresos o en PDF, de día y con calma, no en una pantalla de operación. Por eso tienen sus propias reglas, que son las que ya aplican los tres PDF. La fuente de verdad es la plantilla común `docs/presentation/tools/frioandes.typ`: cualquier documento nuevo se genera con ella y hereda estas reglas sin copiarlas.
+
+### 7.1 Tipografía de los documentos
+
+| Uso | Familia | Por qué |
+|---|---|---|
+| Texto, títulos y tablas | **Helvetica Neue** (regular y negrita) | La plantilla compila el PDF en el equipo de quien lo genera, y la fuente tiene que estar instalada en ese momento. Helvetica Neue viene con macOS, se incrusta en el PDF y tiene el mismo carácter sobrio de Inter. Inter e Inter Tight siguen siendo las fuentes de la torre y del portal (sección 2.1) |
+| Código, nombres de archivo y recursos | **Menlo** | Monoespaciada, para que un nombre como `snet-app-torre` se distinga del texto |
+
+| Nivel | Tamaño y peso | Color | Uso |
+|---|---|---|---|
+| Título de capítulo | 21 pt negrita (18 pt en el informe) | navy, con una barra teal de 4 pt a la izquierda y una línea gris-200 debajo | Cada capítulo. En los documentos largos empieza en página nueva; en el informe sigue en la misma página |
+| Título de sección | 13,5 pt negrita | navy | Secciones dentro de un capítulo |
+| Subtítulo | 11 pt negrita | teal | Subsecciones |
+| Cuarto nivel | 10 pt negrita | gris-600 | Detalle dentro de una subsección |
+| Texto | 9,8 pt regular, interlineado 0,66 em, justificado, 1,05 em entre párrafos | navy | Texto corrido y listas, con viñeta teal |
+| Tablas | 8,4 pt | navy; encabezado blanco en negrita | Todas las tablas |
+| Encabezado, pie y leyendas | 8 a 8,4 pt | gris-600 | Título del documento, numeración y leyendas de figura |
+
+Los títulos no se justifican ni se dividen en sílabas. Las negritas van siempre en navy, nunca en teal.
+
+### 7.2 Página
+
+| Elemento | Regla |
+|---|---|
+| Papel y márgenes | A4. Márgenes de 2,2 cm a los lados, 2,6 cm arriba y 2,3 cm abajo |
+| Encabezado | Título del documento a la izquierda y logo principal de 11 pt de alto a la derecha, sobre una línea de 0,4 pt en gris-200 |
+| Pie | Nombre del documento y versión a la izquierda; a la derecha, «Página n de N» en el cuerpo y números romanos en la ficha y el índice. La portada y la carta no llevan encabezado ni pie |
+| Orden | Portada, carta (si la hay), ficha del documento con su historial de versiones, índice y cuerpo |
+| Diagramas | Un diagrama de draw.io de 2.000 px de ancho o más, y más ancho que alto en 1,45 veces, va solo en una página apaisada para que sus rótulos se lean. Los demás van al ancho del texto. Todos llevan leyenda debajo |
+
+### 7.3 Componentes de los documentos
+
+| Componente | Cómo se ve | Cuándo se usa |
+|---|---|---|
+| Portada | Página completa en navy: logo negativo de 6,2 cm, tipo de documento en cian (10,5 pt, negrita, mayúsculas, espaciado de 2 pt), título blanco de 30 pt, subtítulo en hielo de 12,5 pt, la cresta del logo como traza teal con el punto del sensor en cian, y abajo una línea cian con los datos: preparado para, preparado por, fecha y versión | Todo documento de entrega |
+| Carta | Membrete con el logo principal de 1,1 cm y una línea teal de 1,2 pt; texto de 10,5 pt justificado | Solo el informe, que abre el paquete |
+| Ficha del documento | Tabla sin relleno con documento, versión, fecha, destinatario, autor, clasificación y fuente; después, el historial de versiones | Todo documento de entrega |
+| Tabla | Encabezado navy con texto blanco en negrita, filas alternas en niebla, una línea de 0,5 pt en gris-200 bajo cada fila, relleno de 6 × 5 pt y alineación a la izquierda | Toda tabla |
+| Recuadro | Fondo hielo, barra teal de 3 pt a la izquierda y esquinas derechas redondeadas a 3 pt. El texto va en navy | Lo que el lector no se puede saltar: una regla de decisión, una fórmula, un pedido al cliente o el estado de una sección pendiente. Con moderación: si todo va en recuadro, nada resalta |
+| Bloque de código | Fondo niebla, Menlo de 8 pt y radio de 3 pt | Comandos y fragmentos de configuración |
+| Enlace | Teal | Enlaces a sitios externos. Los enlaces a otros archivos del repositorio se escriben como texto, porque el documento se lee sin el repositorio |
+
+### 7.4 Contraste
+
+Calculado con la fórmula de WCAG 2.x, igual que en la sección 2.4:
+
+| Par | Contraste |
+|---|---|
+| Texto navy sobre blanco | 16,82:1 |
+| Texto blanco sobre navy (encabezado de tabla y portada) | 16,82:1 |
+| Texto navy sobre niebla (filas alternas) | 15,47:1 |
+| Texto navy sobre hielo (recuadro) | 14,62:1 |
+| Subtítulo en hielo sobre navy (portada) | 14,62:1 |
+| Rótulos gris-400 sobre navy (portada) | 7,11:1 |
+| Tipo de documento en cian sobre navy (portada) | 6,92:1 |
+| Encabezado, pie y leyendas en gris-600 sobre blanco | 6,16:1 |
+| Enlaces y subtítulos en teal sobre blanco | 5,08:1 |
+| Teal sobre hielo | 4,42:1 |
+
+Todo pasa el 4,5:1 de WCAG AA salvo el teal sobre hielo. Por eso, **dentro de un recuadro no se usa teal**: ni enlaces ni subtítulos, todo el texto va en navy.
+
+## 8. Criterios de aceptación
 
 | Criterio | Cómo se cumple |
 |---|---|
 | Jerarquía tipográfica con al menos 3 niveles (título, texto, dato numérico) y justificación de legibilidad | Sección 2.2 (9 niveles en 3 grupos) y 2.4 (cifras tabulares medidas, ángulo visual calculado, contraste calculado) |
 | Escala de espaciado, grilla y radios con valores concretos | Secciones 3, 4 y 5, con valores en px y comprobación aritmética de la grilla |
 
-## 8. Archivos
+## 9. Archivos
 
 Todo vive en `docs/design/tipografia/`.
 
@@ -153,7 +217,7 @@ Todo vive en `docs/design/tipografia/`.
 
 En Figma, las cifras tabulares se activan en los ajustes avanzados de tipo del estilo de texto (opción de números tabulares); Tokens Studio no guarda esa característica, así que hay que activarla a mano en los cuatro estilos `dato-*`.
 
-## 9. Pendientes y decisiones para el equipo
+## 10. Pendientes y decisiones para el equipo
 
 1. Confirmar la distancia real de lectura de la torre (y el tamaño y resolución de sus pantallas): de eso depende si hace falta ampliar la escala.
 2. Confirmar la convención de coma decimal y reloj de 24 horas con el cliente.
