@@ -1,6 +1,6 @@
 # Logo y paleta de color — FríoAndes
 
-HU F5-02 · Fase 5 (Diseño) · Estado: propuesta v1 para revisión del equipo.
+HU F5-01 · Fase 5 (Diseño) · Estado: propuesta v1 para revisión del equipo.
 
 FríoAndes no tiene manual de marca. Este documento fija el logo y la paleta que usan la torre de control (de noche), el portal público (de día) y las notas de versión, para que las tres superficies se vean como la misma empresa. La paleta sale de los colores que ya usamos en la presentación de avance, así que no hay que rehacer nada de lo entregado.
 
