@@ -2,7 +2,7 @@
 
 Revisión cruzada entre los cuatro grupos de entregables: arquitectura (Fase 1), infraestructura como código (Fase 2), costos (Fase 3) y gestión del cambio (Fase 4). Busca lo que es común en un diseño que evolucionó durante semanas: un documento que cambió y otro que no se actualizó. Al final repite la verificación de no solapamiento de direcciones sobre el código de Terraform.
 
-> **Estado de esta versión, 20 de octubre de 2026.** Están revisadas tres de las cuatro parejas: arquitectura y costos, arquitectura y cambio, y costos y cambio. La pareja arquitectura e IaC tiene una revisión preliminar sobre el módulo de red, que está en revisión (`frioandes-platform/iac`, pull request #2). La verificación final de subnetting sobre el `plan` de Terraform espera a #24. Las dos se completan cuando cierre la Fase 2.
+> **Estado, 21 de octubre de 2026.** Las cuatro parejas están revisadas y la verificación de subnetting está hecha sobre el código de Terraform que está en `main` de `frioandes-platform/iac` (commit `c0944a3`, con los módulos de red, seguridad e ingesta de #20 a #22). Lo que todavía no existe en el código, como el pipeline (#23), el `plan` contra una suscripción real (#24) o las tablas de rutas, queda como riesgo abierto en la sección 7.
 
 ## Contenido
 
@@ -78,29 +78,50 @@ El ejemplo de infraestructura (`docs/change/ejemplo-release-notes-infraestructur
 
 ## 5. Arquitectura e infraestructura como código
 
-Revisión preliminar del módulo de red del pull request #2 de `frioandes-platform/iac` contra la arquitectura. Se hizo en la revisión del 20 de octubre (comentario en #20).
+Revisión de los tres módulos que están en `main` de `frioandes-platform/iac` (commit `c0944a3`) contra la arquitectura. Se corrieron sus verificaciones completas: red, seguridad e ingesta, con 17 pruebas de Python, `validate` y pruebas con proveedor simulado en conectividad, desarrollo, pruebas y producción. Todas pasan.
 
-| Qué | Resultado |
-|---|---|
-| Estructura `modules/` y `environments/dev`, `test` y `prod` | Coincide con `automatizacion-devops.md`, sección 2 |
-| Las 11 subredes de cada ambiente, con nombres y CIDR | Idénticos a `ip-plan.csv`: el módulo los lee del CSV y comprueba sus hashes antes de planear |
-| Delegaciones: MySQL en `snet-data`, Container Apps en la torre, el portal y la función, y Power Platform en `snet-fabric-egress` | Coinciden con la red y la plataforma |
-| Región East US 2 | Coincide |
-| Etiquetas `ambiente`, `carga`, `costo`, `criticidad` y `responsable`, con `costo=compartido` en la red de producción y `pruebas` en desarrollo y pruebas | Coinciden con `gobierno-landing-zone.md`, sección 5 |
-| Salida a internet por defecto deshabilitada en las subredes | Coincide: la única salida es el Azure Firewall |
-| NSG y tablas de rutas | **Riesgo abierto R-1.** `automatizacion-devops.md` dice que `modules/network` crea también los NSG y las tablas de rutas, pero el módulo los deja explícitamente para el módulo de seguridad (#21) |
-| Módulos de seguridad y de cómputo, pipeline y `plan` limpio | Pendientes de #21 a #24 |
+| Qué | Arquitectura | Código | Resultado |
+|---|---|---|---|
+| Estructura | `modules/` y `environments/dev`, `test` y `prod` (`automatizacion-devops.md`, sección 2) | Igual, más `environments/connectivity` para el hub | Coincide |
+| Subredes de los ambientes | Las 11 de `ip-plan.csv` en cada ambiente | Las lee de `ip-plan.csv` y comprueba sus hashes antes de planear | Coincide (sección 6) |
+| Delegaciones y salida a internet | MySQL, Container Apps, función y gateway de Fabric; sin salida por defecto | Las mismas delegaciones; `default_outbound_access_enabled = false` | Coincide |
+| Etiquetas | Las cinco obligatorias, con `costo=compartido` en red y `pruebas` en desarrollo y pruebas (`gobierno-landing-zone.md`, sección 5) | Las mismas, y `ambiente=shared` en conectividad | Coincide |
+| Azure Firewall | Standard, inteligencia de amenazas en bloqueo, sin proxy DNS, una IP de salida, tarjeta de gestión desde el inicio (`red-firewall-y-publicacion.md`, sección 2.2) | Lo mismo, leído de `firewall-settings.csv` | Coincide |
+| Reglas del firewall y de los NSG | `firewall-policy.csv`, con las temporales marcadas | Un solo firewall compartido y un NSG por subred. Las temporales quedan apagadas por defecto y se activan por identificador, con referencia de cambio | Coincide: siete comparaciones "sin discrepancias" (`docs/iac/verificacion-iac-vs-firewall.md`, #21) |
+| Componente de cómputo o ingesta | El Event Hub de alertas de la telemetría, en `snet-data-pe` (`carga-b-telemetria.md`, sección 3.2) | Event Hubs Standard con endpoint privado en `snet-data-pe`, sin acceso público ni claves locales | Coincide |
+| NSG y tablas de rutas | `automatizacion-devops.md` ponía los NSG y las rutas en `modules/network` | Los NSG están en `modules/security`; las rutas no están en ningún módulo | **Corregido** el documento para los NSG (C-5). Las rutas, **riesgo abierto R-3** |
+| Componentes del hub | VPN Gateway, Bastion y DNS Private Resolver, con sus subredes (`red-topologia-subnetting.md`, sección 2.1) | El hub solo tiene las dos subredes del firewall | **Riesgo abierto R-5**: fuera del alcance de #20 a #24 |
+| WAF del portal y reglas de IoT Hub | En `firewall-policy.csv`, puntos de control `waf` e `iot-hub` | No están en el módulo de seguridad, que lo dice explícitamente | **Riesgo abierto R-5** |
+| Pipeline | GitHub Actions con OIDC, aprobación y bloqueo de la ventana (`automatizacion-devops.md`, sección 3) | No existe todavía | **Riesgo abierto R-2** (#23) |
 
 ## 6. Verificación de subnetting sobre el código
 
-**Pendiente de #24.** La verificación final compara el `plan` de Terraform de los tres ambientes con `ip-plan.csv` usando `docs/architecture/red/tools/compare_tfplan.py`, y repite `verify_ip_plan.py` contra las 23 subredes on-premises. El `plan` necesita una suscripción de Azure y es la evidencia de #24.
+La verificación se hizo sobre lo que el código de Terraform va a crear, no sobre el plan en papel:
 
-Lo que ya está verificado:
+1. **El `plan` del código.** Las pruebas de cada ambiente (`terraform test -json -verbose` en `environments/dev`, `test` y `prod` de `iac`, commit `c0944a3`) generan el `plan` con un proveedor simulado, sin suscripción de Azure. De ese `plan` salen las redes virtuales y las subredes que Terraform crearía.
+2. **Comparación con el plan de direcciones.** `docs/architecture/red/tools/compare_tfplan.py`, ampliado para leer los planes de `terraform test`, compara el código con `ip-plan.csv`:
 
-- **Sobre el diseño:** `ip-plan.csv` pasa las 12 comprobaciones de `verify_ip_plan.py`, sin solapamiento. Se volvió a correr el 20 de octubre, después de corregir las comillas de las notas (pull request #64). Hash: `a520eba842e6d7781705613d539fcfd018bfd00481f3842814d07d97036b91a0`.
-- **Sobre el código:** el módulo de red no escribe ningún CIDR a mano. Lee `ip-plan.csv` y una precondición rechaza el `plan` si el hash del archivo no coincide con el registrado. Sus pruebas con proveedor simulado comprueban que las subredes planeadas son las del CSV en los tres ambientes, y pasan.
+```
+Terraform: 3 redes virtuales, 33 subredes · ip-plan.csv: 3 redes virtuales, 33 subredes
+Terraform y ip-plan.csv coinciden: mismas redes virtuales, mismas subredes, mismos CIDR.
+```
 
-Esta sección concluirá "sin solapamiento" o listará las diferencias cuando exista el `plan` de #24.
+3. **No solapamiento sobre el código.** El mismo script escribe las direcciones del código en el formato del plan (`docs/architecture/red/verification/tf-ip-plan.csv`, SHA-256 `1b1caf566058ad882bc18298648052fc8c94223d8c8055ba94a48fe21b3b9b14`). Ahí, los tres ambientes salen del código, y el hub y las reservas, de `ip-plan.csv`. `verify_ip_plan.py` lo compara contra las 23 subredes on-premises y pasa las 12 comprobaciones (`docs/architecture/red/verification/reporte-ip-plan-terraform.md`).
+
+**Conclusión: sin solapamiento.** Las 33 subredes que crea el código en los tres ambientes son idénticas a las del diseño, y ninguna se solapa con Cali, con los centros, con el hub, con las otras subredes ni con las reservas.
+
+**El hub.** El código del hub crea solo las dos subredes del firewall, con los CIDR del plan. Las otras cuatro (VPN Gateway, Bastion y las dos del DNS Private Resolver) todavía no están en el código (riesgo R-5), así que se verificaron sobre el diseño.
+
+**Cómo repetirlo** desde la raíz de `iac` y de `planning`:
+
+```bash
+terraform -chdir=environments/dev test -json -verbose > dev.jsonl    # ídem test y prod
+python3 docs/architecture/red/tools/compare_tfplan.py --tfplan dev.jsonl test.jsonl prod.jsonl \
+  --vnets vnet-dev vnet-test vnet-prod --out-csv tf-ip-plan.csv
+python3 docs/architecture/red/tools/verify_ip_plan.py --plan tf-ip-plan.csv
+```
+
+Con el `plan` contra una suscripción real de #24 se repite el paso 2 con `terraform show -json`.
 
 ## 7. Inconsistencias corregidas y riesgos abiertos
 
@@ -112,25 +133,29 @@ Esta sección concluirá "sin solapamiento" o listará las diferencias cuando ex
 | C-2 | `ejemplo-release-notes-infraestructura.md`, secciones 1, 8.1 y 9 | Los grupos 400 y 500 seguían completos hasta el 8 de marzo, y faltaba NSG-prod-14 | Nombra FW-401, FW-503, FW-504 y NSG-prod-14, y dice que FW-402 salió en enero |
 | C-3 | Guía de lectura (#15), cronograma e informe | La siembra eran "nueve trabajos más un envío del diferencial", como si fueran diez | Los nueve trabajos son una prueba, siete principales y el diferencial, como dicen la tabla de la siembra y los nueve envíos de #25 |
 | C-4 | `vista-general.md`, sección 6 | Cifras de costo anteriores a #26 y #28 | Corregido en #36 con las cifras vigentes |
+| C-5 | `automatizacion-devops.md`, sección 2 | `modules/network` creaba también los NSG y las tablas de rutas | Los NSG están en `modules/security`, junto con el firewall, porque salen de la misma tabla. Se agregó `modules/ingest`, y las rutas quedan marcadas como pendientes |
 
 **Riesgos abiertos**
 
 | # | Riesgo | Qué lo cierra |
 |---|---|---|
-| R-1 | `automatizacion-devops.md` pone los NSG y las tablas de rutas en `modules/network`, y el módulo los deja para `modules/security` | Cuando cierre #21: se alinea el documento con el código. Tiene sentido que vayan en seguridad, porque las reglas de NSG están en `firewall-policy.csv` junto con las del firewall |
-| R-2 | La verificación de subnetting sobre el `plan` no está hecha | El `plan` limpio de #24 |
-| R-3 | Los módulos de seguridad y de cómputo y el pipeline todavía no existen | #21, #22 y #23 |
+| R-1 | La verificación de subnetting está hecha sobre el `plan` simulado, no contra una suscripción real | El `plan` de #24, repitiendo la sección 6 con `terraform show -json` |
+| R-2 | El pipeline todavía no existe: no hay bloqueo automático de la ventana ni promoción entre ambientes | #23 |
+| R-3 | Ningún módulo crea las tablas de rutas. Sin ellas, el tráfico de las subredes no pasa por el Azure Firewall, y como las subredes no tienen salida por defecto a internet, los servicios se quedarían sin salida | Un módulo de rutas o una ampliación del de red, antes de desplegar. El `plan` de #24 sale limpio igual, así que no lo detecta |
+| R-4 | El cierre `NSG-*-99` de la tabla deniega todo lo que entra con prioridad 4000, antes que las reglas por defecto de Azure. El Application Gateway v2 exige aceptar las sondas de `AzureLoadBalancer` en su subred, y la tabla no tiene esa regla. Hay que revisar lo mismo para la alta disponibilidad de MySQL y para Container Apps | Corregir `firewall-policy.csv` (#9) y volver a correr `verify_firewall_policy.py` y la verificación de #21. El módulo toma el cambio solo, porque lee la tabla |
+| R-5 | El hub del código solo tiene el firewall: faltan el VPN Gateway, Bastion, el DNS Private Resolver y el peering con los ambientes. El WAF del portal y las reglas de IoT Hub tampoco están en el código | Fuera del alcance de #20 a #24, que pide red, seguridad y un componente. Se construyen en la fase de despliegue (cronograma, sección 3) |
 
 ## 8. Supuestos
 
 | Supuesto | Por qué se asume |
 |---|---|
 | Una diferencia de redondeo dentro del mismo orden ("unos USD 4.300" frente a 4.321,93) no es una inconsistencia | Los documentos de arquitectura redondean a propósito y remiten al documento de costos para la cifra exacta |
-| La revisión preliminar del módulo de red vale para la pareja arquitectura e IaC hasta que cierren #21 a #24 | Es el único código que existe al 20 de octubre |
+| El `plan` simulado de `terraform test` vale como verificación sobre el código | Las direcciones salen de la configuración, no de Azure: el proveedor simulado no cambia ningún CIDR. El `plan` real de #24 lo confirma |
+| Lo que no está en el código al 21 de octubre (pipeline, rutas, componentes del hub) se registra como riesgo abierto y no bloquea la revisión | El criterio de la issue permite corregir o registrar como riesgo abierto |
 
 ## 9. Validación y cierre
 
 | Criterio de aceptación | Evidencia |
 |---|---|
-| Se revisan explícitamente las cuatro parejas, y cualquier inconsistencia queda corregida o registrada como riesgo abierto | Secciones 2 a 4 completas; sección 5 preliminar. Cuatro inconsistencias corregidas y tres riesgos abiertos (sección 7). **Pendiente:** completar la sección 5 con #21 a #24 |
-| El chequeo final de subnetting se hace contra el código de Terraform y concluye "sin solapamiento" | **Pendiente de #24** (sección 6) |
+| Se revisan explícitamente las cuatro parejas, y cualquier inconsistencia queda corregida o registrada como riesgo abierto | Secciones 2 a 5: arquitectura y costos, arquitectura y cambio, costos y cambio, y arquitectura e IaC. Cinco inconsistencias corregidas y cinco riesgos abiertos (sección 7) |
+| El chequeo final de subnetting se hace contra el código de Terraform y concluye "sin solapamiento" | Sección 6: el `plan` del código de los tres ambientes coincide con `ip-plan.csv` y pasa las 12 comprobaciones contra las 23 subredes on-premises. **Sin solapamiento** |
