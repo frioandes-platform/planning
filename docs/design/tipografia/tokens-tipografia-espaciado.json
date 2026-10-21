@@ -1,0 +1,163 @@
+{
+  "tipografia": {
+    "dato-xl": {
+      "value": {
+        "fontFamily": "Inter",
+        "fontWeight": "700",
+        "fontSize": "48",
+        "lineHeight": "56",
+        "letterSpacing": "-1%"
+      },
+      "type": "typography",
+      "description": "Cifra principal de una ficha (temperatura actual del contenedor o cámara) · activar cifras tabulares (tnum)"
+    },
+    "dato-l": {
+      "value": {
+        "fontFamily": "Inter",
+        "fontWeight": "700",
+        "fontSize": "32",
+        "lineHeight": "40",
+        "letterSpacing": "-1%"
+      },
+      "type": "typography",
+      "description": "Cifra en tarjetas de la torre y del portal (temperatura, ETA) · activar cifras tabulares (tnum)"
+    },
+    "dato-m": {
+      "value": {
+        "fontFamily": "Inter",
+        "fontWeight": "600",
+        "fontSize": "20",
+        "lineHeight": "28",
+        "letterSpacing": "0%"
+      },
+      "type": "typography",
+      "description": "Cifras secundarias (consigna, ETA en tarjeta compacta, KPIs) · activar cifras tabulares (tnum)"
+    },
+    "dato-s": {
+      "value": {
+        "fontFamily": "Inter",
+        "fontWeight": "600",
+        "fontSize": "14",
+        "lineHeight": "20",
+        "letterSpacing": "0%"
+      },
+      "type": "typography",
+      "description": "Cifras en tablas y listas densas · activar cifras tabulares (tnum)"
+    },
+    "titulo-1": {
+      "value": {
+        "fontFamily": "Inter Tight",
+        "fontWeight": "700",
+        "fontSize": "28",
+        "lineHeight": "36",
+        "letterSpacing": "-1%"
+      },
+      "type": "typography",
+      "description": "Título de pantalla"
+    },
+    "titulo-2": {
+      "value": {
+        "fontFamily": "Inter Tight",
+        "fontWeight": "700",
+        "fontSize": "20",
+        "lineHeight": "28",
+        "letterSpacing": "-0.5%"
+      },
+      "type": "typography",
+      "description": "Título de panel o tarjeta"
+    },
+    "texto": {
+      "value": {
+        "fontFamily": "Inter",
+        "fontWeight": "400",
+        "fontSize": "16",
+        "lineHeight": "24",
+        "letterSpacing": "0%"
+      },
+      "type": "typography",
+      "description": "Texto corrido y descripciones"
+    },
+    "texto-s": {
+      "value": {
+        "fontFamily": "Inter",
+        "fontWeight": "400",
+        "fontSize": "14",
+        "lineHeight": "20",
+        "letterSpacing": "0%"
+      },
+      "type": "typography",
+      "description": "Texto de apoyo, ayudas, pies"
+    },
+    "etiqueta": {
+      "value": {
+        "fontFamily": "Inter",
+        "fontWeight": "600",
+        "fontSize": "12",
+        "lineHeight": "16",
+        "letterSpacing": "4%"
+      },
+      "type": "typography",
+      "description": "Rótulo sobre una cifra («TEMPERATURA», «ETA»); nunca para cifras"
+    }
+  },
+  "espaciado": {
+    "0": {
+      "value": "0",
+      "type": "spacing"
+    },
+    "1": {
+      "value": "4",
+      "type": "spacing"
+    },
+    "2": {
+      "value": "8",
+      "type": "spacing"
+    },
+    "3": {
+      "value": "12",
+      "type": "spacing"
+    },
+    "4": {
+      "value": "16",
+      "type": "spacing"
+    },
+    "5": {
+      "value": "24",
+      "type": "spacing"
+    },
+    "6": {
+      "value": "32",
+      "type": "spacing"
+    },
+    "7": {
+      "value": "48",
+      "type": "spacing"
+    },
+    "8": {
+      "value": "64",
+      "type": "spacing"
+    }
+  },
+  "radio": {
+    "s": {
+      "value": "4",
+      "type": "borderRadius"
+    },
+    "m": {
+      "value": "8",
+      "type": "borderRadius"
+    },
+    "l": {
+      "value": "12",
+      "type": "borderRadius"
+    },
+    "xl": {
+      "value": "16",
+      "type": "borderRadius"
+    },
+    "pill": {
+      "value": "999",
+      "type": "borderRadius"
+    }
+  }
+}
