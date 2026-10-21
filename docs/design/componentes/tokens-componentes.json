@@ -1,0 +1,252 @@
+{
+  "componentes": {
+    "dia": {
+      "fondo-pagina": {
+        "value": "#F2F6F8",
+        "type": "color",
+        "description": "Fondo de la pantalla"
+      },
+      "superficie": {
+        "value": "#FFFFFF",
+        "type": "color",
+        "description": "Tarjetas, alertas, paneles"
+      },
+      "texto": {
+        "value": "#0A1F2E",
+        "type": "color",
+        "description": "Texto principal"
+      },
+      "texto-secundario": {
+        "value": "#52646F",
+        "type": "color",
+        "description": "Texto secundario"
+      },
+      "anillo-foco": {
+        "value": "#0A1F2E",
+        "type": "color",
+        "description": "Anillo de foco (2 px, separación 2 px)"
+      },
+      "borde-control": {
+        "value": "#52646F",
+        "type": "color",
+        "description": "Borde de campos (1 px)"
+      },
+      "boton-primario-relleno": {
+        "value": "#0D7894",
+        "type": "color",
+        "description": "Relleno del botón primario"
+      },
+      "boton-primario-texto": {
+        "value": "#FFFFFF",
+        "type": "color",
+        "description": "Texto del botón primario"
+      },
+      "boton-secundario": {
+        "value": "#0D7894",
+        "type": "color",
+        "description": "Texto y borde del botón secundario"
+      },
+      "campo-relleno": {
+        "value": "#FFFFFF",
+        "type": "color",
+        "description": "Relleno del campo"
+      },
+      "campo-borde-foco": {
+        "value": "#0D7894",
+        "type": "color",
+        "description": "Borde del campo con foco (2 px)"
+      },
+      "deshabilitado-relleno": {
+        "value": "#DDE3E6",
+        "type": "color",
+        "description": "Relleno de un elemento deshabilitado"
+      },
+      "deshabilitado-texto": {
+        "value": "#52646F",
+        "type": "color",
+        "description": "Texto de un elemento deshabilitado"
+      },
+      "deshabilitado-borde": {
+        "value": "#A0AAB0",
+        "type": "color",
+        "description": "Borde punteado de un elemento deshabilitado (1 px)"
+      },
+      "campo-marcador": {
+        "value": "#52646F",
+        "type": "color",
+        "description": "Marcador de posición y ayuda del campo"
+      },
+      "borde-tarjeta": {
+        "value": "#C9D4DA",
+        "type": "color",
+        "description": "Borde de tarjeta (decorativo, 1 px)"
+      }
+    },
+    "noche": {
+      "fondo-pagina": {
+        "value": "#0A1F2E",
+        "type": "color",
+        "description": "Fondo de la pantalla"
+      },
+      "superficie": {
+        "value": "#10304A",
+        "type": "color",
+        "description": "Tarjetas, alertas, paneles"
+      },
+      "texto": {
+        "value": "#F2F6F8",
+        "type": "color",
+        "description": "Texto principal"
+      },
+      "texto-secundario": {
+        "value": "#A0AAB0",
+        "type": "color",
+        "description": "Texto secundario"
+      },
+      "anillo-foco": {
+        "value": "#1FB5D6",
+        "type": "color",
+        "description": "Anillo de foco (2 px, separación 2 px)"
+      },
+      "borde-control": {
+        "value": "#A0AAB0",
+        "type": "color",
+        "description": "Borde de campos (1 px)"
+      },
+      "boton-primario-relleno": {
+        "value": "#1FB5D6",
+        "type": "color",
+        "description": "Relleno del botón primario"
+      },
+      "boton-primario-texto": {
+        "value": "#0A1F2E",
+        "type": "color",
+        "description": "Texto del botón primario"
+      },
+      "boton-secundario": {
+        "value": "#1FB5D6",
+        "type": "color",
+        "description": "Texto y borde del botón secundario"
+      },
+      "campo-relleno": {
+        "value": "#0A1F2E",
+        "type": "color",
+        "description": "Relleno del campo"
+      },
+      "campo-borde-foco": {
+        "value": "#1FB5D6",
+        "type": "color",
+        "description": "Borde del campo con foco (2 px)"
+      },
+      "deshabilitado-relleno": {
+        "value": "#10304A",
+        "type": "color",
+        "description": "Relleno de un elemento deshabilitado"
+      },
+      "deshabilitado-texto": {
+        "value": "#A0AAB0",
+        "type": "color",
+        "description": "Texto de un elemento deshabilitado"
+      },
+      "deshabilitado-borde": {
+        "value": "#A0AAB0",
+        "type": "color",
+        "description": "Borde punteado de un elemento deshabilitado (1 px)"
+      },
+      "campo-marcador": {
+        "value": "#A0AAB0",
+        "type": "color",
+        "description": "Marcador de posición y ayuda del campo"
+      },
+      "borde-tarjeta": {
+        "value": "#1D4A6B",
+        "type": "color",
+        "description": "Borde de tarjeta (decorativo, 1 px)"
+      }
+    }
+  },
+  "tamano": {
+    "boton-alto-compacto": {
+      "value": "32",
+      "type": "sizing"
+    },
+    "boton-alto": {
+      "value": "40",
+      "type": "sizing"
+    },
+    "boton-alto-movil": {
+      "value": "48",
+      "type": "sizing"
+    },
+    "boton-ancho-minimo": {
+      "value": "96",
+      "type": "sizing"
+    },
+    "boton-relleno-horizontal": {
+      "value": "16",
+      "type": "sizing"
+    },
+    "campo-alto": {
+      "value": "40",
+      "type": "sizing"
+    },
+    "campo-relleno-horizontal": {
+      "value": "12",
+      "type": "sizing"
+    },
+    "alerta-relleno": {
+      "value": "16",
+      "type": "sizing"
+    },
+    "alerta-barra": {
+      "value": "4",
+      "type": "sizing"
+    },
+    "tarjeta-relleno-compacta": {
+      "value": "16",
+      "type": "sizing"
+    },
+    "tarjeta-relleno-comoda": {
+      "value": "24",
+      "type": "sizing"
+    },
+    "distintivo-alto": {
+      "value": "32",
+      "type": "sizing"
+    },
+    "distintivo-icono": {
+      "value": "22",
+      "type": "sizing"
+    },
+    "anillo-grosor": {
+      "value": "2",
+      "type": "sizing"
+    },
+    "anillo-separacion": {
+      "value": "2",
+      "type": "sizing"
+    }
+  },
+  "radio-componente": {
+    "boton": {
+      "value": "8",
+      "type": "borderRadius"
+    },
+    "campo": {
+      "value": "8",
+      "type": "borderRadius"
+    },
+    "alerta": {
+      "value": "12",
+      "type": "borderRadius"
+    },
+    "tarjeta": {
+      "value": "12",
+      "type": "borderRadius"
+    },
+    "distintivo": {
+      "value": "999",
+      "type": "borderRadius"
+    }
+  }
+}

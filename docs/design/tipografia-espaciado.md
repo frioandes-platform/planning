@@ -1,7 +1,7 @@
 # Tipografía y espaciado — FríoAndes
 
-HU F5-03 · Fase 5 (Diseño) · Estado: propuesta v1 para revisión del equipo.
-Depende de F5-02 (logo y paleta): los colores que se mencionan aquí salen de [`logo-y-paleta.md`](logo-y-paleta.md).
+HU F5-02 · Fase 5 (Diseño) · Estado: propuesta v1 para revisión del equipo.
+Depende de F5-01 (logo y paleta): los colores que se mencionan aquí salen de [`logo-y-paleta.md`](logo-y-paleta.md).
 
 Las pantallas de operación se miran bajo presión: lo que más importa (la temperatura y la hora estimada de llegada, ETA) tiene que leerse de un vistazo y sin errores. Este documento fija la tipografía, el espaciado, la grilla y los radios para que la torre de control (de noche) y el portal público (de día) compartan el mismo sistema.
 
@@ -11,7 +11,7 @@ Las pantallas de operación se miran bajo presión: lo que más importa (la temp
 
 1. **Las cifras mandan.** Hay cuatro niveles solo para datos numéricos, y en una ficha la cifra es siempre el elemento más grande.
 2. **Una cifra nunca se mueve.** Las cifras son tabulares (todos los dígitos del mismo ancho), para que un valor que se actualiza no desplace la columna.
-3. **El estado no se pinta en la cifra.** La cifra va en color neutro; el estado lo lleva la insignia (ícono, texto y color, ver F5-02).
+3. **El estado no se pinta en la cifra.** La cifra va en color neutro; el estado lo lleva la insignia (ícono, texto y color, ver F5-01).
 4. **Todo es múltiplo de 4 px.** Tamaños de interlineado, espacios, anchos de grilla y radios salen de la misma base, para que nada quede «casi alineado».
 
 ## 2. Tipografía
@@ -158,4 +158,4 @@ En Figma, las cifras tabulares se activan en los ajustes avanzados de tipo del e
 1. Confirmar la distancia real de lectura de la torre (y el tamaño y resolución de sus pantallas): de eso depende si hace falta ampliar la escala.
 2. Confirmar la convención de coma decimal y reloj de 24 horas con el cliente.
 3. Alojar Inter e Inter Tight en nuestros propios servidores (no depender de Google Fonts) cuando haya implementación.
-4. Validar la hoja con una persona del turno de noche (F5-02/F5-03).
+4. Validar la hoja con una persona del turno de noche (F5-01/F5-02).

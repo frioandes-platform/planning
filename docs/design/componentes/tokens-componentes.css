@@ -1,0 +1,59 @@
+/* Variables semánticas de los componentes. Los colores de los 4 estados están en ../brand/tokens.css */
+[data-tema="dia"] {
+  --fa-fondo-pagina: #F2F6F8;
+  --fa-superficie: #FFFFFF;
+  --fa-texto: #0A1F2E;
+  --fa-texto-secundario: #52646F;
+  --fa-anillo-foco: #0A1F2E;
+  --fa-borde-control: #52646F;
+  --fa-boton-primario-relleno: #0D7894;
+  --fa-boton-primario-texto: #FFFFFF;
+  --fa-boton-secundario: #0D7894;
+  --fa-campo-relleno: #FFFFFF;
+  --fa-campo-borde-foco: #0D7894;
+  --fa-deshabilitado-relleno: #DDE3E6;
+  --fa-deshabilitado-texto: #52646F;
+  --fa-deshabilitado-borde: #A0AAB0;
+  --fa-campo-marcador: #52646F;
+  --fa-borde-tarjeta: #C9D4DA;
+}
+
+[data-tema="noche"] {
+  --fa-fondo-pagina: #0A1F2E;
+  --fa-superficie: #10304A;
+  --fa-texto: #F2F6F8;
+  --fa-texto-secundario: #A0AAB0;
+  --fa-anillo-foco: #1FB5D6;
+  --fa-borde-control: #A0AAB0;
+  --fa-boton-primario-relleno: #1FB5D6;
+  --fa-boton-primario-texto: #0A1F2E;
+  --fa-boton-secundario: #1FB5D6;
+  --fa-campo-relleno: #0A1F2E;
+  --fa-campo-borde-foco: #1FB5D6;
+  --fa-deshabilitado-relleno: #10304A;
+  --fa-deshabilitado-texto: #A0AAB0;
+  --fa-deshabilitado-borde: #A0AAB0;
+  --fa-campo-marcador: #A0AAB0;
+  --fa-borde-tarjeta: #1D4A6B;
+}
+
+:root {
+  --fa-boton-alto-compacto: 32px;
+  --fa-boton-alto: 40px;
+  --fa-boton-alto-movil: 48px;
+  --fa-boton-ancho-minimo: 96px;
+  --fa-boton-relleno-horizontal: 16px;
+  --fa-campo-alto: 40px;
+  --fa-campo-relleno-horizontal: 12px;
+  --fa-alerta-relleno: 16px;
+  --fa-alerta-barra: 4px;
+  --fa-tarjeta-relleno-compacta: 16px;
+  --fa-tarjeta-relleno-comoda: 24px;
+  --fa-distintivo-alto: 32px;
+  --fa-distintivo-icono: 22px;
+  --fa-anillo-grosor: 2px;
+  --fa-anillo-separacion: 2px;
+}
+
+/* foco visible en todos los componentes interactivos */
+.fa-foco:focus-visible { outline: var(--fa-anillo-grosor) solid var(--fa-anillo-foco); outline-offset: var(--fa-anillo-separacion); }
