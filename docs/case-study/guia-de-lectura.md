@@ -884,6 +884,10 @@ se califica (Criterios) y qué se entrega (Entrega). Esta tabla las une:
   > **Decisión tomada (#28).** Quedan 25 decisiones tomadas y 7 propuestas, cada una con su alternativa obvia, su costo evitado a cinco años y el issue que la originó. Las decididas evitan unos USD 1,85 millones en cinco años. La siembra física no es viable por la red y además sale más barata si Cali cuesta más de USD 520 al mes. Los accesos directos de Fabric evitan USD 325.498 y las licencias Pro en vez de F64 otros 344.832. Ver [`decisiones-ahorro.md`](../costs/decisiones-ahorro.md).
 - **El criterio 3 ("lo entregado en código coincide con lo dibujado") es literal.** El evaluador va a comparar las
   direcciones IP y las reglas del firewall del diagrama con el código de Terraform. Lo revisan #21 y #39.
+
+  > **Decisión tomada (#39).** Las cuatro parejas de entregables están revisadas: se corrigieron cinco inconsistencias y quedan cinco riesgos abiertos. Los más importantes son que ningún módulo crea las tablas de rutas y que el cierre `NSG-*-99` de la tabla bloquea las sondas del Application Gateway. El no solapamiento se verificó sobre el código: el `plan` simulado de Terraform de los tres ambientes tiene las mismas 33 subredes que `ip-plan.csv` y pasa las 12 comprobaciones contra las 23 subredes on-premises. Ver [`revision-final-consistencia-y-subnetting.md`](../cross-cutting/revision-final-consistencia-y-subnetting.md).
+
+  > **Decisión tomada (#40).** El registro de supuestos no tenía filas de once issues (#5, #6, #7, #11, #12, #20 a #22 y #32 a #34) y se completó. El informe calcula desde el registro cuántos supuestos hay y cuántos esperan confirmación. De los seis entregables, tres están completos (diagramas, plantillas y costos) y tres tienen su tarea pendiente nombrada (#23 y #24, #35, #37 y #38). Ver [`checklist-entrega-final.md`](../cross-cutting/checklist-entrega-final.md).
 - **La audiencia es un arquitecto cloud**: tono técnico, no comercial. No se escribe código de negocio.
 
 ---
