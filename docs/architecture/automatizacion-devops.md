@@ -51,21 +51,26 @@ Los tres ambientes de aplicación tienen la misma estructura (las once subredes 
 GitHub Actions, con un GitHub Environment por ambiente:
 
 ```
-pull request
-  → validación: formato, terraform validate, verificadores del plan de direcciones y del firewall
-  → terraform plan contra desarrollo, publicado en el pull request
+pull request (sin acceso a Azure)
+  → validación: formato, terraform validate, terraform test con proveedor simulado,
+    verificadores del plan de direcciones y del firewall, y build de prueba de la imagen
 merge a main
-  → build y push de las imágenes al registro de contenedores (una vez, con su digest)
-  → apply en desarrollo → apply en pruebas, con pruebas automáticas
-  → plan de producción → aprobación en el Environment de producción → apply en producción
+  → build y push de la imagen al registro de contenedores (una vez, con su digest)
+  → plan de desarrollo → apply en desarrollo → plan de pruebas → apply en pruebas
+ejecución manual sobre main, dentro de la ventana (después de las 22:00)
+  → repite desarrollo y pruebas con el mismo commit
+  → plan de conectividad y producción → aprobación en el Environment de producción
+  → apply de conectividad → apply de producción
 ```
+
+El `terraform plan` real no se publica en el pull request: el pull request no tiene identidad en Azure, para que una rama sin revisar no pueda leer el estado ni los secretos. El plan corre en `main`, después del merge, y su lista de cambios queda en el resumen de la ejecución; el plan completo queda en un almacenamiento privado para quien aprueba. Producción solo corre desde una ejecución manual porque un plan guardado vence a las seis horas: un merge a las 15:00 dejaría un plan de producción vencido cuando abre la ventana, a las 22:00.
 
 | Regla | Cómo se cumple |
 |---|---|
 | Promoción controlada | La misma imagen, por su digest, y el mismo código pasan de desarrollo a pruebas y a producción. Nada se construye dos veces |
 | Aprobación para producción | El Environment de producción exige la aprobación de dos personas del comité de cambios, con la release note diligenciada |
-| Sin despliegue productivo fuera de la ventana | Un paso del pipeline rechaza el apply de producción entre las 04:00 y las 22:00 hora de Colombia y en las fechas de campaña, que lee de un archivo del repositorio. La excepción por incidente exige una etiqueta de incidente y la aprobación de seguridad |
-| Ejecutores dentro de la red | Los recursos privados (base, Key Vault, Container Apps internos) se despliegan desde ejecutores autoalojados en `snet-admin` de cada ambiente, separados de las máquinas de operación (`red-acceso-remoto-segunda-nube.md`, sección 2). El build de imágenes puede usar los ejecutores de GitHub |
+| Sin despliegue productivo fuera de la ventana | Un paso del pipeline rechaza el apply de producción entre las 04:00 y las 22:00 hora de Colombia y en las fechas de campaña. Lo revisa después de la aprobación y antes de cada apply, y reserva 30 minutos por cada raíz pendiente: antes de conectividad pide 60, para que la hora no deje producción a medias. El calendario de campañas se lee de un secreto de Key Vault que el pipeline no puede modificar. La excepción por incidente exige una autorización independiente atada al commit y a la ejecución, con su issue en `planning` |
+| Ejecutores dentro de la red | Los recursos privados (base, Key Vault, Container Apps internos) se despliegan desde ejecutores autoalojados en `snet-admin` de cada ambiente, separados de las máquinas de operación (`red-acceso-remoto-segunda-nube.md`, sección 2). Los ejecutores de plan y los de apply tienen etiquetas distintas (`fa-plan` y `fa-apply`) y usan identidades distintas. La validación de los pull request usa los ejecutores de GitHub |
 | Salida controlada de los ejecutores | Solo hacia Azure Resource Manager, Entra ID, GitHub y el registro de contenedores, por el Azure Firewall (reglas FW-303, 306, 309, 312, 315 y 318 de `red-firewall-y-publicacion.md`, sección 4) |
 
 ---
