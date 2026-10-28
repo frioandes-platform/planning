@@ -7,9 +7,11 @@ El procedimiento ejecuta `terraform validate` y `terraform test` con
 `mock_provider "azurerm"`. No se ejecutó el comando independiente
 `terraform plan` autenticado, ni se desplegaron recursos en Azure.
 
-El criterio literal de un plan autenticado permanece pendiente. La aceptación
-de esta evidencia simulada como equivalente académico corresponde al responsable
-de la historia; este documento no afirma que esa aceptación ya exista.
+El criterio literal pide un plan autenticado, que no se puede ejecutar sin
+suscripción. Los senior aceptaron esta evidencia simulada como equivalente
+académico del criterio (decisión registrada en
+[#24](https://github.com/frioandes-platform/planning/issues/24) y en el registro
+de supuestos). El plan autenticado se ejecuta cuando se active el pipeline de #23.
 
 ## Identificación de la ejecución
 
@@ -31,8 +33,6 @@ de la historia; este documento no afirma que esa aceptación ya exista.
 | `dev` | 8 | Aprobadas |
 | `test` | 2 | Aprobadas |
 | `prod` | 3 | Aprobadas |
-
-
 
 ## Cobertura de las historias anteriores
 
@@ -68,6 +68,18 @@ python3 capturar-evidencia.py --iac /ruta/al/iac --out /ruta/nueva/de/evidencia
 El commit debe estar disponible localmente; se obtiene con `git fetch origin main`.
 La carpeta de salida debe ser nueva. El ejecutor no cambia ramas, no crea commits
 y no copia los archivos del paquete encima del repositorio.
+
+La captura se hace en Linux x86-64, como los ejecutores del pipeline. Los archivos
+de bloqueo solo traen el hash del proveedor para `linux_amd64`; en otra plataforma
+`terraform init` agrega el suyo y el capturador marca la validación como
+incompleta aunque las pruebas pasen.
+
+El capturador se corrigió después de esta captura para que funcione en macOS
+(resuelve la carpeta temporal antes de comprobar que el archivo no escapa de
+ella). La captura del 21 de octubre usó la versión anterior, con el SHA-256
+`31233835…` que registra `manifest.json` y que conserva el historial de Git.
+Con la corrección, una nueva ejecución sobre el mismo commit dio las mismas
+pruebas aprobadas por raíz.
 
 ## Límites y conclusión
 

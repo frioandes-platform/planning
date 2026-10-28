@@ -73,7 +73,8 @@ def main():
     record["terraform_version"] = json.loads(version.stdout)["terraform_version"]
     rows, reason = [], ""
     with tempfile.TemporaryDirectory(prefix="frioandes-hu24-") as tmp:
-        work = Path(tmp)
+        # Resolve symlinked temp roots (macOS /var -> /private/var) before the containment check.
+        work = Path(tmp).resolve()
         with tarfile.open(fileobj=io.BytesIO(archive)) as tar:
             for member in tar.getmembers():
                 target = (work / member.name).resolve()
