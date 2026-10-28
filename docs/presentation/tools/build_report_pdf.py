@@ -39,10 +39,12 @@ SUBTITLE = ("Gobierno, seguridad, red híbrida, cargas de trabajo, migración, o
             "infraestructura como código, costos, gestión del cambio y sistema de diseño")
 PREPARED_FOR = "Arquitecto cloud de FríoAndes"
 PREPARED_BY = "Equipo de arquitectura cloud del proyecto"
-VERSION = "1.0"
+VERSION = "1.1"
 HISTORY = [
     ("1.0", "20 de octubre de 2026", "Primera edición, para la revisión del arquitecto cloud antes de la aprobación "
                                      "del diseño y el presupuesto del 13 de noviembre"),
+    ("1.1", "27 de octubre de 2026", "Repositorio de infraestructura como código completo, con pipeline, análisis "
+                                     "estático y costo de cada cambio; sistema de diseño completo"),
 ]
 PACKAGE = [
     ("Informe de la estrategia (este documento)", "La estrategia completa en un solo documento: decisiones, cifras, "
@@ -51,11 +53,13 @@ PACKAGE = [
      "y supuestos", "Arquitecto cloud y equipos técnicos"),
     ("Documento de costos", "Costo de la migración, del mes estable y de campaña, de Fabric, del proyecto completo y "
      "costo total de propiedad", "Gerencia y finanzas"),
-    ("Repositorio de infraestructura como código", "Módulos de Terraform, ambientes y pipeline de despliegue",
+    ("Repositorio de infraestructura como código", "Módulos de Terraform, ambientes, pipeline de despliegue, "
+     "análisis estático y costo de cada cambio",
      "Equipo de plataforma"),
     ("Plantillas de notas de versión", "Plantillas de aplicación y de infraestructura, cada una con su ejemplo",
      "Comité de cambios y operación"),
-    ("Sistema de diseño", "Logo, paleta, tipografía, componentes y reglas de uso", "Diseño y desarrollo"),
+    ("Sistema de diseño", "Logo, paleta, tipografía, componentes, reglas de uso y la lámina que los aplica",
+     "Diseño y desarrollo"),
 ]
 
 

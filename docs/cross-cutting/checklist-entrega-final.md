@@ -2,7 +2,7 @@
 
 Compara uno por uno los seis entregables finales del enunciado con lo producido, y comprueba que los supuestos de todos los entregables estén en el registro (`assumptions-log.md`) y que el informe de la estrategia los referencie.
 
-> **Estado, 21 de octubre de 2026.** Tres entregables están completos. Los otros tres tienen su parte principal hecha y una tarea pendiente nombrada: el pipeline y el `plan` real del repositorio de IaC (#23 y #24), la presentación de 20 minutos (#37 y #38) y la lámina del sistema de diseño (#35). El registro de supuestos cubre todo lo producido hasta hoy.
+> **Estado, 27 de octubre de 2026.** Cinco entregables están completos. Falta la presentación de 20 minutos y su ensayo (#37 y #38), fuera del tablero. Las 35 tarjetas del tablero están cerradas y el registro de supuestos cubre todo lo producido.
 
 ## Contenido
 
@@ -18,12 +18,12 @@ Compara uno por uno los seis entregables finales del enunciado con lo producido,
 
 | # | Entregable del enunciado | Artefacto | Estado | Lo que falta |
 |---|---|---|---|---|
-| 1 | Diagramas | `docs/architecture/architecture-frioandes.pdf`: los ocho puntos del reto con sus diagramas, la tabla de subnetting y la tabla de políticas del firewall. Las 26 fuentes editables de draw.io están en `docs/architecture/diagramas/` y las generan scripts | ✅ Completo | Recompilar el PDF al final, con la lámina del sistema de diseño (#35) |
-| 2 | Repositorio Git de infraestructura como código | [`frioandes-platform/iac`](https://github.com/frioandes-platform/iac): módulos de red (#20), seguridad (#21) e ingesta (#22), ambientes de desarrollo, pruebas, producción y conectividad, y verificaciones sin Azure. El no solapamiento está verificado sobre el código (`revision-final-consistencia-y-subnetting.md`, sección 6) | ⏳ Pendiente | #23 pipeline y #24 `plan` limpio contra una suscripción. Antes de desplegar: tablas de rutas y corrección del cierre de los NSG (riesgos R-3 y R-4 de #39) |
+| 1 | Diagramas | `docs/architecture/architecture-frioandes.pdf`: los ocho puntos del reto con sus diagramas, la tabla de subnetting y la tabla de políticas del firewall. Las 26 fuentes editables de draw.io están en `docs/architecture/diagramas/` y las generan scripts | ✅ Completo | — (recompilado el 27 de octubre, con el sistema de diseño completo en el capítulo 8) |
+| 2 | Repositorio Git de infraestructura como código | [`frioandes-platform/iac`](https://github.com/frioandes-platform/iac): módulos de red (#20), seguridad (#21) e ingesta (#22), ambientes de desarrollo, pruebas, producción y conectividad, pipeline de promoción (#23), evidencia del `plan` con proveedor simulado (#24, `docs/iac/evidencia-plan-limpio.md`), TFLint, Checkov y costo de cada cambio con Infracost. El no solapamiento está verificado sobre el código (`revision-final-consistencia-y-subnetting.md`, sección 6) | ✅ Completo | Al activar el pipeline sobre Azure: el primer `plan` autenticado. Antes de desplegar: tablas de rutas y corrección del cierre de los NSG (riesgos R-3 y R-4 de #39) |
 | 3 | Dos plantillas de release notes con su ejemplo | `docs/change/`: plantilla y ejemplo de aplicación, plantilla y ejemplo de infraestructura, y la verificación de la ventana de cambio | ✅ Completo | — |
 | 4 | Documento de costos | `docs/costs/costs-frioandes.pdf`: migración con la siembra, mes estable y campaña, Fabric aparte, costo total del proyecto y decisiones de ahorro, con los supuestos como anexo | ✅ Completo | — |
-| 5 | Presentación de sustentación | Informe de la estrategia `docs/presentation/report.pdf` (#36), versión 1.0, completo | ⏳ Pendiente | #37 presentación de 20 minutos y #38 ensayo, abiertas y fuera del tablero |
-| 6 | Sistema de diseño | `docs/design/`: logo y paleta (#32), tipografía y espaciado (#33), componentes y reglas de uso (#34), y las reglas de los documentos de entrega | ⏳ Pendiente | #35 lámina consolidada |
+| 5 | Presentación de sustentación | Informe de la estrategia `docs/presentation/report.pdf` (#36), versión 1.1, completo | ⏳ Pendiente | #37 presentación de 20 minutos y #38 ensayo, abiertas y fuera del tablero |
+| 6 | Sistema de diseño | `docs/design/`: logo y paleta (#32), tipografía y espaciado (#33), componentes y reglas de uso (#34), la lámina que los aplica en tres pantallas (#35, `docs/design/sistema-de-diseno-frioandes.md`) y las reglas de los documentos de entrega | ✅ Completo | — |
 
 ## 2. Supuestos: registro completo y referenciado desde el informe
 
@@ -43,7 +43,7 @@ Compara uno por uno los seis entregables finales del enunciado con lo producido,
 | #33 | `docs/design/tipografia-espaciado.md` | 3: distancia de lectura, coma decimal y reloj de 24 horas, y fuentes propias |
 | #34 | `docs/design/componentes-y-reglas-de-uso.md` | 3: estados de los componentes, vista del cliente y contraste nocturno |
 
-Con esto, todos los issues que produjeron un documento o un módulo tienen sus supuestos en el registro, de #5 a #22, de #25 a #34, #36, #39 y #40. Los de #23 se agregaron con su pipeline. Quedan por agregar los de #24 y #35 cuando se cierren.
+Con esto, todos los issues que produjeron un documento o un módulo tienen sus supuestos en el registro, de #5 a #36, #39 y #40.
 
 **Referencia desde el informe.** El informe (#36) referencia el registro de tres formas:
 
@@ -62,9 +62,9 @@ Con esto, todos los issues que produjeron un documento o un módulo tienen sus s
 | 8. Migración y campaña | Plan de migración y de siembra | #14 y #15 |
 | 9. Observabilidad | Diseño de observabilidad | #16 |
 | 10. Fabric | Diseños de Fabric | #17, #18 y #27 |
-| 11. IaC y DevOps | Diseño de automatización, cronograma y módulos de `iac` | #19 a #22 |
+| 11. IaC y DevOps | Diseño de automatización, cronograma, módulos y pipeline de `iac` | #19 a #24 |
 | 12. Gestión del cambio | Plantillas, ejemplos y verificación | #29 a #31 |
-| 13. Sistema de diseño | Logo, paleta, tipografía y componentes | #32 a #34 |
+| 13. Sistema de diseño | Logo, paleta, tipografía, componentes y lámina | #32 a #35 |
 | 15 y 16. Cronograma y riesgos | Cronograma y plan de migración | #14, #15 y #19 |
 | 17. Confirmaciones | El propio registro | Todas |
 
@@ -72,11 +72,9 @@ Con esto, todos los issues que produjeron un documento o un módulo tienen sus s
 
 | Qué | Quién | Qué cambia aquí cuando se cierre |
 |---|---|---|
-| #23 pipeline y #24 `plan` limpio | juandavid175 | El entregable 2 pasa a completo. Se repite la verificación de subnetting con el `plan` real (riesgo R-1 de #39) y se actualiza la sección 11 del informe |
-| Tablas de rutas y cierre de los NSG (riesgos R-3 y R-4 de #39) | Por asignar | Condición para desplegar, no para entregar |
-| #35 lámina del sistema de diseño | tomoewinds | El entregable 6 pasa a completo. Se actualiza la sección 13 del informe y se recompilan los PDF |
 | #37 presentación y #38 ensayo | Fuera del tablero | El entregable 5 pasa a completo |
-| Supuestos de #24 y #35 | Quien cierre cada una | Se agregan al registro |
+| Primer `plan` autenticado, al activar el pipeline sobre las suscripciones | Equipo de plataforma | Se repite la verificación de subnetting con el `plan` real (riesgo R-1 de #39). Condición para desplegar, no para entregar |
+| Tablas de rutas y cierre de los NSG (riesgos R-3 y R-4 de #39) | Por asignar | Condición para desplegar, no para entregar |
 
 ## 4. Supuestos
 
@@ -90,4 +88,4 @@ Con esto, todos los issues que produjeron un documento o un módulo tienen sus s
 | Criterio de aceptación | Evidencia |
 |---|---|
 | No hay una cifra o decisión relevante del informe sin su supuesto en el registro, y el informe lo referencia explícitamente | Sección 2: el registro cubre todos los documentos y módulos producidos, y el informe lo referencia en la sección 17 y en los anexos B y C |
-| Los seis entregables están marcados como completos con su enlace, o señalados con la tarea que los resuelve | Sección 1: tres completos y tres con su tarea pendiente nombrada (#23 y #24, #35, #37 y #38) |
+| Los seis entregables están marcados como completos con su enlace, o señalados con la tarea que los resuelve | Sección 1: cinco completos y uno con su tarea pendiente nombrada (#37 y #38) |

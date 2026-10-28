@@ -175,13 +175,15 @@ Los grupos de acción de Azure no envían SMS ni hacen llamadas en Colombia, as�
 
 # 11. Infraestructura como código y DevOps
 
-**Repositorio.** `frioandes-platform/iac`, en Terraform con el proveedor `azurerm`. Los módulos son reutilizables y los tres ambientes los llaman con sus propios valores. El módulo de red lee el plan de direcciones del CSV verificado, sin copiar ningún rango a mano. El módulo de seguridad leerá de la misma forma la tabla de políticas del firewall. Cada ambiente tiene su estado remoto en su propia suscripción, con bloqueo y versiones.
+**Repositorio.** `frioandes-platform/iac`, en Terraform con el proveedor `azurerm` fijado en los lock files. Tiene tres módulos reutilizables: red, seguridad e ingesta. Los tres ambientes y la conectividad compartida los llaman con sus propios valores. El módulo de red lee el plan de direcciones del CSV verificado y el de seguridad lee la tabla de políticas del firewall, sin copiar ningún rango ni regla a mano. Cada raíz tiene su estado remoto separado.
 
-**Pipeline.** GitHub Actions, con un Environment por ambiente. Un pull request valida el formato, los verificadores de la red y del firewall, y publica el `plan`. El merge construye las imágenes una sola vez y la misma imagen, por su digest, pasa de desarrollo a pruebas y a producción. Producción exige la aprobación de dos personas del comité de cambios con la nota de versión diligenciada. **Un paso del pipeline rechaza el `apply` de producción entre las 04:00 y las 22:00 y en las fechas de campaña**; la única excepción es un incidente, con etiqueta y aprobación de seguridad.
+**Pipeline.** GitHub Actions, con un Environment por ambiente. Un pull request no tiene identidad en Azure: valida el formato, corre `terraform validate` y `terraform test` con proveedor simulado, los verificadores de la red y del firewall, **TFLint** y **Checkov**, y deja un comentario con **cuánto cambia el costo mensual** según Infracost. El merge construye la imagen una sola vez y promueve a desarrollo y a pruebas con el `plan` guardado de cada una. Producción corre desde una ejecución manual dentro de la ventana, con la misma imagen por su digest, y exige la aprobación del Environment de producción. **Un paso del pipeline rechaza el `apply` de producción entre las 04:00 y las 22:00 y en las fechas de campaña**, y reserva tiempo para terminar las dos raíces de producción antes de las 04:00. La única excepción es un incidente, con una autorización independiente atada al commit.
+
+**Costo de cada cambio.** Infracost calcula el costo de la rama base y del cambio y comenta la diferencia en el pull request; en cada merge deja el costo mensual de toda la infraestructura. Hoy la infraestructura del repositorio cuesta unos USD 1.212 al mes, casi todo el Azure Firewall, con la misma cifra de tráfico que el documento de costos.
 
 **Identidades.** Cada ambiente tiene su identidad de despliegue, federada con GitHub por OIDC y limitada a su suscripción. Los recursos privados se despliegan desde ejecutores autoalojados en la subred de administración, con salida solo a Azure, Entra ID, GitHub y el registro de contenedores.
 
-> **Estado al 20 de octubre de 2026.** El módulo de red y la estructura del repositorio están en revisión: crean las once subredes de cada ambiente con CIDR idénticos al plan, y sus pruebas pasan en los tres ambientes. Los módulos de seguridad y de cómputo están en construcción. El pipeline y la evidencia de un `plan` limpio sobre los tres módulos cierran la Fase 2, prevista para el 27 de noviembre. Esta sección se actualiza con esa evidencia en la próxima versión del informe.
+> **Estado al 27 de octubre de 2026.** Los módulos de red, seguridad e ingesta y el pipeline están terminados. Las pruebas con proveedor simulado pasan en las cuatro raíces (17 escenarios), y la verificación contra la tabla del firewall concluye «sin discrepancias». Sin suscripción de Azure no se puede ejecutar un `plan` autenticado; esa evidencia simulada se aceptó como equivalente, y el plan real corre cuando el pipeline se active sobre las suscripciones de FríoAndes. Antes de desplegar faltan las tablas de rutas hacia el firewall y ajustar el cierre de los NSG para las sondas de Azure.
 
 ![Ambientes y promoción: el mismo código y la misma imagen pasan de desarrollo a pruebas y a producción](../architecture/diagramas/ambientes-pipeline.drawio.png)
 
@@ -192,7 +194,7 @@ Cada cambio en producción lleva una nota de versión. Hay dos plantillas: una d
 | Regla | Cómo se cumple |
 |---|---|
 | Ningún cambio en producción de 04:00 a 22:00 | La ventana va de 22:00 a 04:00 (de 03:00 a 09:00 UTC), y el pipeline bloquea el resto del día |
-| Ningún cambio durante una campaña | Fin de año, Semana Santa y mitad de año, leídas de un archivo del repositorio |
+| Ningún cambio durante una campaña | Fin de año, Semana Santa y mitad de año, leídas de un calendario en Key Vault que el pipeline no puede modificar |
 | Aprobación | Dos personas del comité de cambios, distintas de quien escribió el cambio, al menos dos días hábiles antes. Un corte o un cambio que no se deshace con un `apply`, con al menos cinco días y una aprobación adicional |
 | Aviso | Siempre a despacho y a la guardia de calidad, aunque el cambio no los toque. A los clientes, solo si el portal se interrumpe |
 | Vuelta atrás | Aplicación: mover el tráfico a la revisión anterior de Container Apps, en minutos. Infraestructura: revertir el commit y aplicar por el mismo pipeline. Fuera de la ventana, solo como excepción por incidente |
@@ -205,9 +207,13 @@ La torre se usa de noche, el portal de día y las notas de versión se imprimen.
 
 - **Logo.** Una cresta de montaña dibujada como una traza de temperatura, que termina en el punto del sensor. Tiene tres versiones: principal para el portal, negativo para la torre de noche y una tinta para las notas impresas.
 - **Paleta.** Navy, teal andino y cian glaciar como colores de marca. Los cuatro estados de la operación tienen un color cada uno: normal `#2BB673`, advertencia `#F5A524`, excursión de temperatura `#D93A2B` y sensor sin señal `#9374E7`.
+- **Tipografía y espaciado.** Inter para el texto y las cifras, con cifras tabulares para que las temperaturas no bailen, e Inter Tight para los títulos. Nueve niveles de texto y una base de 4 px para todos los espacios, grillas y radios.
+- **Componentes.** Botón, campo, alerta, tarjeta y distintivo de estado, cada uno en normal, foco y deshabilitado. Las reglas de uso fijan, por ejemplo, que el portal del cliente solo muestra sus propias guías, sin camión, ruta ni video.
 - **Accesibilidad.** Todas las combinaciones de texto pasan 4,5:1 de contraste. El color nunca va solo: cada estado lleva su ícono con una forma distinta y su texto, para que se distinga con daltonismo o con el brillo bajo del turno de noche.
 
-> **Estado al 20 de octubre de 2026.** El logo y la paleta están cerrados. La tipografía, el espaciado, los componentes base y la lámina consolidada están en construcción, y se incorporan en la próxima versión del informe. Este documento ya usa el logo y la paleta del sistema.
+La lámina final aplica todo el sistema en tres pantallas: la torre de control de noche y el portal del cliente en escritorio y en el móvil. Los documentos de entrega, como este informe, siguen las reglas de impresión del mismo sistema.
+
+![Lámina del sistema de diseño: la torre de control de noche y el portal del cliente con las mismas piezas](../design/lamina/lamina-sistema-de-diseno.png)
 
 # 14. Costos
 
@@ -284,7 +290,7 @@ El registro de supuestos tiene {{supuestos}} entradas, y {{por_confirmar}} de el
 1. **Revisión de este informe con el arquitecto cloud de FríoAndes**, con los documentos de arquitectura y de costos como anexos.
 2. **Respuesta a las confirmaciones de la sección 17**, en una sesión de aclaraciones.
 3. **Aprobación del diseño y del presupuesto** el viernes 13 de noviembre de 2026.
-4. **Cierre de la Fase 2:** el código de infraestructura y el pipeline, con la evidencia de un `plan` limpio, a más tardar el 27 de noviembre.
+4. **Activación del pipeline** sobre las suscripciones de FríoAndes (identidades OIDC, estado remoto, ejecutores privados y Environments), con el primer `plan` autenticado, más las tablas de rutas, a más tardar el 27 de noviembre. El código y el pipeline ya están terminados.
 5. **Despliegue de pruebas y desarrollo** el 1 de diciembre, y **de hub y producción** el 14 de diciembre, sin usuarios hasta el día 0.
 
 # Anexos
