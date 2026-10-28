@@ -47,7 +47,10 @@ CHAPTERS = [
     ("7. Inteligencia artificial de la torre de control, sobre Microsoft Fabric",
      ["docs/architecture/fabric-workspaces-ingesta-region.md",
       "docs/architecture/fabric-acceso-casos-uso-costo.md"]),
-    ("8. Sistema de diseño", ["docs/design/logo-y-paleta.md"]),
+    ("8. Sistema de diseño", ["docs/design/sistema-de-diseno-frioandes.md",
+                              "docs/design/logo-y-paleta.md",
+                              "docs/design/tipografia-espaciado.md",
+                              "docs/design/componentes-y-reglas-de-uso.md"]),
     ("9. Cronograma general del proyecto", ["docs/architecture/cronograma-proyecto.md"]),
     ("Anexo. Registro de supuestos", ["docs/cross-cutting/assumptions-log.md"]),
 ]

@@ -108,7 +108,10 @@ El `terraform plan` real no se publica en el pull request: el pull request no ti
 | Las reglas del firewall respetan el plan y el diseño | `red/tools/verify_firewall_policy.py` | En cada pull request que toque el firewall |
 | Lo que Terraform va a crear coincide con el plan de direcciones | `red/tools/compare_tfplan.py` sobre el `plan` | Antes de cada apply |
 | El código coincide con la tabla de políticas, regla por regla | Revisión documentada (#21) | Al cerrar el módulo de seguridad |
-| El `plan` corre limpio sobre los tres módulos | Evidencia fechada y con el commit (#24) | Al cerrar la Fase 2 |
+| El `plan` corre limpio sobre los tres módulos | Evidencia fechada y con el commit (#24, `docs/iac/evidencia-plan-limpio.md`) | Al cerrar la Fase 2 |
+| El código Terraform no tiene errores ni valores que el proveedor rechace | TFLint con el ruleset de AzureRM | En cada pull request; bloquea el merge |
+| No hay configuraciones inseguras de Azure | Checkov; cada excepción va en su recurso con la razón (`iac`, `docs/pipeline/static-analysis-and-costs.md`) | En cada pull request; bloquea el merge |
+| Cuánto cambia el costo mensual | Infracost: comentario en el pull request con la diferencia por raíz, y costo total en cada merge | En cada pull request que toque la infraestructura; no bloquea |
 
 ---
 
@@ -119,4 +122,4 @@ El `terraform plan` real no se publica en el pull request: el pull request no ti
 | El repositorio de código y el pipeline viven en GitHub | Es donde está el proyecto; los issues #20 a #24 ya lo fijan |
 | El estado de Terraform va en una cuenta de almacenamiento por ambiente, en su propia suscripción | Aísla el estado igual que los ambientes |
 | La aprobación de producción la dan dos personas del comité de cambios | Separa quien escribe el cambio de quien lo autoriza |
-| El calendario de campañas se mantiene en un archivo del repositorio | El pipeline necesita leerlo para bloquear despliegues; las fechas salen de `carga-c-migracion-y-campana.md`, sección 4.1 |
+| El calendario de campañas se publica en un secreto de Key Vault que el pipeline solo lee, renovado al menos cada 24 horas | El pipeline necesita leerlo para bloquear despliegues, sin poder cambiarlo; las fechas salen de `carga-c-migracion-y-campana.md`, sección 4.1 |
