@@ -43,7 +43,7 @@ Compara uno por uno los seis entregables finales del enunciado con lo producido,
 | #33 | `docs/design/tipografia-espaciado.md` | 3: distancia de lectura, coma decimal y reloj de 24 horas, y fuentes propias |
 | #34 | `docs/design/componentes-y-reglas-de-uso.md` | 3: estados de los componentes, vista del cliente y contraste nocturno |
 
-Con esto, todos los issues que produjeron un documento o un módulo tienen sus supuestos en el registro, de #5 a #22, de #25 a #34, #36, #39 y #40. Quedan por agregar los de #23, #24 y #35 cuando se cierren.
+Con esto, todos los issues que produjeron un documento o un módulo tienen sus supuestos en el registro, de #5 a #22, de #25 a #34, #36, #39 y #40. Los de #23 se agregaron con su pipeline. Quedan por agregar los de #24 y #35 cuando se cierren.
 
 **Referencia desde el informe.** El informe (#36) referencia el registro de tres formas:
 
@@ -76,7 +76,7 @@ Con esto, todos los issues que produjeron un documento o un módulo tienen sus s
 | Tablas de rutas y cierre de los NSG (riesgos R-3 y R-4 de #39) | Por asignar | Condición para desplegar, no para entregar |
 | #35 lámina del sistema de diseño | tomoewinds | El entregable 6 pasa a completo. Se actualiza la sección 13 del informe y se recompilan los PDF |
 | #37 presentación y #38 ensayo | Fuera del tablero | El entregable 5 pasa a completo |
-| Supuestos de #23, #24 y #35 | Quien cierre cada una | Se agregan al registro |
+| Supuestos de #24 y #35 | Quien cierre cada una | Se agregan al registro |
 
 ## 4. Supuestos
 
